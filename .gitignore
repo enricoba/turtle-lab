@@ -3,3 +3,16 @@
 
 # local venv
 venv
+
+
+# runntime
+logs
+labels
+migrations
+security
+
+
+# docker
+Dockerfile
+docker-entrypoint.sh
+gunicorn_config.py

@@ -1,0 +1,819 @@
+<!--
+turtle-lab.org
+Copyright (C) 2017  Henrik Baran
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turtle Lab</title>
+    <!-- Stylesheets via CDN -->
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
+    <!-- Stylesheet Font Awesome CDN -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/5e4c6b402a.css">
+</head>
+<body id="id_body" oncontextmenu="return false;">
+    <!-- NAVBAR -->
+    {% if content != 'login' %}
+    <div id="id_navbar" class="container-fluid" style="margin-bottom: 50px; background-color: #98ccff">
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <!-- NAVBAR HEADER -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed"
+                            data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
+                            aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/rtd/">RTD</a>
+                </div>
+
+                <!-- NAVBAR MAIN -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Master Data
+                            <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/boxes/">Boxes</a></li>
+                                <li><a href="/conditions/">Conditions</a></li>
+                                <li><a href="/locations/">Locations</a></li>
+                                <li><a href="/freeze_thaw_accounts/">Accounts</a></li>
+                                <li><a href="/samples/">Samples</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Logs
+                            <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/movement_log">Movements</a></li>
+                                <li><a href="/login_log">Logins</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Administration
+                            <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/users/">Users</a></li>
+                                <li><a href="/groups/">Groups</a></li>
+                            </ul>
+                    </ul>
+
+                    <!-- NAVBAR RIGHT -->
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if session %}
+                            <li><a href="#"><i class="fa fa-lock" style="color: green"></i> {{ user }}</a></li>
+                            <li><a href="/logout/"><i class="glyphicon glyphicon-log-out"></i></a></li>
+                        {% else %}
+                            <li><a href="#"><i class="fa fa-unlock-alt" style="color: red"></i></a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+    {% endif %}
+
+    <!-- CONTROLBAR -->
+    {% if tables %}
+        <div id="id_controlbar" class="container-fluid" style="background: lightgrey; position: fixed; width:100%">
+             <div class="btn-group-lg" role="group">
+                {% if content != 'movement_log' and content != 'rtd' and content != 'login_log' %}
+                    <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <span class="fa fa-plus"></span></button>
+                    <!--<button id="id_nav_btn_duplicate" type="button" class="btn btn-info">
+                        <span class="glyphicon glyphicon-duplicate"></span></button>-->
+                    <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <span class="fa fa-pencil-square-o"></span></button>
+                    {% if content != 'users' %}
+                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-trash-o"></span></button>
+                    {% endif %}
+                    {% if content == 'users' %}
+                        <button id="id_nav_btn_password" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-key"></span></button>
+                        <button id="id_nav_btn_active" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-user-times"></span></button>
+                    {% endif %}
+
+                    {% if content == 'locations' or content == 'samples' or content == 'boxes' %}
+                        <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-barcode"></span></button>
+                    {% endif %}
+                        <button id="id_nav_btn_audittrail" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-clock-o"></span></button>
+                    {% endif %}
+                {% if content == 'rtd' %}
+                    <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
+                        <span class="fa fa-exchange"></span></button>
+                    {% endif %}
+                 <button id="id_nav_btn_export" type="button" class="btn btn-default disabled">
+                     <span class="fa fa-download"></span></button>
+
+                 <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
+                     <span class="fa fa-filter"></span></button>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- CONTENT -->
+    <div id="id_content" class="container-fluid" style="margin-top:100px">
+        {% if tables %}
+            <!-- Table -->
+            <table id="id_table" class="table table-hover">
+                <thead id="id_thead">
+                    <tr>
+                        {% for head in header %}
+                            <th>{{ head }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody id="id_tbody">
+                    {% block row %}
+                        {% for row in query %}
+                            {{ row|safe }}
+                        {% endfor %}
+                    {% endblock %}
+                </tbody>
+            </table>
+            <!-- NEW -->
+            <div class="modal fade" id="id_modal_new" tabindex="-1" role="dialog" aria-labelledby="id_modal_new">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <!-- HEADER -->
+                        <div class="modal-header">
+                            <a type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                            <h4 class="modal-title" id="id_modal_new">New</h4>
+                        </div>
+                        <!-- BODY -->
+                        <div class="modal-body">
+                            <form id="id_form_new" onsubmit="return false">
+                                {% csrf_token %}
+                                <!-- SPECIFIC -->
+                                <div class="form-group">
+                                    {% if modal_new %}
+                                        {% for item in modal_new %}
+                                            {{ item|safe }}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div id="id_error_new" class="alert alert-danger" style="display: None">
+                                    <a class="close" onclick="$('#id_error_new').hide()">×</a>
+                                    <p id="id_error_new_p"></p>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_new">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDIT -->
+            <div class="modal fade" id="id_modal_edit" tabindex="-1" role="dialog" aria-labelledby="id_modal_edit">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <!-- HEADER -->
+                        <div class="modal-header">
+                            <a type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                            <h4 class="modal-title" id="id_modal_edit">Edit</h4>
+                        </div>
+                        <!-- BODY -->
+                        <div class="modal-body">
+                            <form id="id_form_edit" onsubmit="return false">
+                                {% csrf_token %}
+
+                                <!-- SPECIFIC -->
+                                <div class="form-group">
+                                    {% if modal_edit %}
+                                        {% for item in modal_edit %}
+                                            {{ item|safe }}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div id="id_error_edit" class="alert alert-danger" style="display: None">
+                                    <a class="close" onclick="$('#id_error_edit').hide()">×</a>
+                                    <p id="id_error_edit_p"></p>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" id="id_submit_edit">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Audit Trail -->
+            <div class="modal fade" id="id_modal_audittrail" tabindex="-1" role="dialog" aria-labelledby="id_modal_audittrail">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <!-- HEADER -->
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="id_modal_audittrail">Audit Trail</h4>
+                        </div>
+                        <!-- BODY -->
+                        <div class="container-fluid">
+                            <table class="table table-hover" id="id_table_audittrail">
+                                <thead>
+                                    <tr>
+                                        <!-- SPECIFIC -->
+                                        {% if header_audit_trail %}
+                                            {% for head in header_audit_trail %}
+                                                <th>{{ head }}</th>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- SPECIFIC -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="modal-footer">
+                            <button style="float:left" id="id_nav_audit_trail_btn_export" type="button" class="btn btn-default disabled">
+                                     <span class="glyphicon glyphicon-download-alt"></span></button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- MOVEMENT -->
+            {% if content == 'rtd' %}
+            <div class="modal fade" id="id_modal_movement" tabindex="-1" role="dialog" aria-labelledby="id_modal_movement">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <!-- HEADER -->
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="id_modal_movement">Movement</h4>
+                        </div>
+                        <!-- BODY -->
+                        <div class="modal-body">
+                            <form id="id_form_movement">
+                                {% csrf_token %}
+
+                                <!-- SPECIFIC -->
+                                <div class="form-group">
+                                    {% if modal_movement %}
+                                        {% for item in modal_movement %}
+                                            {{ item|safe }}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div id="id_error_movement" class="alert alert-danger" style="display: None">
+                                    <a class="close" onclick="$('#id_error_movement').hide()">×</a>
+                                    <p id="id_error_movement_p"></p>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_movement">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <!-- SPECIFIC CONTENT -->
+        {% if content == 'login' %}
+            <div class="container">
+                <form id="id_form_login" onsubmit="return false">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {% if login %}
+                            {% for item in login %}
+                                {{ item|safe }}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </form>
+                <!-- ALERT -->
+                <div id="id_error_login" class="alert alert-danger" style="display: None">
+                    <a class="close" onclick="$('#id_error_login').hide()">×</a>
+                    <p id="id_error_login_p"></p>
+                </div>
+                <!-- BUTTON -->
+                <button type="button" class="btn btn-primary" id="id_submit_login">Login</button>
+
+
+            </div>
+        {% endif %}
+
+        <!-- PASSWORD RESET LOGIN -->
+        {% if content == 'login' %}
+            <div class="modal fade" id="id_modal_password" tabindex="-1" role="dialog" aria-labelledby="id_modal_password">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <!-- HEADER -->
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="id_modal_password">Password</h4>
+                        </div>
+                        <!-- BODY -->
+                        <div class="modal-body">
+                            <form id="id_form_password">
+                                <div id="id_info_password" class="alert alert-info">
+                                    <p id="id_info_password_p">Please provide a new password.</p>
+                                </div>
+                                {% csrf_token %}
+
+                                <!-- SPECIFIC -->
+                                <div class="form-group">
+                                    {% if modal_password %}
+                                        {% for item in modal_password %}
+                                            {{ item|safe }}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div id="id_error_password" class="alert alert-danger" style="display: None">
+                                    <a class="close" onclick="$('#id_error_password').hide()">×</a>
+                                    <p id="id_error_password_p"></p>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_password">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- PASSWORD RESET USERS -->
+        {% if content == 'users' %}
+            <div class="modal fade" id="id_modal_password_users" tabindex="-1" role="dialog" aria-labelledby="id_modal_password_users">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <!-- HEADER -->
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="id_modal_password_users">Password</h4>
+                        </div>
+                        <!-- BODY -->
+                        <div class="modal-body">
+                            <form id="id_form_password_users">
+                                <div id="id_info_password_users" class="alert alert-info">
+                                    <p id="id_info_password_users_p">Please provide a new password.</p>
+                                </div>
+                                {% csrf_token %}
+
+                                <!-- SPECIFIC -->
+                                <div class="form-group">
+                                    {% if modal_password_users %}
+                                        {% for item in modal_password_users %}
+                                            {{ item|safe }}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div id="id_error_password_users" class="alert alert-danger" style="display: None">
+                                    <a class="close" onclick="$('#id_error_password_users').hide()">×</a>
+                                    <p id="id_error_password_users_p"></p>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_password_users">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+
+    <!-- FOOTER -->
+    <footer id="id_footer" class="navbar-fixed-bottom" style="background: lightgrey; height: 50px">
+
+    </footer>
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+
+    <!-- JA Bootstrap CDN -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+
+    <script>
+        {% include "lab/js/index.js" %}
+
+        // FUNCTIONS
+
+        function displayError(element, p, message) {
+            if (!$(element).is(':visible')) {
+                $(p).text('').append("<strong>Error! </strong>").append(message);
+                $(element).show();
+            } else {
+                $(p).text('').append("<strong>Error! </strong>").append(message);
+            }
+        }
+
+        // PASSWORD MODAL
+        function showModalPassword(v_user) {
+            $('#id_modal_password').modal("show");
+            $('#id_form_password').trigger("reset").find('#id_user').val(v_user);
+        }
+
+
+        $("#id_submit_password").click(function () {
+            var myDomElement = document.getElementById("id_form_password");
+            var v_user = $(myDomElement).find("#id_user").val();
+            submitPassword(v_user);
+        });
+
+        $('#id_modal_password').keydown(function(e) {
+            if (e.keyCode === 13) {
+                var myDomElement = document.getElementById("id_form_password");
+                var v_user = $(myDomElement).find("#id_user").val();
+                submitPassword(v_user);
+            }
+        }).on('shown.bs.modal', function () {
+            $(this).find('#id_password').first().focus();
+        }).on('hidden.bs.modal', function () {
+            $('#id_error_password').hide();
+        });
+
+
+
+
+        // PASSWORD
+        function submitPassword(v_user) {
+            var myDomElement = document.getElementById("id_form_password");
+            var v_password = $(myDomElement).find("#id_password").val();
+            var v_password_new = $(myDomElement).find("#id_password_new").val();
+            var v_password_repeat = $(myDomElement).find("#id_password_repeat").val();
+            $.ajax({
+                method: "POST",
+                data: {
+                    'dialog': 'password',
+                    'user': v_user,
+                    'password': v_password,
+                    'password_new': v_password_new,
+                    'password_repeat': v_password_repeat
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (!data.response) {
+                        displayError('#id_error_password', '#id_error_password_p', data.message);
+                    } else {
+                        location.reload();
+                    }
+                }
+            });
+        }
+
+
+        // LOGIN
+        function login() {
+            var myDomElement = document.getElementById("id_form_login");
+            var v_user = $(myDomElement).find("#id_user").val();
+            var v_password = $(myDomElement).find("#id_password").val();
+            $.ajax({
+                method: "POST",
+                data: {
+                    'dialog': 'login',
+                    'user': v_user,
+                    'password': v_password
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (!data.response) {
+                        displayError('#id_error_login', '#id_error_login_p', data.message);
+                    } else {
+                        if (data.action === 'initial') {
+                            showModalPassword(v_user);
+                        } else {
+                            location.reload();
+                        }
+                    }
+                }
+            });
+        }
+
+        $("#id_submit_login").click(function () {
+            login();
+        });
+
+        $('#id_form_login').keydown(function(e) {
+            if (e.keyCode === 13) {
+                login();
+            }
+        });
+
+        // ADD
+        function record_new() {
+            var myDomElement = document.getElementById("id_form_new");
+            {% for item in modal_js_get %}
+                {{ item|safe }}
+            {% endfor %}
+            $.ajax({
+                method: "POST",
+                data: {
+                    'dialog': 'new',
+                    {% for item in modal_js_post %}
+                        {{ item|safe }}
+                    {% endfor %}
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.response) {
+                        $('#id_modal_new').modal('hide');
+                        location.reload();
+                    } else {
+                        displayError('#id_error_new', '#id_error_new_p', data.message);
+                    }
+                }
+            });
+        }
+
+
+        $("#id_submit_new").click(function () {
+            record_new();
+        });
+
+        $('#id_modal_new').keydown(function(e) {
+            if (e.keyCode === 13) {
+                  record_new();
+            }
+        }).on('shown.bs.modal', function () {
+            $(this).find('input:text').first().focus();
+        }).on('hidden.bs.modal', function () {
+            $('#id_error_new').hide();
+        });
+
+
+        // PASSWORD IN USERS
+        $('#id_nav_btn_password').click(function() {
+           if (!$(this).hasClass('disabled')) {
+               var v_user = $('#id_table').find('#id_unique').find("td:first").text();
+               $('#id_form_password_users').trigger("reset").find('#id_user').val(v_user);
+               $('#id_modal_password_users').modal('show');
+            }
+        });
+
+
+        function setInitialPassword() {
+            var myDomElement = document.getElementById("id_form_password_users");
+            var v_user = $(myDomElement).find("#id_user").val();
+            var v_password_new = $(myDomElement).find("#id_password_new").val();
+            var v_password_repeat = $(myDomElement).find("#id_password_repeat").val();
+            $.ajax({
+                method: "POST",
+                data: {
+                    'dialog': 'password_users',
+                    'user': v_user,
+                    'password_new': v_password_new,
+                    'password_repeat': v_password_repeat
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (!data.response) {
+                        displayError('#id_error_password_users', '#id_error_password_users_p', data.message);
+                    } else {
+                        location.reload();
+                    }
+                }
+            });
+        }
+
+         $("#id_submit_password_users").click(function () {
+            setInitialPassword();
+        });
+
+        $('#id_modal_password_users').keydown(function(e) {
+            if (e.keyCode === 13) {
+                  setInitialPassword();
+            }
+        }).on('shown.bs.modal', function () {
+            $(this).find('#id_password_new').first().focus();
+        }).on('hidden.bs.modal', function () {
+            $('#id_error_password_users').hide();
+        });
+
+        // MOVEMENT
+        $('#id_nav_btn_movement').click(function() {
+            if (!$(this).hasClass("disabled")) {
+                var item = $('#id_table').find('#id_unique').find("td:first").text();
+                $.ajax({
+                    method: "GET",
+                    data: {
+                        'dialog': 'movement',
+                        'unique': item
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.response) {
+                            $('#id_actual_location').val(data.data);
+                            $('#id_modal_movement').modal("show");
+                        }
+                    }
+                });
+            }
+        });
+
+        $("#id_submit_movement").click( function () {
+            var new_location = $('#id_new_location').val();
+            var actual_location = $('#id_actual_location').val();
+            var item = $('#id_table').find('#id_unique').find("td:first").text();
+            $.ajax({
+                method: "POST",
+                data: {
+                    'dialog': 'movement',
+                    'actual_location': actual_location,
+                    'new_location': new_location,
+                    'unique': item
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.response) {
+                        $('#id_modal_new').modal('hide');
+                        location.reload();
+                    } else {
+                        displayError('#id_error_movement', '#id_error_movement_p', data.message);
+                    }
+                }
+            });
+        });
+
+
+        $('#id_modal_movement').on('shown.bs.modal', function () {
+            $(this).find('#id_new_location').focus()
+        }).on('hidden.bs.modal', function () {
+            $('#id_error_movement').hide();
+        });
+
+        // EDIT
+        function record_edit() {
+            var myDomElement = document.getElementById("id_form_edit");
+            {% for item in modal_js_get %}
+                {{ item|safe }}
+            {% endfor %}
+            $.ajax({
+                method: "POST",
+                data: {
+                    'dialog': 'edit',
+                    {% for item in modal_js_post %}
+                        {{ item|safe }}
+                    {% endfor %}
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.response) {
+                        $('#id_modal_edit').modal('hide');
+                        location.reload();
+                    } else {
+                        displayError('#id_error_edit', '#id_error_edit_p', data.message);
+                    }
+                }
+            });
+        }
+
+
+        $("#id_submit_edit").click(function () {
+            record_edit();
+        });
+
+        $('#id_modal_edit').keydown(function(e) {
+            if (e.keyCode === 13) {
+                  record_edit();
+            }
+        }).on('shown.bs.modal', function () {
+            $(this).find('input:text').first().focus()
+        }).on('hidden.bs.modal', function () {
+            $('#id_error_edit').hide();
+        });
+
+        /*$('#id_modal_edit').on('shown.bs.modal', function () {
+            var values = [];
+            $('#id_table').find('#id_unique').children('.gui').each(function() {
+                values.push($(this).text());
+            });
+
+            var a = 0;
+            values.forEach(function(i) {
+                $('#id_modal_edit').find('p').eq(a).find('input').val(i);
+                a++;
+            });
+        });*/
+
+        // Audittrail
+        $('#id_nav_btn_audittrail').click(function() {
+            if (!$(this).hasClass("disabled")) {
+                $('#id_modal_audittrail tr.tmp_audittrail').remove();
+                var item = $('#id_table').find('#id_unique').find("td:first").text();
+                $.ajax({
+                    method: "GET",
+                    data: {
+                        'dialog': 'audit_trail',
+                        'unique': item
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.response) {
+                            $('#id_table_audittrail tbody').append(data.data);
+                            $('#id_modal_audittrail').modal("show");
+                        }
+                    }
+                });
+            }
+        });
+
+
+        function print_pdf(unique, version, url){
+            var iFrameJQueryObject = $('<iframe id="id_iframe" src="'+url+'" style="display:none"></iframe>');
+            $('body').append(iFrameJQueryObject);
+            iFrameJQueryObject.on('load', function() {
+                $(this).get(0).contentWindow.print();
+                $(this).get(0).contentWindow.onafterprint = function () {
+                    $.ajax({
+                        method: "POST",
+                        data: {
+                            'dialog': 'label_response',
+                            'unique': unique,
+                            'version': version,
+                            'response': 'success'
+                        },
+                        dataType: 'json',
+                        success: function(data) {
+                            return data.response
+                        }
+                    })
+                };
+            });
+
+        }
+
+        // Barcode
+        $('#id_nav_btn_barcode').click(function() {
+            if (!$(this).hasClass("disabled")) {
+                 var unique = $('#id_table').find('#id_unique').find("td:first").text();
+                 var version = $('#id_table').find('#id_unique').find("td.version").text();
+                $.ajax({
+                    method: "POST",
+                    data: {
+                        'dialog': 'label',
+                        'unique': unique,
+                        'version': version
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.response) {
+                            // open print dialog
+                            print_pdf(unique, version, data.pdf);
+                        } else {
+                            alert("Error im Backend.");
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
