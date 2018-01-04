@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 
+{% load widget_tweaks %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           crossorigin="anonymous">
     <!-- Stylesheet Font Awesome CDN -->
     <link rel="stylesheet" href="https://use.fontawesome.com/5e4c6b402a.css">
+
+    <!-- Stylesheet custom -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static "custom.css" %}">
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- NAVBAR -->
@@ -351,19 +357,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <!-- BODY -->
                         <div class="modal-body">
                             <form id="id_form_password">
-                                <div id="id_info_password" class="alert alert-info">
-                                    <p id="id_info_password_p">Please provide a new password.</p>
-                                </div>
                                 {% csrf_token %}
-
                                 <!-- SPECIFIC -->
-                                <div class="form-group">
-                                    {% if modal_password %}
-                                        {% for item in modal_password %}
-                                            {{ item|safe }}
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
+                                    {% for field in modal_password %}
+                                        <div class="form-group">
+                                            {{ field.label_tag }}
+                                            {% render_field field %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
 
                                 <div id="id_error_password" class="alert alert-danger" style="display: None">
                                     <a class="close" onclick="$('#id_error_password').hide()">×</a>

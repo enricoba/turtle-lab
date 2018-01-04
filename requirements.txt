@@ -4,3 +4,4 @@ cffi===1.11.2
 passlib===1.7.1
 svgwrite===1.1.11
 psycopg2===2.7.3.2
+django-widget-tweaks===1.4.1

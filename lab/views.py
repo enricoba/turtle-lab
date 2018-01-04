@@ -1011,17 +1011,15 @@ def index(request):
         return HttpResponseRedirect('/users')
 
     table = models.Users
-    form = forms.LoginForm(request.POST)
-    form_pw = forms.PasswordForm(request.POST)
 
     # POST
     if request.method == 'POST':
         if request.POST.get('dialog') == 'password':
+            form_pw = forms.PasswordForm(request.POST)
             if form_pw.is_valid():
                 username = form_pw.cleaned_data['user']
                 password = form_pw.cleaned_data['password']
                 password_new = form_pw.cleaned_data['password_new']
-                password_repeat = form_pw.cleaned_data['password_repeat']
                 # authenticate user
                 user = authenticate(request=request, username=username, password=password)
                 if user is None:
@@ -1033,7 +1031,7 @@ def index(request):
                     data = {'response': False,
                             'message': message}
                     return JsonResponse(data)
-                if password_new == password_repeat:
+                else:
                     user_new = table.objects.set_initial_password(username=user.username,
                                                                   password=password_new,
                                                                   operation_user=username,
@@ -1055,17 +1053,17 @@ def index(request):
                     data = {'response': response,
                             'message': message}
                     return JsonResponse(data)
-                else:
-                    message = 'New password must match.'
-                    data = {'response': False,
-                            'message': message}
-                    return JsonResponse(data)
             else:
-                message = 'Form is not valid.{}'.format(form_pw.errors)
+                errors = str(form_pw.errors)\
+                    .replace('password_new', 'new password')\
+                    .replace('password_repeat', 'new password confirmation')\
+                    .replace('__all__', 'password check')
+                message = 'Form is not valid.{}'.format(errors)
                 data = {'response': False,
                         'message': message}
                 return JsonResponse(data)
         elif request.POST.get('dialog') == 'login':
+            form = forms.LoginForm(request.POST)
             if form.is_valid():
                 username = form.cleaned_data['user']
                 password = form.cleaned_data['password']
@@ -1078,16 +1076,17 @@ def index(request):
                                 'user': username,
                                 'action': 'initial'}
                         return JsonResponse(data)
-                    # login user
-                    login(request, user)
-                    # message + log entry
-                    message = 'Authentication successful! User "{}" logged in.'.format(user)
-                    # create public log entry
-                    new_login_log(username=username, action='login', active=True)
-                    log.info(message)
-                    data = {'response': True,
-                            'message': message}
-                    return JsonResponse(data)
+                    else:
+                        # login user
+                        login(request, user)
+                        # message + log entry
+                        message = 'Authentication successful! User "{}" logged in.'.format(user)
+                        # create public log entry
+                        new_login_log(username=username, action='login', active=True)
+                        log.info(message)
+                        data = {'response': True,
+                                'message': message}
+                        return JsonResponse(data)
                 else:
                     # check if username exist to track failed login attempts
                     if models.Users.objects.filter(username=username).exists():
@@ -1097,6 +1096,7 @@ def index(request):
                         new_login_log(username=username, action='attempt')
                     # write logs for attack analysis
                     else:
+                        # log entry for security log review
                         message = 'UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username)
                         log.warning(message)
                     # message + log entry
@@ -1106,14 +1106,16 @@ def index(request):
                             'message': message}
                     return JsonResponse(data)
             else:
-                message = 'Form is not valid.{}'.format(form.errors)
+                errors = str(form.errors) \
+                    .replace('user', 'username')
+                message = 'Form is not valid.{}'.format(errors)
                 data = {'response': False,
                         'message': message}
                 return JsonResponse(data)
     # GET
     else:
         context['login'] = [forms.LoginForm().as_p()]
-        context['modal_password'] = [forms.PasswordForm().as_p()]
+        context['modal_password'] = forms.PasswordForm()
         return render(request, 'lab/index.html', context)
 
 

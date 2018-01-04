@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'lab.apps.LabConfig',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -123,8 +125,13 @@ USE_L10N = True
 USE_TZ = True
 
 # FILE SYSTEM SETTINGS
-MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'labels')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'labels')
 MEDIA_URL = '/labels/'
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 SESSION_COOKIE_AGE = 3600
 CONN_MAX_AGE = None

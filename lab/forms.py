@@ -18,8 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 from django import forms
+from django.core.exceptions import ValidationError
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, VOLUMES, TIMES, \
     Conditions, Locations, ORIGIN, FreezeThawAccounts, PERMISSIONS, Groups
+
+
+# variables
+COLOR_MANDATORY = '#FA5858'
 
 
 class ConditionFormNew(forms.Form):
@@ -148,15 +153,63 @@ class MovementsForm(forms.Form):
                                           widget=forms.Select(attrs={'class': 'form-control'}))
 
 
+def validate_password_length(value):
+    if len(value) < 8:
+        raise ValidationError('Password must be longer than 8 characters.')
+
+
 class PasswordForm(forms.Form):
-    user = forms.CharField(label='username', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    password = forms.CharField(label='password', max_length=UNIQUE_LENGTH,
-                               widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password_new = forms.CharField(label='new password', max_length=UNIQUE_LENGTH,
-                                   widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password_repeat = forms.CharField(label='password repeat', max_length=UNIQUE_LENGTH,
-                                      widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    user = forms.CharField(
+        label='Username',
+        max_length=UNIQUE_LENGTH,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'disabled': True
+            }
+        ))
+    password = forms.CharField(
+        label='Password',
+        max_length=UNIQUE_LENGTH,
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'current password'
+            }
+        ),
+        help_text='Enter your password.'
+    )
+    password_new = forms.CharField(
+        label='New password',
+        max_length=UNIQUE_LENGTH,
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'new password'
+            }
+        ),
+        help_text='Enter a new password. Must be longer than 8 characters.',
+        validators=[validate_password_length]
+    )
+    password_repeat = forms.CharField(
+        label='New password confirmation',
+        max_length=UNIQUE_LENGTH,
+        widget=forms.PasswordInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'new password'
+            }
+        ),
+        help_text='Repeat your new password.'
+    )
+
+    def clean(self):
+        cleaned_data = super(PasswordForm, self).clean()
+        password_new = cleaned_data.get('password_new')
+        password_repeat = cleaned_data.get('password_repeat')
+        if password_new and password_repeat:
+            if password_new != password_repeat:
+                raise forms.ValidationError('New passwords must match.')
 
 
 class PasswordFormUsers(forms.Form):
