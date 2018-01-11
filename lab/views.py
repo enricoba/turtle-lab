@@ -32,19 +32,24 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.http import require_http_methods, require_GET, require_POST
+from django.contrib.auth.decorators import login_required
 
 # app imports
 import lab.forms as forms
 import lab.models as models
 import lab.custom as custom
+import lab.decorators as decorators
 
 # define logger
 log = logging.getLogger(__name__)
 
 # secret key
 SECRET = settings.SECRET
+
+# tables
+condition_table = models.Conditions
+conditions_at_table = models.ConditionsAuditTrail
 
 
 def new_login_log(username, action, method='manual', active=None):
@@ -470,7 +475,7 @@ class GetAuditTrail(GetStandard):
 
     @property
     def _table_row_head(self):
-        return '<tr class="tmp_audittrail">'
+        return '<tr class="tmp_audit_trail">'
 
     def get(self, **dic):
         """Function to get audit trail table entries. 
@@ -1008,7 +1013,7 @@ def index(request):
                'session': None,
                'user': None}
     if request.user.is_authenticated:
-        return HttpResponseRedirect('/users')
+        return HttpResponseRedirect('/rtd')
 
     table = models.Users
 
@@ -1132,77 +1137,93 @@ def logout_view(request):
     return HttpResponseRedirect('/')
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET", "POST"])
+@decorators.permission('gr_r', 'gr_w', 'gr_d')
 def groups(request):
-    context = {'tables': True,
-               'content': 'groups',
-               'form': None,
-               'session': True,
-               'user': request.user.username}
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'groups',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.Groups),
+        get_audit_trail=GetAuditTrail(table=models.GroupsAuditTrail),
+        form_render_new=forms.GroupsFormNew(),
+        form_render_edit=forms.GroupsFormEdit())
+    return render(request, 'lab/index.html', context)
 
-    # table information
-    table = models.Groups
-    table_audit_trail = models.GroupsAuditTrail
 
-    # form information
-    form_new = forms.GroupsFormNew(request.POST)
-    form_edit = forms.GroupsFormEdit(request.POST)
-    form_render_new = forms.GroupsFormNew()
-    form_render_edit = forms.GroupsFormEdit()
+@require_GET
+@login_required
+@decorators.permission('gr_r', 'gr_w', 'gr_d')
+@decorators.require_ajax
+def groups_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.GroupsAuditTrail).get(
+        id_ref=models.Groups.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
 
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
-    manipulation = TableManipulation(table=table, table_audit_trail=table_audit_trail)
 
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'new':
-            if form_new.is_valid():
-                permissions = form_new.cleaned_data['permissions'].strip('[').strip(']').strip("'")
-                response, message = manipulation.new_at(user=request.user.username,
-                                                        group=form_new.cleaned_data['group'],
-                                                        permissions=permissions)
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_new.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'delete':
-            response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                    user=request.user.username)
-            data = {'response': response}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'edit':
-            if form_edit.is_valid():
-                permissions = form_edit.cleaned_data['permissions'].strip('[').strip(']').strip("'")
-                response, message = manipulation.edit_at(user=request.user.username,
-                                                         group=form_edit.cleaned_data['group'],
-                                                         permissions=permissions)
-                data = {'response': True,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.'
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-        return render(request, 'lab/index.html', context)
+@require_POST
+@login_required
+@decorators.permission('gr_w')
+@decorators.require_ajax
+def groups_new(request):
+    manipulation = TableManipulation(table=models.Groups,
+                                     table_audit_trail=models.GroupsAuditTrail)
+    form = forms.GroupsFormNew(request.POST)
+    if form.is_valid():
+        permissions = form.cleaned_data['permissions'].strip('[').strip(']').strip("'")
+        response, message = manipulation.new_at(user=request.user.username,
+                                                group=form.cleaned_data['group'],
+                                                permissions=permissions)
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('gr_w')
+@decorators.require_ajax
+def groups_edit(request):
+    manipulation = TableManipulation(table=models.Groups,
+                                     table_audit_trail=models.GroupsAuditTrail)
+    form = forms.GroupsFormEdit(request.POST)
+    if form.is_valid():
+        permissions = form.cleaned_data['permissions'].strip('[').strip(']').strip("'")
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 group=form.cleaned_data['group'],
+                                                 permissions=permissions)
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('gr_d')
+@decorators.require_ajax
+def groups_delete(request):
+    manipulation = TableManipulation(table=models.Groups,
+                                     table_audit_trail=models.GroupsAuditTrail)
+    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                            user=request.user.username)
+    data = {'response': response}
+    return JsonResponse(data)
 
 
 @login_required
@@ -1212,7 +1233,8 @@ def users(request):
                'content': 'users',
                'form': None,
                'session': True,
-               'user': request.user.username}
+               'user': request.user.username,
+               'permissions': request.user.permissions}
 
     # table information
     table = models.Users
@@ -1345,86 +1367,178 @@ def users(request):
         return render(request, 'lab/index.html', context)
 
 
-def co_r(user):
-    return user.permission('co_r')
-
-
-def co_w(user):
-    return user.permission('co_w')
-
-
+@require_GET
 @login_required
-@user_passes_test(co_r)
-@require_http_methods(["GET", "POST"])
+@decorators.permission('co_r', 'co_w', 'co_d')
 def conditions(request):
-    context = {'tables': True,
-               'content': 'conditions',
-               'form': None,
-               'session': True,
-               'user': request.user.username,
-               'write': request.user.permission('co_w')}
-    # table information
-    table = models.Conditions
-    table_audit_trail = models.ConditionsAuditTrail
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'conditions',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.Conditions),
+        get_audit_trail=GetAuditTrail(table=models.ConditionsAuditTrail),
+        form_render_new=forms.ConditionFormNew(),
+        form_render_edit=forms.ConditionFormEdit())
+    return render(request, 'lab/index.html', context)
 
-    # form information
+
+@require_GET
+@login_required
+@decorators.permission('co_r', 'co_w', 'co_d')
+@decorators.require_ajax
+def conditions_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.ConditionsAuditTrail).get(
+        id_ref=models.Conditions.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('co_w')
+@decorators.require_ajax
+def conditions_new(request):
+    manipulation = TableManipulation(table=models.Conditions,
+                                     table_audit_trail=models.ConditionsAuditTrail)
     form = forms.ConditionFormNew(request.POST)
-    form_render_new = forms.ConditionFormNew()
-    form_render_edit = forms.ConditionFormEdit()
+    if form.is_valid():
+        response, message = manipulation.new_at(user=request.user.username,
+                                                condition=form.cleaned_data['condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
 
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
-    manipulation = TableManipulation(table=table, table_audit_trail=table_audit_trail)
 
-    if request.method == 'POST':
-        if request.user.permission('co_w'):
-            if request.POST.get('dialog') == 'new':
-                if form.is_valid():
-                    response, message = manipulation.new_at(user=request.user.username,
-                                                            condition=form.cleaned_data['condition'])
-                    data = {'response': response,
-                            'message': message}
-                    return JsonResponse(data)
-                else:
-                    message = 'Form is not valid.{}'.format(form.errors)
-                    data = {'response': False,
-                            'message': message}
-                    return JsonResponse(data)
-            elif request.POST.get('dialog') == 'delete':
-                response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                        user=request.user.username)
-                data = {'response': response}
-                return JsonResponse(data)
-            elif request.POST.get('dialog') == 'edit':
-                if form.is_valid():
-                    response, message = manipulation.edit_at(user=request.user.username,
-                                                             condition=form.cleaned_data['condition'])
-                    data = {'response': True,
-                            'message': message}
-                    return JsonResponse(data)
-                else:
-                    message = 'Form is not valid.{}'.format(form.errors)
-                    data = {'response': False,
-                            'message': message}
-                    return JsonResponse(data)
-        else:
-            data = {'response': False,
-                    'message': 'No permission.'}
-            return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-        return render(request, 'lab/index.html', context)
+@require_POST
+@login_required
+@decorators.permission('co_w')
+@decorators.require_ajax
+def conditions_edit(request):
+    manipulation = TableManipulation(table=models.Conditions,
+                                     table_audit_trail=models.ConditionsAuditTrail)
+    form = forms.ConditionFormEdit(request.POST)
+    if form.is_valid():
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 condition=form.cleaned_data['condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('co_d')
+@decorators.require_ajax
+def conditions_delete(request):
+        manipulation = TableManipulation(table=models.Conditions,
+                                         table_audit_trail=models.ConditionsAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
+
+
+@require_GET
+@login_required
+@decorators.permission('lo_r', 'lo_w', 'lo_d')
+def locations(request):
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'locations',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.Locations),
+        get_audit_trail=GetAuditTrail(table=models.LocationsAuditTrail),
+        form_render_new=forms.LocationsFormNew(),
+        form_render_edit=forms.LocationsFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('lo_r', 'lo_w', 'lo_d')
+@decorators.require_ajax
+def locations_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.LocationsAuditTrail).get(
+        id_ref=models.Locations.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('lo_w')
+@decorators.require_ajax
+def locations_new(request):
+    manipulation = TableManipulation(table=models.Locations,
+                                     table_audit_trail=models.LocationsAuditTrail)
+    form = forms.LocationsFormNew(request.POST)
+    if form.is_valid():
+        response, message = manipulation.new_identifier_at(user=request.user.username, prefix='L',
+                                                           location='L {}'.format(str(timezone.now())),
+                                                           name=form.cleaned_data['name'],
+                                                           condition=form.cleaned_data['condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('lo_w')
+@decorators.require_ajax
+def locations_edit(request):
+    manipulation = TableManipulation(table=models.Locations,
+                                     table_audit_trail=models.LocationsAuditTrail)
+    form = forms.LocationsFormEdit(request.POST)
+    if form.is_valid():
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 location=form.cleaned_data['location'],
+                                                 name=form.cleaned_data['name'],
+                                                 condition=form.cleaned_data['condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('lo_d')
+@decorators.require_ajax
+def locations_delete(request):
+        manipulation = TableManipulation(table=models.Locations,
+                                         table_audit_trail=models.LocationsAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
 
 
 @login_required
@@ -1434,7 +1548,8 @@ def locations(request):
                'content': 'locations',
                'form': None,
                'session': True,
-               'user': request.user.username}
+               'user': request.user.username,
+               'permissions': request.user.permissions}
 
     # table information
     table = models.Locations
@@ -1525,7 +1640,8 @@ def boxes(request):
                'content': 'boxes',
                'form': None,
                'session': True,
-               'user': request.user.username}
+               'user': request.user.username,
+               'permissions': request.user.permissions}
 
     # table information
     table = models.Boxes
@@ -1618,7 +1734,8 @@ def samples(request):
                'content': 'samples',
                'form': None,
                'session': True,
-               'user': request.user.username}
+               'user': request.user.username,
+               'permissions': request.user.permissions}
 
     # table information
     table = models.Samples
@@ -1717,7 +1834,8 @@ def freeze_thaw_accounts(request):
                'content': 'freeze_thaw_accounts',
                'form': None,
                'session': True,
-               'user': request.user.username}
+               'user': request.user.username,
+               'permissions': request.user.permissions}
 
     # table information
     table = models.FreezeThawAccounts
@@ -1801,44 +1919,36 @@ def freeze_thaw_accounts(request):
         return render(request, 'lab/index.html', context)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET"])
+@decorators.permission('log_mo')
 def movement_log(request):
+    get_log = GetLog(table=models.MovementLog)
     context = {'tables': True,
                'content': 'movement_log',
                'form': None,
                'session': True,
-               'user': request.user.username}
-
-    table = models.MovementLog
-    get_log = GetLog(table=table)
-
-    if request.method == 'GET':
-        # html data
-        context['header'] = get_log.html_header
-        # pass verified query
-        context['query'] = get_log.get()
-        return render(request, 'lab/index.html', context)
+               'user': request.user.username,
+               'permissions': request.user.permissions,
+               'header': get_log.html_header,
+               'query': get_log.get()}
+    return render(request, 'lab/index.html', context)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET"])
+@decorators.permission('log_lo')
 def login_log(request):
+    get_log = GetLog(table=models.LoginLog)
     context = {'tables': True,
                'content': 'login_log',
                'form': None,
                'session': True,
-               'user': request.user.username}
-
-    table = models.LoginLog
-    get_log = GetLog(table=table)
-
-    if request.method == 'GET':
-        # html data
-        context['header'] = get_log.html_header
-        # pass verified query
-        context['query'] = get_log.get()
-        return render(request, 'lab/index.html', context)
+               'user': request.user.username,
+               'permissions': request.user.permissions,
+               'header': get_log.html_header,
+               'query': get_log.get()}
+    return render(request, 'lab/index.html', context)
 
 
 @login_required
@@ -1848,7 +1958,8 @@ def rtd(request):
                'content': 'rtd',
                'form': None,
                'session': True,
-               'user': request.user.username}
+               'user': request.user.username,
+               'permissions': request.user.permissions}
 
     table = models.RTD
     mov_form = forms.MovementsForm(request.POST)

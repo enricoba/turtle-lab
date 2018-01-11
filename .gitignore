@@ -16,3 +16,9 @@ security
 Dockerfile
 docker-entrypoint.sh
 gunicorn_config.py
+
+# static files
+bootstrap-3.3.7-dist
+font-awesome-4.7.0
+jquery
+

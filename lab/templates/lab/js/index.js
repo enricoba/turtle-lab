@@ -59,17 +59,17 @@ var table_row_color = "#98ccff";
 
 
 // NAVIGATION
-$('#id_nav_btn_new').click(function() {
+/*$('#id_nav_btn_new').click(function() {
     if (!$(this).hasClass("disabled")) {
         $('#id_modal_new').modal("show");
         $('#id_form_new').trigger("reset");
     }
-});
+});*/
 
 
 
 
-$('#id_nav_btn_edit').click(function() {
+/*$('#id_nav_btn_edit').click(function() {
     if (!$(this).hasClass("disabled")) {
         $('#id_modal_edit').modal("show");
         $('#id_form_edit').trigger("reset");
@@ -111,11 +111,11 @@ $('#id_nav_btn_edit').click(function() {
             a++;
         });
     }
-});
+});*/
 
 
 // DELETE
-$('#id_nav_btn_delete').click(function() {
+/*$('#id_nav_btn_delete').click(function() {
     if (!$(this).hasClass("disabled")) {
         var items = [];
         $('.selected').each(function() {
@@ -143,7 +143,7 @@ $('#id_nav_btn_delete').click(function() {
             return false;
         }
     }
-});
+});*/
 
 
 // ACTIVATE
@@ -248,7 +248,7 @@ $('#id_table tbody tr').mousedown (function(event) {
             document.getSelection().removeAllRanges();
             $("#id_nav_btn_delete").removeClass('disabled').removeClass('btn-default').addClass('btn-danger');
             $("#id_nav_btn_edit").removeClass('disabled').removeClass('btn-default').addClass('btn-primary');
-            $("#id_nav_btn_audittrail").removeClass('disabled').removeClass('btn-default').addClass('btn-warning');
+            $("#id_nav_btn_audit_trail").removeClass('disabled').removeClass('btn-default').addClass('btn-warning');
             $("#id_nav_btn_movement").removeClass('disabled').removeClass('btn-default').addClass('btn-info');
             $("#id_nav_btn_barcode").removeClass('disabled').removeClass('btn-default').addClass('btn-info');
             $("#id_nav_btn_password").removeClass('disabled').removeClass('btn-default').addClass('btn-info');
@@ -258,7 +258,7 @@ $('#id_table tbody tr').mousedown (function(event) {
                 $(this).addClass('selected');
                 $(this).css("background-color", table_row_color);
                 $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
-                $("#id_nav_btn_audittrail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
+                $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
                 $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
                 $("#id_nav_btn_barcode").addClass('disabled').removeClass('btn-info').addClass('btn-default');
                 $("#id_nav_btn_password").addClass('disabled').removeClass('btn-info').addClass('btn-default');
@@ -272,7 +272,7 @@ $('#id_table tbody tr').mousedown (function(event) {
                     $(this).attr('id', '');
                     $("#id_nav_btn_delete").addClass('disabled').removeClass('btn-danger').addClass('btn-default');
                     $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
-                    $("#id_nav_btn_audittrail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
+                    $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
                     $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
                     $("#id_nav_btn_barcode").addClass('disabled').removeClass('btn-info').addClass('btn-default');
                     $("#id_nav_btn_password").addClass('disabled').removeClass('btn-info').addClass('btn-default');
@@ -300,7 +300,7 @@ $('#id_table tbody tr').mousedown (function(event) {
 $('#id_rest').on("click", function() {
     $("#id_nav_btn_delete").addClass('disabled').removeClass('btn-danger').addClass('btn-default');
     $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
-    $("#id_nav_btn_audittrail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
+    $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
     $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
     $("#id_nav_btn_barcode").addClass('disabled').removeClass('btn-info').addClass('btn-default');
     $('#id_table tr').siblings().removeClass('selected').removeClass('.clicked').css("background-color", "");
@@ -309,7 +309,7 @@ $('#id_rest').on("click", function() {
 $('#id_navbar').on("click", function() {
     $("#id_nav_btn_delete").addClass('disabled').removeClass('btn-danger').addClass('btn-default');
     $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
-    $("#id_nav_btn_audittrail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
+    $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
     $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
     $("#id_nav_btn_barcode").addClass('disabled').removeClass('btn-info').addClass('btn-default');
     $('#id_table tr').siblings().removeClass('selected').removeClass('.clicked').css("background-color", "");
@@ -318,7 +318,7 @@ $('#id_navbar').on("click", function() {
 $('#id_footer').on("click", function() {
     $("#id_nav_btn_delete").addClass('disabled').removeClass('btn-danger').addClass('btn-default');
     $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
-    $("#id_nav_btn_audittrail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
+    $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
     $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
     $("#id_nav_btn_barcode").addClass('disabled').removeClass('btn-info').addClass('btn-default');
     $('#id_table tr').siblings().removeClass('selected').removeClass('.clicked').css("background-color", "");

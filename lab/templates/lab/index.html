@@ -26,16 +26,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turtle Lab</title>
+    {% load static %}
     <!-- Stylesheets via CDN -->
-    <link rel="stylesheet"
+    <!-- <link rel="stylesheet"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-          crossorigin="anonymous">
+          crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="{% static "bootstrap-3.3.7-dist/css/bootstrap.min.css" %}">
     <!-- Stylesheet Font Awesome CDN -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/5e4c6b402a.css">
+    <!-- <link rel="stylesheet" href="https://use.fontawesome.com/5e4c6b402a.css"> -->
+    <link rel="stylesheet" href="{% static "font-awesome-4.7.0/css/font-awesome.min.css" %}">
 
     <!-- Stylesheet custom -->
-    {% load static %}
     <link rel="stylesheet" href="{% static "custom.css" %}">
 </head>
 <body id="id_body" oncontextmenu="return false;">
@@ -65,7 +67,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/boxes/">Boxes</a></li>
-                                <li><a href="/conditions/">Conditions</a></li>
+                                {% if 'co_r' in permissions or 'co_w' in permissions or 'co_d' in permissions %}
+                                    <li><a href="/conditions/">Conditions</a></li>
+                                {% endif %}
                                 <li><a href="/locations/">Locations</a></li>
                                 <li><a href="/freeze_thaw_accounts/">Accounts</a></li>
                                 <li><a href="/samples/">Samples</a></li>
@@ -104,7 +108,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% endif %}
 
     <!-- CONTROLBAR -->
-    {% if tables %}
+    {% if tables or log%}
         <div id="id_controlbar" class="container-fluid" style="background: lightgrey; position: fixed; width:100%">
              <div class="btn-group-lg" role="group">
                 {% if content != 'movement_log' and content != 'rtd' and content != 'login_log' %}
@@ -129,7 +133,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
                             <span class="fa fa-barcode"></span></button>
                     {% endif %}
-                        <button id="id_nav_btn_audittrail" type="button" class="btn btn-default disabled">
+                        <button id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
                             <span class="fa fa-clock-o"></span></button>
                     {% endif %}
                 {% if content == 'rtd' %}
@@ -241,17 +245,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
             <!-- Audit Trail -->
-            <div class="modal fade" id="id_modal_audittrail" tabindex="-1" role="dialog" aria-labelledby="id_modal_audittrail">
+            <div class="modal fade" id="id_modal_audit_trail" tabindex="-1" role="dialog" aria-labelledby="id_modal_audit_trail">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <!-- HEADER -->
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="id_modal_audittrail">Audit Trail</h4>
+                            <h4 class="modal-title" id="id_modal_audit_trail">Audit Trail</h4>
                         </div>
                         <!-- BODY -->
                         <div class="container-fluid">
-                            <table class="table table-hover" id="id_table_audittrail">
+                            <table class="table table-hover" id="id_table_audit_trail">
                                 <thead>
                                     <tr>
                                         <!-- SPECIFIC -->
@@ -366,6 +370,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% if field.help_text %}
                                                 <small class="form-text text-muted">{{ field.help_text }}</small>
                                             {% endif %}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            {% endif %}
                                         </div>
                                     {% endfor %}
 
@@ -436,14 +445,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </footer>
 
     <!-- jQuery CDN -->
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-            crossorigin="anonymous"></script>
+            crossorigin="anonymous"></script> -->
+    <script type="text/javascript" src="{% static "jquery/jquery-3.2.1.min.js" %}"></script>
 
     <!-- JA Bootstrap CDN -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-            crossorigin="anonymous"></script>
+            crossorigin="anonymous"></script> -->
+    <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
+
+    {% if tables %}
+        {% include "lab/audittrail.html" %}
+        {% include "lab/new.html" %}
+        {% include "lab/edit.html" %}
+        {% include "lab/delete.html" %}
+    {% endif %}
 
     <script>
         {% include "lab/js/index.js" %}
@@ -552,7 +570,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         });
 
         // ADD
-        function record_new() {
+        /*function record_new() {
             var myDomElement = document.getElementById("id_form_new");
             {% for item in modal_js_get %}
                 {{ item|safe }}
@@ -590,7 +608,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             $(this).find('input:text').first().focus();
         }).on('hidden.bs.modal', function () {
             $('#id_error_new').hide();
-        });
+        });*/
 
 
         // PASSWORD IN USERS
@@ -694,7 +712,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         });
 
         // EDIT
-        function record_edit() {
+        /*function record_edit() {
             var myDomElement = document.getElementById("id_form_edit");
             {% for item in modal_js_get %}
                 {{ item|safe }}
@@ -748,12 +766,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         });*/
 
         // Audittrail
-        $('#id_nav_btn_audittrail').click(function() {
+        /*$('#id_nav_btn_audit_trail').click(function() {
             if (!$(this).hasClass("disabled")) {
-                $('#id_modal_audittrail tr.tmp_audittrail').remove();
+                $('#id_modal_audit_trail tr.tmp_audit_trail').remove();
                 var item = $('#id_table').find('#id_unique').find("td:first").text();
                 $.ajax({
                     method: "GET",
+                    url: '/conditions/audit_trail/',
                     data: {
                         'dialog': 'audit_trail',
                         'unique': item
@@ -761,13 +780,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     dataType: 'json',
                     success: function (data) {
                         if (data.response) {
-                            $('#id_table_audittrail tbody').append(data.data);
-                            $('#id_modal_audittrail').modal("show");
+                            $('#id_table_audit_trail tbody').append(data.data);
+                            $('#id_modal_audit_trail').modal("show");
                         }
                     }
                 });
             }
-        });
+        });*/
 
 
         function print_pdf(unique, version, url){

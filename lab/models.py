@@ -505,16 +505,29 @@ class Times(models.Model):
 
 PERMISSIONS = (('ac_r', 'accounts read'),
                ('ac_w', 'accounts write'),
+               ('ac_d', 'accounts delete'),
                ('bo_r', 'boxes read'),
                ('bo_w', 'boxes write'),
+               ('bo_d', 'boxes delete'),
                ('co_r', 'conditions read'),
                ('co_w', 'conditions write'),
+               ('co_d', 'conditions delete'),
                ('la', 'labels'),
                ('lo_r', 'locations read'),
                ('lo_w', 'locations write'),
+               ('lo_d', 'locations delete'),
                ('mo', 'movements'),
                ('sa_r', 'samples read'),
-               ('sa_w', 'samples write'))
+               ('sa_w', 'samples write'),
+               ('sa_d', 'samples delete'),
+               # logs
+               ('log_mo', 'log movement'),
+               ('log_lo', 'log login'),
+               # admin
+               ('gr_r', 'groups read'),
+               ('gr_w', 'groups write'),
+               ('gr_d', 'groups deleate'),
+               )
 
 
 # manager
@@ -528,6 +541,9 @@ class GroupsManager(GlobalManager):
             return True
         else:
             return False
+
+    def permissions(self, group):
+        return self.filter(group=group)[0].permissions.split(',')
 
 
 # table
@@ -729,6 +745,10 @@ class Users(AbstractBaseUser):
 
     def permission(self, permission):
         return Groups.objects.permission(group=self.group, permission=permission)
+
+    @property
+    def permissions(self):
+        return Groups.objects.permissions(group=self.group)
 
 
 # audit trail manager
