@@ -1541,96 +1541,21 @@ def locations_delete(request):
         return JsonResponse(data)
 
 
+@require_POST
 @login_required
-@require_http_methods(["GET", "POST"])
-def locations(request):
-    context = {'tables': True,
-               'content': 'locations',
-               'form': None,
-               'session': True,
-               'user': request.user.username,
-               'permissions': request.user.permissions}
-
-    # table information
-    table = models.Locations
-    table_audit_trail = models.LocationsAuditTrail
-
-    # form information
-    form_new = forms.LocationsFormNew(request.POST)
-    form_edit = forms.LocationsFormEdit(request.POST)
-    form_render_new = forms.LocationsFormNew()
-    form_render_edit = forms.LocationsFormEdit()
-
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
-    manipulation = TableManipulation(table=table, table_audit_trail=table_audit_trail)
+@decorators.permission('lo_l')
+@decorators.require_ajax
+def locations_label(request):
     label = Labels()
-
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'new':
-            if form_new.is_valid():
-                response, message = manipulation.new_identifier_at(user=request.user.username, prefix='L',
-                                                                   location='L {}'.format(str(timezone.now())),
-                                                                   name=form_new.cleaned_data['name'],
-                                                                   condition=form_new.cleaned_data['condition'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_new.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'delete':
-            response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                    user=request.user.username)
-            data = {'response': response}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'edit':
-            if form_edit.is_valid():
-                response, message = manipulation.edit_at(user=request.user.username,
-                                                         location=form_edit.cleaned_data['location'],
-                                                         name=form_edit.cleaned_data['name'],
-                                                         condition=form_edit.cleaned_data['condition'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_edit.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'label':
-            # barcode printing
-            response, filename = label.location(unique=request.POST.get('unique'),
-                                                version=request.POST.get('version'))
-            data = {'response': response,
-                    'pdf': filename}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'label_response':
-            # barcode printing
-            if request.POST.get('response') == 'success':
-                log.info('Label for "{}" version "{}" was printed.'.format(request.POST.get('unique'),
+    # barcode printing
+    response, filename = label.location(unique=request.POST.get('unique'),
+                                        version=request.POST.get('version'))
+    if response:
+        log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
                                                                            request.POST.get('version')))
-            else:
-                log.info('Label for "{}" version "{}" was not printed.'.format(request.POST.get('unique'),
-                                                                               request.POST.get('version')))
-            data = {'response': True}
-            return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-        return render(request, 'lab/index.html', context)
+    data = {'response': response,
+            'pdf': filename}
+    return JsonResponse(data)
 
 
 @login_required

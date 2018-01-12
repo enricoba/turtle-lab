@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'locations/edit/$', views.locations_edit, name='locations edit'),
     url(r'locations/delete/$', views.locations_delete, name='locations delete'),
     url(r'locations/audit_trail/$', views.locations_audit_trail, name='locations audit trail'),
-
+    url(r'locations/label/$', views.locations_label, name='locations label'),
     # boxes
     url(r'boxes/$', views.boxes, name='boxes'),
     url(r'samples/$', views.samples, name='samples'),

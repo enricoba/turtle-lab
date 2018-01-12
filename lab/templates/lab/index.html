@@ -463,6 +463,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% include "lab/delete.html" %}
     {% endif %}
 
+    {% if content == 'locations' or content == 'samples' or content == 'boxes' %}
+        {% include "lab/label.html" %}
+    {% endif %}
+
     <script>
         {% include "lab/js/index.js" %}
 
@@ -789,7 +793,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         });*/
 
 
-        function print_pdf(unique, version, url){
+        /*function print_pdf(unique, version, url){
             var iFrameJQueryObject = $('<iframe id="id_iframe" src="'+url+'" style="display:none"></iframe>');
             $('body').append(iFrameJQueryObject);
             iFrameJQueryObject.on('load', function() {
@@ -836,7 +840,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     }
                 });
             }
-        });
+        });*/
     </script>
 </body>
 </html>
