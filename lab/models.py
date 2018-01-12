@@ -503,33 +503,45 @@ class Times(models.Model):
 # GROUPS #
 ##########
 
-PERMISSIONS = (('ac_r', 'accounts read'),
-               ('ac_w', 'accounts write'),
-               ('ac_d', 'accounts delete'),
-               ('bo_r', 'boxes read'),
-               ('bo_w', 'boxes write'),
-               ('bo_d', 'boxes delete'),
-               # conditions
-               ('co_r', 'conditions read'),
-               ('co_w', 'conditions write'),
-               ('co_d', 'conditions delete'),
-               # locations
-               ('lo_r', 'locations read'),
-               ('lo_w', 'locations write'),
-               ('lo_d', 'locations delete'),
-               ('lo_l', 'locations labels'),
-               ('mo', 'movements'),
-               ('sa_r', 'samples read'),
-               ('sa_w', 'samples write'),
-               ('sa_d', 'samples delete'),
-               # logs
-               ('log_mo', 'log movement'),
-               ('log_lo', 'log login'),
-               # admin
-               ('gr_r', 'groups read'),
-               ('gr_w', 'groups write'),
-               ('gr_d', 'groups deleate'),
-               )
+PERMISSIONS = (
+    # accounts
+    ('ac_r', 'accounts read'),
+    ('ac_w', 'accounts write'),
+    ('ac_d', 'accounts delete'),
+    # boxes
+    ('bo_r', 'boxes read'),
+    ('bo_w', 'boxes write'),
+    ('bo_d', 'boxes delete'),
+    ('bo_l', 'boxes labels'),
+    # conditions
+    ('co_r', 'conditions read'),
+    ('co_w', 'conditions write'),
+    ('co_d', 'conditions delete'),
+    # locations
+    ('lo_r', 'locations read'),
+    ('lo_w', 'locations write'),
+    ('lo_d', 'locations delete'),
+    ('lo_l', 'locations labels'),
+    ('mo', 'movements'),
+    # samples
+    ('sa_r', 'samples read'),
+    ('sa_w', 'samples write'),
+    ('sa_d', 'samples delete'),
+    ('sa_l', 'samples labels'),
+    # logs
+    ('log_mo', 'log movement'),
+    ('log_lo', 'log login'),
+    ('log_la', 'log label'),
+    # admin
+    # groups
+    ('gr_r', 'groups read'),
+    ('gr_w', 'groups write'),
+    ('gr_d', 'groups delete'),
+    # users
+    ('us_r', 'users read'),
+    ('us_w', 'users write'),
+    ('us_a', 'users activate'),
+    ('us_p', 'users password'))
 
 
 # manager

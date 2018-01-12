@@ -50,8 +50,18 @@ urlpatterns = [
     url(r'groups/edit/$', views.groups_edit, name='groups edit'),
     url(r'groups/delete/$', views.groups_delete, name='groups delete'),
     url(r'groups/audit_trail/$', views.groups_audit_trail, name='groups audit trail'),
-
+    # users
     url(r'users/$', views.users, name='users'),
+    url(r'users/new/$', views.users_new, name='users new'),
+    url(r'users/edit/$', views.users_edit, name='users edit'),
+    url(r'users/password/$', views.users_password, name='users password'),
+    url(r'users/audit_trail/$', views.users_audit_trail, name='users audit trail'),
+    url(r'users/active/$', views.users_active, name='users active'),
+    url(r'users/activate/$', views.users_activate, name='users activate'),
+    url(r'users/deactivate/$', views.users_deactivate, name='users deactivate'),
+
+    # rtd
     url(r'rtd/$', views.rtd, name='rtd'),
+    # logout
     url(r'logout/$', views.logout_view, name='logout_view'),
 ]

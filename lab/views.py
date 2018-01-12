@@ -1226,130 +1226,108 @@ def groups_delete(request):
     return JsonResponse(data)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET", "POST"])
+@decorators.permission('us_r', 'us_w', 'us_a', 'us_p')
 def users(request):
-    context = {'tables': True,
-               'content': 'users',
-               'form': None,
-               'session': True,
-               'user': request.user.username,
-               'permissions': request.user.permissions}
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'users',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.Users),
+        get_audit_trail=GetAuditTrail(table=models.UserAuditTrail),
+        form_render_new=forms.UsersFormNew(),
+        form_render_edit=forms.UsersFormEdit())
+    return render(request, 'lab/index.html', context)
 
-    # table information
-    table = models.Users
-    table_audit_trail = models.UserAuditTrail
 
-    # form information
-    form_new = forms.UsersFormNew(request.POST)
-    form_edit = forms.UsersFormEdit(request.POST)
-    form_render_new = forms.UsersFormNew()
-    form_render_edit = forms.UsersFormEdit()
-    form_pw_users = forms.PasswordFormUsers(request.POST)
+@require_GET
+@login_required
+@decorators.permission('us_r', 'us_w', 'us_a', 'us_p')
+@decorators.require_ajax
+def users_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.UserAuditTrail).get(
+        id_ref=models.Users.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
 
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
 
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'new':
-            if form_new.is_valid():
-                user = table.objects.create_user(password=form_new.cleaned_data['password'],
-                                                 first_name=form_new.cleaned_data['first_name'],
-                                                 last_name=form_new.cleaned_data['last_name'],
-                                                 is_active=form_new.cleaned_data['is_active'],
-                                                 group=form_new.cleaned_data['group'],
-                                                 operation_user=request.user.username)
-                if user is not None:
-                    message = 'Success!'
-                    response = True
-                else:
-                    message = 'Fail!'
-                    response = False
+@require_POST
+@login_required
+@decorators.permission('us_w')
+@decorators.require_ajax
+def users_new(request):
+    form = forms.UsersFormNew(request.POST)
+    if form.is_valid():
+        user = models.Users.objects.create_user(password=form.cleaned_data['password'],
+                                                first_name=form.cleaned_data['first_name'],
+                                                last_name=form.cleaned_data['last_name'],
+                                                is_active=form.cleaned_data['is_active'],
+                                                group=form.cleaned_data['group'],
+                                                operation_user=request.user.username)
+        if user is not None:
+            message = 'Success!'
+            response = True
+        else:
+            message = 'Fail!'
+            response = False
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
 
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_new.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'edit':
-            if form_edit.is_valid():
-                user = table.objects.update_user(username=form_edit.cleaned_data['username'],
-                                                 first_name=form_edit.cleaned_data['first_name'],
-                                                 last_name=form_edit.cleaned_data['last_name'],
-                                                 group=str(form_edit.cleaned_data['group']),
-                                                 operation_user=request.user.username)
-                if user is not None:
-                    message = 'Success!'
-                    response = True
-                else:
-                    message = 'Fail!'
-                    response = False
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.'
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'password_users':
-            if form_pw_users.is_valid():
-                username = form_pw_users.cleaned_data['user']
-                password_new = form_pw_users.cleaned_data['password_new']
-                password_repeat = form_pw_users.cleaned_data['password_repeat']
-                if password_new == password_repeat:
-                    user = table.objects.set_initial_password(username=username,
-                                                              password=password_new,
-                                                              operation_user=request.user.username,
-                                                              initial_password=True)
-                    if user is not None:
-                        message = 'Success!'
-                        response = True
-                    else:
-                        message = 'Fail!'
-                        response = False
-                    data = {'response': response,
-                            'message': message}
-                    return JsonResponse(data)
-                else:
-                    message = 'New password must match.'
-                    data = {'response': False,
-                            'message': message}
-                    return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_pw_users.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        elif request.GET.get('dialog') == 'active':
-            unique = request.GET.get('unique')
-            user = table.objects.get(username=unique)
-            data = {'response': True,
-                    'is_active': user.is_active,
-                    'unique': user.username}
-            return JsonResponse(data)
-        elif request.GET.get('dialog') == 'active_response':
-            response = request.GET.get('response')
-            if response == 'deactivate':
-                is_active = False
-            else:
-                is_active = True
-            unique = request.GET.get('unique')
-            user = table.objects.set_is_active(username=unique,
-                                               operation_user=request.user.username,
-                                               is_active=is_active)
+
+@require_POST
+@login_required
+@decorators.permission('us_w')
+@decorators.require_ajax
+def users_edit(request):
+    form = forms.UsersFormEdit(request.POST)
+    if form.is_valid():
+        user = models.Users.objects.update_user(username=form.cleaned_data['username'],
+                                                first_name=form.cleaned_data['first_name'],
+                                                last_name=form.cleaned_data['last_name'],
+                                                group=str(form.cleaned_data['group']),
+                                                operation_user=request.user.username)
+        if user is not None:
+            message = 'Success!'
+            response = True
+        else:
+            message = 'Fail!'
+            response = False
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('us_p')
+@decorators.require_ajax
+def users_password(request):
+    form = forms.PasswordFormUsers(request.POST)
+    if form.is_valid():
+        username = form.cleaned_data['user']
+        password_new = form.cleaned_data['password_new']
+        password_repeat = form.cleaned_data['password_repeat']
+        if password_new == password_repeat:
+            user = models.Users.objects.set_initial_password(username=username,
+                                                             password=password_new,
+                                                             operation_user=request.user.username,
+                                                             initial_password=True)
             if user is not None:
                 message = 'Success!'
                 response = True
@@ -1360,11 +1338,68 @@ def users(request):
                     'message': message}
             return JsonResponse(data)
         else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-            context['modal_password_users'] = [forms.PasswordFormUsers().as_p()]
-        return render(request, 'lab/index.html', context)
+            message = 'New password must match.'
+            data = {'response': False,
+                    'message': message}
+            return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_GET
+@login_required
+@decorators.permission('us_a')
+@decorators.require_ajax
+def users_active(request):
+    unique = request.GET.get('unique')
+    user = models.Users.objects.get(username=unique)
+    data = {'response': True,
+            'is_active': user.is_active,
+            'unique': user.username}
+    return JsonResponse(data)
+
+
+@require_GET
+@login_required
+@decorators.permission('us_a')
+@decorators.require_ajax
+def users_activate(request):
+    unique = request.GET.get('unique')
+    user = models.Users.objects.set_is_active(username=unique,
+                                              operation_user=request.user.username,
+                                              is_active=True)
+    if user is not None:
+        message = 'Success!'
+        response = True
+    else:
+        message = 'Fail!'
+        response = False
+    data = {'response': response,
+            'message': message}
+    return JsonResponse(data)
+
+
+@require_GET
+@login_required
+@decorators.permission('us_a')
+@decorators.require_ajax
+def users_deactivate(request):
+    unique = request.GET.get('unique')
+    user = models.Users.objects.set_is_active(username=unique,
+                                              operation_user=request.user.username,
+                                              is_active=False)
+    if user is not None:
+        message = 'Success!'
+        response = True
+    else:
+        message = 'Fail!'
+        response = False
+    data = {'response': response,
+            'message': message}
+    return JsonResponse(data)
 
 
 @require_GET

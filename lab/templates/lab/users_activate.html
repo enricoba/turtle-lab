@@ -1,0 +1,52 @@
+<script>
+    $('#id_nav_btn_active').click(function() {
+        if (!$(this).hasClass("disabled")) {
+            var item = $('#id_table').find('#id_unique').find("td:first").text();
+            $.ajax({
+                    method: "GET",
+                    url: "/" + "{{ content }}" + "/active/",
+                    data: {
+                        'unique': item
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.response) {
+                            if(data.is_active === true) {
+                                if(confirm("Do you really want to deactivate user: " + item +  " ?")) {
+                                    $.ajax({
+                                        method: "GET",
+                                        url: "/" + "{{ content }}" + "/deactivate/",
+                                        data: {
+                                            'unique': data.unique
+                                        },
+                                        dataType: 'json',
+                                        success: function (data) {
+                                            if (data.response) {
+                                                location.reload();
+                                            }
+                                        }
+                                    })
+                                }
+                            } else {
+                                if(confirm("Do you really want to activate user: " + item +  " ?")) {
+                                    $.ajax({
+                                        method: "GET",
+                                        url: "/" + "{{ content }}" + "/activate/",
+                                        data: {
+                                            'unique': data.unique
+                                        },
+                                        dataType: 'json',
+                                        success: function (data) {
+                                            if (data.response) {
+                                                location.reload();
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                });
+        }
+    });
+</script>

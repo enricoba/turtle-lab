@@ -467,6 +467,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% include "lab/label.html" %}
     {% endif %}
 
+    {% if content == 'users' %}
+        {% include "lab/users_activate.html" %}
+        {% include "lab/users_password.html" %}
+    {% endif %}
+
     <script>
         {% include "lab/js/index.js" %}
 
@@ -573,96 +578,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             }
         });
 
-        // ADD
-        /*function record_new() {
-            var myDomElement = document.getElementById("id_form_new");
-            {% for item in modal_js_get %}
-                {{ item|safe }}
-            {% endfor %}
-            $.ajax({
-                method: "POST",
-                data: {
-                    'dialog': 'new',
-                    {% for item in modal_js_post %}
-                        {{ item|safe }}
-                    {% endfor %}
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (data.response) {
-                        $('#id_modal_new').modal('hide');
-                        location.reload();
-                    } else {
-                        displayError('#id_error_new', '#id_error_new_p', data.message);
-                    }
-                }
-            });
-        }
-
-
-        $("#id_submit_new").click(function () {
-            record_new();
-        });
-
-        $('#id_modal_new').keydown(function(e) {
-            if (e.keyCode === 13) {
-                  record_new();
-            }
-        }).on('shown.bs.modal', function () {
-            $(this).find('input:text').first().focus();
-        }).on('hidden.bs.modal', function () {
-            $('#id_error_new').hide();
-        });*/
-
-
-        // PASSWORD IN USERS
-        $('#id_nav_btn_password').click(function() {
-           if (!$(this).hasClass('disabled')) {
-               var v_user = $('#id_table').find('#id_unique').find("td:first").text();
-               $('#id_form_password_users').trigger("reset").find('#id_user').val(v_user);
-               $('#id_modal_password_users').modal('show');
-            }
-        });
-
-
-        function setInitialPassword() {
-            var myDomElement = document.getElementById("id_form_password_users");
-            var v_user = $(myDomElement).find("#id_user").val();
-            var v_password_new = $(myDomElement).find("#id_password_new").val();
-            var v_password_repeat = $(myDomElement).find("#id_password_repeat").val();
-            $.ajax({
-                method: "POST",
-                data: {
-                    'dialog': 'password_users',
-                    'user': v_user,
-                    'password_new': v_password_new,
-                    'password_repeat': v_password_repeat
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (!data.response) {
-                        displayError('#id_error_password_users', '#id_error_password_users_p', data.message);
-                    } else {
-                        location.reload();
-                    }
-                }
-            });
-        }
-
-         $("#id_submit_password_users").click(function () {
-            setInitialPassword();
-        });
-
-        $('#id_modal_password_users').keydown(function(e) {
-            if (e.keyCode === 13) {
-                  setInitialPassword();
-            }
-        }).on('shown.bs.modal', function () {
-            $(this).find('#id_password_new').first().focus();
-        }).on('hidden.bs.modal', function () {
-            $('#id_error_password_users').hide();
-        });
-
         // MOVEMENT
         $('#id_nav_btn_movement').click(function() {
             if (!$(this).hasClass("disabled")) {
@@ -715,132 +630,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             $('#id_error_movement').hide();
         });
 
-        // EDIT
-        /*function record_edit() {
-            var myDomElement = document.getElementById("id_form_edit");
-            {% for item in modal_js_get %}
-                {{ item|safe }}
-            {% endfor %}
-            $.ajax({
-                method: "POST",
-                data: {
-                    'dialog': 'edit',
-                    {% for item in modal_js_post %}
-                        {{ item|safe }}
-                    {% endfor %}
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (data.response) {
-                        $('#id_modal_edit').modal('hide');
-                        location.reload();
-                    } else {
-                        displayError('#id_error_edit', '#id_error_edit_p', data.message);
-                    }
-                }
-            });
-        }
-
-
-        $("#id_submit_edit").click(function () {
-            record_edit();
-        });
-
-        $('#id_modal_edit').keydown(function(e) {
-            if (e.keyCode === 13) {
-                  record_edit();
-            }
-        }).on('shown.bs.modal', function () {
-            $(this).find('input:text').first().focus()
-        }).on('hidden.bs.modal', function () {
-            $('#id_error_edit').hide();
-        });
-
-        /*$('#id_modal_edit').on('shown.bs.modal', function () {
-            var values = [];
-            $('#id_table').find('#id_unique').children('.gui').each(function() {
-                values.push($(this).text());
-            });
-
-            var a = 0;
-            values.forEach(function(i) {
-                $('#id_modal_edit').find('p').eq(a).find('input').val(i);
-                a++;
-            });
-        });*/
-
-        // Audittrail
-        /*$('#id_nav_btn_audit_trail').click(function() {
-            if (!$(this).hasClass("disabled")) {
-                $('#id_modal_audit_trail tr.tmp_audit_trail').remove();
-                var item = $('#id_table').find('#id_unique').find("td:first").text();
-                $.ajax({
-                    method: "GET",
-                    url: '/conditions/audit_trail/',
-                    data: {
-                        'dialog': 'audit_trail',
-                        'unique': item
-                    },
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.response) {
-                            $('#id_table_audit_trail tbody').append(data.data);
-                            $('#id_modal_audit_trail').modal("show");
-                        }
-                    }
-                });
-            }
-        });*/
-
-
-        /*function print_pdf(unique, version, url){
-            var iFrameJQueryObject = $('<iframe id="id_iframe" src="'+url+'" style="display:none"></iframe>');
-            $('body').append(iFrameJQueryObject);
-            iFrameJQueryObject.on('load', function() {
-                $(this).get(0).contentWindow.print();
-                $(this).get(0).contentWindow.onafterprint = function () {
-                    $.ajax({
-                        method: "POST",
-                        data: {
-                            'dialog': 'label_response',
-                            'unique': unique,
-                            'version': version,
-                            'response': 'success'
-                        },
-                        dataType: 'json',
-                        success: function(data) {
-                            return data.response
-                        }
-                    })
-                };
-            });
-
-        }
-
-        // Barcode
-        $('#id_nav_btn_barcode').click(function() {
-            if (!$(this).hasClass("disabled")) {
-                 var unique = $('#id_table').find('#id_unique').find("td:first").text();
-                 var version = $('#id_table').find('#id_unique').find("td.version").text();
-                $.ajax({
-                    method: "POST",
-                    data: {
-                        'dialog': 'label',
-                        'unique': unique,
-                        'version': version
-                    },
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.response) {
-                            // open print dialog
-                            print_pdf(unique, version, data.pdf);
-                        } else {
-                            alert("Error im Backend.");
-                        }
-                    }
-                });
-            }
-        });*/
     </script>
 </body>
 </html>
