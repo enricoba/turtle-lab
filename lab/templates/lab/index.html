@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- NAVBAR -->
-    {% if content != 'login' %}
+    {% if content != 'index' %}
     <div id="id_navbar" class="container-fluid" style="margin-bottom: 50px; background-color: #98ccff">
         <nav class="navbar navbar-default navbar-fixed-top">
             <div class="container-fluid">
@@ -96,7 +96,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <ul class="nav navbar-nav navbar-right">
                         {% if session %}
                             <li><a href="#"><i class="fa fa-lock" style="color: green"></i> {{ user }}</a></li>
-                            <li><a href="/logout/"><i class="glyphicon glyphicon-log-out"></i></a></li>
+                            <li><a href="/index/logout/"><i class="glyphicon glyphicon-log-out"></i></a></li>
                         {% else %}
                             <li><a href="#"><i class="fa fa-unlock-alt" style="color: red"></i></a></li>
                         {% endif %}
@@ -324,7 +324,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% endif %}
 
         <!-- SPECIFIC CONTENT -->
-        {% if content == 'login' %}
+        {% if content == 'index' %}
             <div class="container">
                 <form id="id_form_login" onsubmit="return false">
                     {% csrf_token %}
@@ -349,7 +349,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% endif %}
 
         <!-- PASSWORD RESET LOGIN -->
-        {% if content == 'login' %}
+        {% if content == 'index' %}
             <div class="modal fade" id="id_modal_password" tabindex="-1" role="dialog" aria-labelledby="id_modal_password">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -456,15 +456,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             crossorigin="anonymous"></script> -->
     <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
 
+    {% include "lab/core.html" %}
+
     {% if tables %}
         {% include "lab/audittrail.html" %}
         {% include "lab/new.html" %}
         {% include "lab/edit.html" %}
         {% include "lab/delete.html" %}
+        {% include "lab/form.html" %}
     {% endif %}
 
     {% if content == 'locations' or content == 'samples' or content == 'boxes' %}
         {% include "lab/label.html" %}
+    {% endif %}
+
+    {% if content == 'rtd' %}
+        {% include "lab/movement.html" %}
     {% endif %}
 
     {% if content == 'users' %}
@@ -472,164 +479,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% include "lab/users_password.html" %}
     {% endif %}
 
-    <script>
-        {% include "lab/js/index.js" %}
-
-        // FUNCTIONS
-
-        function displayError(element, p, message) {
-            if (!$(element).is(':visible')) {
-                $(p).text('').append("<strong>Error! </strong>").append(message);
-                $(element).show();
-            } else {
-                $(p).text('').append("<strong>Error! </strong>").append(message);
-            }
-        }
-
-        // PASSWORD MODAL
-        function showModalPassword(v_user) {
-            $('#id_modal_password').modal("show");
-            $('#id_form_password').trigger("reset").find('#id_user').val(v_user);
-        }
-
-
-        $("#id_submit_password").click(function () {
-            var myDomElement = document.getElementById("id_form_password");
-            var v_user = $(myDomElement).find("#id_user").val();
-            submitPassword(v_user);
-        });
-
-        $('#id_modal_password').keydown(function(e) {
-            if (e.keyCode === 13) {
-                var myDomElement = document.getElementById("id_form_password");
-                var v_user = $(myDomElement).find("#id_user").val();
-                submitPassword(v_user);
-            }
-        }).on('shown.bs.modal', function () {
-            $(this).find('#id_password').first().focus();
-        }).on('hidden.bs.modal', function () {
-            $('#id_error_password').hide();
-        });
-
-
-
-
-        // PASSWORD
-        function submitPassword(v_user) {
-            var myDomElement = document.getElementById("id_form_password");
-            var v_password = $(myDomElement).find("#id_password").val();
-            var v_password_new = $(myDomElement).find("#id_password_new").val();
-            var v_password_repeat = $(myDomElement).find("#id_password_repeat").val();
-            $.ajax({
-                method: "POST",
-                data: {
-                    'dialog': 'password',
-                    'user': v_user,
-                    'password': v_password,
-                    'password_new': v_password_new,
-                    'password_repeat': v_password_repeat
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (!data.response) {
-                        displayError('#id_error_password', '#id_error_password_p', data.message);
-                    } else {
-                        location.reload();
-                    }
-                }
-            });
-        }
-
-
-        // LOGIN
-        function login() {
-            var myDomElement = document.getElementById("id_form_login");
-            var v_user = $(myDomElement).find("#id_user").val();
-            var v_password = $(myDomElement).find("#id_password").val();
-            $.ajax({
-                method: "POST",
-                data: {
-                    'dialog': 'login',
-                    'user': v_user,
-                    'password': v_password
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (!data.response) {
-                        displayError('#id_error_login', '#id_error_login_p', data.message);
-                    } else {
-                        if (data.action === 'initial') {
-                            showModalPassword(v_user);
-                        } else {
-                            location.reload();
-                        }
-                    }
-                }
-            });
-        }
-
-        $("#id_submit_login").click(function () {
-            login();
-        });
-
-        $('#id_form_login').keydown(function(e) {
-            if (e.keyCode === 13) {
-                login();
-            }
-        });
-
-        // MOVEMENT
-        $('#id_nav_btn_movement').click(function() {
-            if (!$(this).hasClass("disabled")) {
-                var item = $('#id_table').find('#id_unique').find("td:first").text();
-                $.ajax({
-                    method: "GET",
-                    data: {
-                        'dialog': 'movement',
-                        'unique': item
-                    },
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.response) {
-                            $('#id_actual_location').val(data.data);
-                            $('#id_modal_movement').modal("show");
-                        }
-                    }
-                });
-            }
-        });
-
-        $("#id_submit_movement").click( function () {
-            var new_location = $('#id_new_location').val();
-            var actual_location = $('#id_actual_location').val();
-            var item = $('#id_table').find('#id_unique').find("td:first").text();
-            $.ajax({
-                method: "POST",
-                data: {
-                    'dialog': 'movement',
-                    'actual_location': actual_location,
-                    'new_location': new_location,
-                    'unique': item
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (data.response) {
-                        $('#id_modal_new').modal('hide');
-                        location.reload();
-                    } else {
-                        displayError('#id_error_movement', '#id_error_movement_p', data.message);
-                    }
-                }
-            });
-        });
-
-
-        $('#id_modal_movement').on('shown.bs.modal', function () {
-            $(this).find('#id_new_location').focus()
-        }).on('hidden.bs.modal', function () {
-            $('#id_error_movement').hide();
-        });
-
-    </script>
+    {% if content == 'index' %}
+        {% include "lab/form.html" %}
+        {% include "lab/login.html" %}
+    {% endif %}
 </body>
 </html>

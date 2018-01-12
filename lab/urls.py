@@ -22,7 +22,11 @@ from . import views
 
 
 urlpatterns = [
+    # index
     url(r'^$', views.index, name='index'),
+    url(r'index/login/', views.index_login, name='index login'),
+    url(r'index/password', views.index_password, name='index password'),
+    url(r'index/logout/$', views.index_logout, name='index logout'),
 
     # conditions
     url(r'conditions/$', views.conditions, name='conditions'),
@@ -62,6 +66,6 @@ urlpatterns = [
 
     # rtd
     url(r'rtd/$', views.rtd, name='rtd'),
-    # logout
-    url(r'logout/$', views.logout_view, name='logout_view'),
+    url(r'rtd/movement/$', views.rtd_movement, name='rtd movement'),
+    url(r'rtd/move/$', views.rtd_move, name='rtd move'),
 ]

@@ -522,6 +522,8 @@ PERMISSIONS = (
     ('lo_w', 'locations write'),
     ('lo_d', 'locations delete'),
     ('lo_l', 'locations labels'),
+    # rtd
+    ('rtd', 'run time data'),
     ('mo', 'movements'),
     # samples
     ('sa_r', 'samples read'),

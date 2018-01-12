@@ -1006,127 +1006,129 @@ def html_and_data(context, get_standard, get_audit_trail, form_render_new, form_
     return context
 
 
-@require_http_methods(["GET", "POST"])
+@require_GET
 def index(request):
     context = {'tables': None,
-               'content': 'login',
+               'content': 'index',
                'session': None,
                'user': None}
     if request.user.is_authenticated:
         return HttpResponseRedirect('/rtd')
-
-    table = models.Users
-
-    # POST
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'password':
-            form_pw = forms.PasswordForm(request.POST)
-            if form_pw.is_valid():
-                username = form_pw.cleaned_data['user']
-                password = form_pw.cleaned_data['password']
-                password_new = form_pw.cleaned_data['password_new']
-                # authenticate user
-                user = authenticate(request=request, username=username, password=password)
-                if user is None:
-                    # message + log entry
-                    message = 'Authentication failed! Please provide valid username and password.'
-                    # create public log entry
-                    new_login_log(username=username, action='attempt')
-                    log.warning(message)
-                    data = {'response': False,
-                            'message': message}
-                    return JsonResponse(data)
-                else:
-                    user_new = table.objects.set_initial_password(username=user.username,
-                                                                  password=password_new,
-                                                                  operation_user=username,
-                                                                  initial_password=False)
-                    if user_new is not None:
-                        # login user
-                        login(request, user_new)
-                        # message + log entry
-                        message = 'Authentication successful! User "{}" logged in.'.format(user)
-                        # create public log entry
-                        new_login_log(username=user_new.username, action='login', active=True)
-                        log.info(message)
-                        data = {'response': True,
-                                'message': message}
-                        return JsonResponse(data)
-                    else:
-                        message = 'Fail!'
-                        response = False
-                    data = {'response': response,
-                            'message': message}
-                    return JsonResponse(data)
-            else:
-                errors = str(form_pw.errors)\
-                    .replace('password_new', 'new password')\
-                    .replace('password_repeat', 'new password confirmation')\
-                    .replace('__all__', 'password check')
-                message = 'Form is not valid.{}'.format(errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'login':
-            form = forms.LoginForm(request.POST)
-            if form.is_valid():
-                username = form.cleaned_data['user']
-                password = form.cleaned_data['password']
-                # authenticate user
-                user = authenticate(request=request, username=username, password=password)
-                if user is not None:
-                    # change password if initial
-                    if user.initial_password is True:
-                        data = {'response': True,
-                                'user': username,
-                                'action': 'initial'}
-                        return JsonResponse(data)
-                    else:
-                        # login user
-                        login(request, user)
-                        # message + log entry
-                        message = 'Authentication successful! User "{}" logged in.'.format(user)
-                        # create public log entry
-                        new_login_log(username=username, action='login', active=True)
-                        log.info(message)
-                        data = {'response': True,
-                                'message': message}
-                        return JsonResponse(data)
-                else:
-                    # check if username exist to track failed login attempts
-                    if models.Users.objects.filter(username=username).exists():
-                        message = 'User "{}" tried to log in.'.format(username)
-                        log.warning(message)
-                        # create public log entry
-                        new_login_log(username=username, action='attempt')
-                    # write logs for attack analysis
-                    else:
-                        # log entry for security log review
-                        message = 'UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username)
-                        log.warning(message)
-                    # message + log entry
-                    message = 'Authentication failed! Please provide valid username and password.'
-
-                    data = {'response': False,
-                            'message': message}
-                    return JsonResponse(data)
-            else:
-                errors = str(form.errors) \
-                    .replace('user', 'username')
-                message = 'Form is not valid.{}'.format(errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-    # GET
     else:
         context['login'] = [forms.LoginForm().as_p()]
         context['modal_password'] = forms.PasswordForm()
         return render(request, 'lab/index.html', context)
 
 
+@require_POST
+@decorators.require_ajax
+def index_login(request):
+    form = forms.LoginForm(request.POST)
+    if form.is_valid():
+        username = form.cleaned_data['user']
+        password = form.cleaned_data['password']
+        # authenticate user
+        user = authenticate(request=request, username=username, password=password)
+        if user is not None:
+            # change password if initial
+            if user.initial_password is True:
+                data = {'response': True,
+                        'user': username,
+                        'action': 'initial'}
+                return JsonResponse(data)
+            else:
+                # login user
+                login(request, user)
+                # message + log entry
+                message = 'Authentication successful! User "{}" logged in.'.format(user)
+                # create public log entry
+                new_login_log(username=username, action='login', active=True)
+                log.info(message)
+                data = {'response': True,
+                        'message': message}
+                return JsonResponse(data)
+        else:
+            # check if username exist to track failed login attempts
+            if models.Users.objects.filter(username=username).exists():
+                message = 'User "{}" tried to log in.'.format(username)
+                log.warning(message)
+                # create public log entry
+                new_login_log(username=username, action='attempt')
+            # write logs for attack analysis
+            else:
+                # log entry for security log review
+                message = 'UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username)
+                log.warning(message)
+            # message + log entry
+            message = 'Authentication failed! Please provide valid username and password.'
+
+            data = {'response': False,
+                    'message': message}
+            return JsonResponse(data)
+    else:
+        errors = str(form.errors) \
+            .replace('user', 'username')
+        message = 'Form is not valid.{}'.format(errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@decorators.require_ajax
+def index_password(request):
+    form = forms.PasswordForm(request.POST)
+    if form.is_valid():
+        username = form.cleaned_data['user']
+        password = form.cleaned_data['password']
+        password_new = form.cleaned_data['password_new']
+        # authenticate user
+        user = authenticate(request=request, username=username, password=password)
+        if user is None:
+            # message + log entry
+            message = 'Authentication failed! Please provide valid username and password.'
+            # create public log entry
+            new_login_log(username=username, action='attempt')
+            log.warning(message)
+            data = {'response': False,
+                    'message': message}
+            return JsonResponse(data)
+        else:
+            user_new = models.Users.objects.set_initial_password(username=user.username,
+                                                                 password=password_new,
+                                                                 operation_user=username,
+                                                                 initial_password=False)
+            if user_new is not None:
+                # login user
+                login(request, user_new)
+                # message + log entry
+                message = 'Authentication successful! User "{}" logged in.'.format(user)
+                # create public log entry
+                new_login_log(username=user_new.username, action='login', active=True)
+                log.info(message)
+                data = {'response': True,
+                        'message': message}
+                return JsonResponse(data)
+            else:
+                message = 'Fail!'
+                response = False
+            data = {'response': response,
+                    'message': message}
+            return JsonResponse(data)
+    else:
+        errors = str(form.errors) \
+            .replace('password_new', 'new password') \
+            .replace('password_repeat', 'new password confirmation') \
+            .replace('__all__', 'password check')
+        message = 'Form is not valid.{}'.format(errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_GET
 @login_required
-@require_http_methods(["GET"])
-def logout_view(request):
+def index_logout(request):
     # message + log entry
     message = 'User "{}" logged out.'.format(request.user.username)
     username = request.user.username
@@ -1240,6 +1242,7 @@ def users(request):
         get_audit_trail=GetAuditTrail(table=models.UserAuditTrail),
         form_render_new=forms.UsersFormNew(),
         form_render_edit=forms.UsersFormEdit())
+    context['modal_password_users'] = [forms.PasswordFormUsers().as_p()]
     return render(request, 'lab/index.html', context)
 
 
@@ -1911,49 +1914,52 @@ def login_log(request):
     return render(request, 'lab/index.html', context)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET", "POST"])
+@decorators.permission('rtd')
 def rtd(request):
     context = {'tables': True,
                'content': 'rtd',
-               'form': None,
                'session': True,
                'user': request.user.username,
                'permissions': request.user.permissions}
+    get_view = GetView(table=models.RTD)
+    context['modal_movement'] = [forms.MovementsForm().as_p()]
+    context['header'] = get_view.html_header
+    # pass verified query
+    context['query'] = get_view.get()
+    return render(request, 'lab/index.html', context)
 
-    table = models.RTD
-    mov_form = forms.MovementsForm(request.POST)
-    get_view = GetView(table=table)
+
+@require_GET
+@login_required
+@decorators.permission('mo')
+@decorators.require_ajax
+def rtd_movement(request):
+    unique = request.GET.get('unique')
+    query_verify = models.RTD.objects.location(unique=unique)
+    data = {'response': True,
+            'data': query_verify}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('mo')
+@decorators.require_ajax
+def rtd_move(request):
+    form = forms.MovementsForm(request.POST)
     manipulation = TableManipulation(table=models.MovementLog)
-
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'movement':
-            if mov_form.is_valid():
-                # we need to know the type of thing we move
-                response, message = manipulation.movement(user=request.user.username,
-                                                          unique=request.POST.get('unique'),
-                                                          new_location=str(mov_form.cleaned_data['new_location'])[:7])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(mov_form.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'movement':
-            unique = request.GET.get('unique')
-            query_verify = models.RTD.objects.location(unique=unique)
-            response = True
-            data = {'response': response,
-                    'data': query_verify}
-            return JsonResponse(data)
-        else:
-            # html data
-            context['modal_movement'] = [forms.MovementsForm().as_p()]
-            context['header'] = get_view.html_header
-            # pass verified query
-            context['query'] = get_view.get()
-            return render(request, 'lab/index.html', context)
+    if form.is_valid():
+        # we need to know the type of thing we move
+        response, message = manipulation.movement(user=request.user.username,
+                                                  unique=request.POST.get('unique'),
+                                                  new_location=str(form.cleaned_data['new_location'])[:7])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
