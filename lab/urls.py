@@ -27,14 +27,12 @@ urlpatterns = [
     url(r'index/login/', views.index_login, name='index login'),
     url(r'index/password', views.index_password, name='index password'),
     url(r'index/logout/$', views.index_logout, name='index logout'),
-
     # conditions
     url(r'conditions/$', views.conditions, name='conditions'),
     url(r'conditions/new/$', views.conditions_new, name='conditions new'),
     url(r'conditions/edit/$', views.conditions_edit, name='conditions edit'),
     url(r'conditions/delete/$', views.conditions_delete, name='conditions delete'),
     url(r'conditions/audit_trail/$', views.conditions_audit_trail, name='conditions audit trail'),
-
     # locations
     url(r'locations/$', views.locations, name='locations'),
     url(r'locations/new/$', views.locations_new, name='locations new'),
@@ -44,8 +42,17 @@ urlpatterns = [
     url(r'locations/label/$', views.locations_label, name='locations label'),
     # boxes
     url(r'boxes/$', views.boxes, name='boxes'),
+    url(r'boxes/new/$', views.boxes_new, name='boxes new'),
+    url(r'boxes/edit/$', views.boxes_edit, name='boxes edit'),
+    url(r'boxes/delete/$', views.boxes_delete, name='boxes delete'),
+    url(r'boxes/audit_trail/$', views.boxes_audit_trail, name='boxes audit trail'),
+    url(r'boxes/label/$', views.boxes_label, name='boxes label'),
+    # samples
     url(r'samples/$', views.samples, name='samples'),
+
+    # accounts
     url(r'freeze_thaw_accounts/$', views.freeze_thaw_accounts, name='freeze_thaw_accounts'),
+    # logs
     url(r'movement_log/$', views.movement_log, name='movement_log'),
     url(r'login_log/$', views.login_log, name='login_log'),
     # groups
@@ -63,7 +70,6 @@ urlpatterns = [
     url(r'users/active/$', views.users_active, name='users active'),
     url(r'users/activate/$', views.users_activate, name='users activate'),
     url(r'users/deactivate/$', views.users_deactivate, name='users deactivate'),
-
     # rtd
     url(r'rtd/$', views.rtd, name='rtd'),
     url(r'rtd/movement/$', views.rtd_movement, name='rtd movement'),

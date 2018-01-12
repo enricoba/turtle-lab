@@ -1492,7 +1492,7 @@ def conditions_delete(request):
 
 @require_GET
 @login_required
-@decorators.permission('lo_r', 'lo_w', 'lo_d')
+@decorators.permission('lo_r', 'lo_w', 'lo_d', 'lo_l')
 def locations(request):
     context = html_and_data(
         context={'tables': True,
@@ -1509,7 +1509,7 @@ def locations(request):
 
 @require_GET
 @login_required
-@decorators.permission('lo_r', 'lo_w', 'lo_d')
+@decorators.permission('lo_r', 'lo_w', 'lo_d', 'lo_l')
 @decorators.require_ajax
 def locations_audit_trail(request):
     response, data = GetAuditTrail(
@@ -1596,98 +1596,112 @@ def locations_label(request):
     return JsonResponse(data)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET", "POST"])
+@decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
 def boxes(request):
-    context = {'tables': True,
-               'content': 'boxes',
-               'form': None,
-               'session': True,
-               'user': request.user.username,
-               'permissions': request.user.permissions}
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'boxes',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.Boxes),
+        get_audit_trail=GetAuditTrail(table=models.BoxesAuditTrail),
+        form_render_new=forms.BoxesFormNew(),
+        form_render_edit=forms.BoxesFormEdit())
+    return render(request, 'lab/index.html', context)
 
-    # table information
-    table = models.Boxes
-    table_audit_trail = models.BoxesAuditTrail
 
-    # form information
-    form_new = forms.BoxesFormNew(request.POST)
-    form_edit = forms.BoxesFormEdit(request.POST)
-    form_render_new = forms.BoxesFormNew()
-    form_render_edit = forms.BoxesFormEdit()
+@require_GET
+@login_required
+@decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
+@decorators.require_ajax
+def boxes_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.BoxesAuditTrail).get(
+        id_ref=models.Boxes.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
 
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
-    manipulation = TableManipulation(table=table, table_audit_trail=table_audit_trail)
+
+@require_POST
+@login_required
+@decorators.permission('bo_w')
+@decorators.require_ajax
+def boxes_new(request):
+    manipulation = TableManipulation(table=models.Boxes,
+                                     table_audit_trail=models.BoxesAuditTrail)
+    form = forms.BoxesFormNew(request.POST)
+    if form.is_valid():
+        response, message = manipulation.new_identifier_at(user=request.user.username, prefix='B',
+                                                           box='B {}'.format(str(timezone.now())),
+                                                           name=form.cleaned_data['name'],
+                                                           rows=form.cleaned_data['rows'],
+                                                           columns=form.cleaned_data['columns'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bo_w')
+@decorators.require_ajax
+def boxes_edit(request):
+    manipulation = TableManipulation(table=models.Boxes,
+                                     table_audit_trail=models.BoxesAuditTrail)
+    form = forms.BoxesFormEdit(request.POST)
+    if form.is_valid():
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 box=form.cleaned_data['box'],
+                                                 name=form.cleaned_data['name'],
+                                                 rows=form.cleaned_data['rows'],
+                                                 columns=form.cleaned_data['columns'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bo_d')
+@decorators.require_ajax
+def boxes_delete(request):
+        manipulation = TableManipulation(table=models.Boxes,
+                                         table_audit_trail=models.BoxesAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bo_l')
+@decorators.require_ajax
+def boxes_label(request):
     label = Labels()
-
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'new':
-            if form_new.is_valid():
-                response, message = manipulation.new_identifier_at(user=request.user.username, prefix='B',
-                                                                   box='B {}'.format(str(timezone.now())),
-                                                                   name=form_new.cleaned_data['name'],
-                                                                   rows=form_new.cleaned_data['rows'],
-                                                                   columns=form_new.cleaned_data['columns'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_new.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'delete':
-            response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                    user=request.user.username)
-            data = {'response': response}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'edit':
-            if form_edit.is_valid():
-                response, message = manipulation.edit_at(user=request.user.username,
-                                                         box=form_edit.cleaned_data['box'],
-                                                         name=form_edit.cleaned_data['name'],
-                                                         rows=form_edit.cleaned_data['rows'],
-                                                         columns=form_edit.cleaned_data['columns'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_edit.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'label':
-            # barcode printing
-            response, filename = label.location(unique=request.POST.get('unique'),
-                                                version=request.POST.get('version'))
-            data = {'response': response,
-                    'pdf': filename}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'label_response':
-            # barcode printing
-            if request.POST.get('response') == 'success':
-                log.info('Label for "{}" version "{}" was printed.'.format(request.POST.get('unique'),
+    # barcode printing
+    response, filename = label.location(unique=request.POST.get('unique'),
+                                        version=request.POST.get('version'))
+    if response:
+        log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
                                                                            request.POST.get('version')))
-            else:
-                log.info('Label for "{}" version "{}" was not printed.'.format(request.POST.get('unique'),
-                                                                               request.POST.get('version')))
-            data = {'response': True}
-            return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-        return render(request, 'lab/index.html', context)
+    data = {'response': response,
+            'pdf': filename}
+    return JsonResponse(data)
 
 
 @login_required
@@ -1889,7 +1903,6 @@ def movement_log(request):
     get_log = GetLog(table=models.MovementLog)
     context = {'tables': True,
                'content': 'movement_log',
-               'form': None,
                'session': True,
                'user': request.user.username,
                'permissions': request.user.permissions,
@@ -1905,7 +1918,6 @@ def login_log(request):
     get_log = GetLog(table=models.LoginLog)
     context = {'tables': True,
                'content': 'login_log',
-               'form': None,
                'session': True,
                'user': request.user.username,
                'permissions': request.user.permissions,
@@ -1922,12 +1934,10 @@ def rtd(request):
                'content': 'rtd',
                'session': True,
                'user': request.user.username,
-               'permissions': request.user.permissions}
-    get_view = GetView(table=models.RTD)
-    context['modal_movement'] = [forms.MovementsForm().as_p()]
-    context['header'] = get_view.html_header
-    # pass verified query
-    context['query'] = get_view.get()
+               'permissions': request.user.permissions,
+               'modal_movement': [forms.MovementsForm().as_p()],
+               'header': GetView(table=models.RTD).html_header,
+               'query': GetView(table=models.RTD).get()}
     return render(request, 'lab/index.html', context)
 
 
