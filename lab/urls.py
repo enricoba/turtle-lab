@@ -49,9 +49,17 @@ urlpatterns = [
     url(r'boxes/label/$', views.boxes_label, name='boxes label'),
     # samples
     url(r'samples/$', views.samples, name='samples'),
-
+    url(r'samples/new/$', views.samples_new, name='samples new'),
+    url(r'samples/edit/$', views.samples_edit, name='samples edit'),
+    url(r'samples/delete/$', views.samples_delete, name='samples delete'),
+    url(r'samples/audit_trail/$', views.samples_audit_trail, name='samples audit trail'),
+    url(r'samples/label/$', views.samples_label, name='samples label'),
     # accounts
     url(r'freeze_thaw_accounts/$', views.freeze_thaw_accounts, name='freeze_thaw_accounts'),
+    url(r'freeze_thaw_accounts/new/$', views.freeze_thaw_accounts_new, name='freeze_thaw_accounts new'),
+    url(r'freeze_thaw_accounts/edit/$', views.freeze_thaw_accounts_edit, name='freeze_thaw_accounts edit'),
+    url(r'freeze_thaw_accounts/delete/$', views.freeze_thaw_accounts_delete, name='freeze_thaw_accounts delete'),
+    url(r'freeze_thaw_accounts/audit_trail/$', views.freeze_thaw_accounts_audit_trail, name='freeze_thaw_accounts audit trail'),
     # logs
     url(r'movement_log/$', views.movement_log, name='movement_log'),
     url(r'login_log/$', views.login_log, name='login_log'),

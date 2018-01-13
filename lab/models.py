@@ -533,7 +533,7 @@ PERMISSIONS = (
     # logs
     ('log_mo', 'log movement'),
     ('log_lo', 'log login'),
-    ('log_la', 'log label'),
+    # ('log_la', 'log label'),
     # admin
     # groups
     ('gr_r', 'groups read'),

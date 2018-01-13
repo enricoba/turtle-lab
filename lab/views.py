@@ -1704,196 +1704,224 @@ def boxes_label(request):
     return JsonResponse(data)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET", "POST"])
+@decorators.permission('sa_r', 'sa_w', 'sa_d', 'sa_l')
 def samples(request):
-    context = {'tables': True,
-               'content': 'samples',
-               'form': None,
-               'session': True,
-               'user': request.user.username,
-               'permissions': request.user.permissions}
-
-    # table information
-    table = models.Samples
-    table_audit_trail = models.SamplesAuditTrail
-
-    # form information
-    form_new = forms.SamplesFormNew(request.POST)
-    form_edit = forms.SamplesFormEdit(request.POST)
-    form_render_new = forms.SamplesFormNew()
-    form_render_edit = forms.SamplesFormEdit()
-
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
-    manipulation = TableManipulation(table=table, table_audit_trail=table_audit_trail)
-    label = Labels()
-
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'new':
-            if form_new.is_valid():
-                log.info(form_new.cleaned_data['amount'])
-                for x in range(form_new.cleaned_data['amount']):
-                    response, message = manipulation.new_identifier_at(user=request.user.username, prefix='S',
-                                                                       sample='S {}'.format(str(timezone.now())),
-                                                                       name=form_new.cleaned_data['name'],
-                                                                       type=form_new.cleaned_data['type'],
-                                                                       account=form_new.cleaned_data['account'],
-                                                                       volume=form_new.cleaned_data['volume'],
-                                                                       uom=form_new.cleaned_data['uom'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_new.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'delete':
-            response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                    user=request.user.username)
-            data = {'response': response}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'edit':
-            if form_edit.is_valid():
-                response, message = manipulation.edit_at(user=request.user.username,
-                                                         sample=form_edit.cleaned_data['sample'],
-                                                         name=form_edit.cleaned_data['name'],
-                                                         type=form_edit.cleaned_data['type'],
-                                                         account=form_edit.cleaned_data['account'],
-                                                         volume=form_edit.cleaned_data['volume'],
-                                                         uom=form_edit.cleaned_data['uom'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_edit.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'label':
-            # barcode printing
-            response, filename = label.location(unique=request.POST.get('unique'),
-                                                version=request.POST.get('version'))
-            data = {'response': response,
-                    'pdf': filename}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'label_response':
-            # barcode printing
-            if request.POST.get('response') == 'success':
-                log.info('Label for "{}" version "{}" was printed.'.format(request.POST.get('unique'),
-                                                                           request.POST.get('version')))
-            else:
-                log.info('Label for "{}" version "{}" was not printed.'.format(request.POST.get('unique'),
-                                                                               request.POST.get('version')))
-            data = {'response': True}
-            return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-        return render(request, 'lab/index.html', context)
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'samples',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.Samples),
+        get_audit_trail=GetAuditTrail(table=models.SamplesAuditTrail),
+        form_render_new=forms.SamplesFormNew(),
+        form_render_edit=forms.SamplesFormEdit())
+    return render(request, 'lab/index.html', context)
 
 
+@require_GET
 @login_required
-@require_http_methods(["GET", "POST"])
+@decorators.permission('sa_r', 'sa_w', 'sa_d', 'sa_l')
+@decorators.require_ajax
+def samples_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.SamplesAuditTrail).get(
+        id_ref=models.Samples.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('sa_w')
+@decorators.require_ajax
+def samples_new(request):
+    manipulation = TableManipulation(table=models.Samples,
+                                     table_audit_trail=models.SamplesAuditTrail)
+    form = forms.SamplesFormNew(request.POST)
+    if form.is_valid():
+        for x in range(form.cleaned_data['amount']):
+            response, message = manipulation.new_identifier_at(user=request.user.username, prefix='S',
+                                                               sample='S {}'.format(str(timezone.now())),
+                                                               name=form.cleaned_data['name'],
+                                                               type=form.cleaned_data['type'],
+                                                               account=form.cleaned_data['account'],
+                                                               volume=form.cleaned_data['volume'],
+                                                               uom=form.cleaned_data['uom'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('sa_w')
+@decorators.require_ajax
+def samples_edit(request):
+    manipulation = TableManipulation(table=models.Samples,
+                                     table_audit_trail=models.SamplesAuditTrail)
+    form = forms.SamplesFormEdit(request.POST)
+    if form.is_valid():
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 sample=form.cleaned_data['sample'],
+                                                 name=form.cleaned_data['name'],
+                                                 type=form.cleaned_data['type'],
+                                                 account=form.cleaned_data['account'],
+                                                 volume=form.cleaned_data['volume'],
+                                                 uom=form.cleaned_data['uom'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('sa_d')
+@decorators.require_ajax
+def samples_delete(request):
+        manipulation = TableManipulation(table=models.Samples,
+                                         table_audit_trail=models.SamplesAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('sa_l')
+@decorators.require_ajax
+def samples_label(request):
+    label = Labels()
+    # barcode printing
+    response, filename = label.location(unique=request.POST.get('unique'),
+                                        version=request.POST.get('version'))
+    if response:
+        log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
+                                                                           request.POST.get('version')))
+    data = {'response': response,
+            'pdf': filename}
+    return JsonResponse(data)
+
+
+@require_GET
+@login_required
+@decorators.permission('ac_r', 'ac_w', 'ac_d')
 def freeze_thaw_accounts(request):
-    context = {'tables': True,
-               'content': 'freeze_thaw_accounts',
-               'form': None,
-               'session': True,
-               'user': request.user.username,
-               'permissions': request.user.permissions}
+    context = html_and_data(
+        context={'tables': True,
+                 'content': 'freeze_thaw_accounts',
+                 'session': True,
+                 'user': request.user.username,
+                 'permissions': request.user.permissions},
+        get_standard=GetStandard(table=models.FreezeThawAccounts),
+        get_audit_trail=GetAuditTrail(table=models.FreezeThawAccountsAuditTrail),
+        form_render_new=forms.FreezeTHawAccountsFormNew(),
+        form_render_edit=forms.FreezeThawAccountsFormEdit())
+    return render(request, 'lab/index.html', context)
 
-    # table information
-    table = models.FreezeThawAccounts
-    table_audit_trail = models.FreezeThawAccountsAuditTrail
 
-    # form information
-    form_new = forms.FreezeTHawAccountsFormNew(request.POST)
-    form_edit = forms.FreezeThawAccountsFormEdit(request.POST)
-    form_render_new = forms.FreezeTHawAccountsFormNew()
-    form_render_edit = forms.FreezeThawAccountsFormEdit()
+@require_GET
+@login_required
+@decorators.permission('ac_r', 'ac_w', 'ac_d')
+@decorators.require_ajax
+def freeze_thaw_accounts_audit_trail(request):
+    response, data = GetAuditTrail(
+        table=models.FreezeThawAccountsAuditTrail).get(
+        id_ref=models.FreezeThawAccounts.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
 
-    # backend information
-    get_standard = GetStandard(table=table)
-    get_audit_trail = GetAuditTrail(table=table_audit_trail)
-    manipulation = TableManipulation(table=table, table_audit_trail=table_audit_trail)
 
-    if request.method == 'POST':
-        if request.POST.get('dialog') == 'new':
-            if form_new.is_valid():
-                response, message = manipulation.new_at(user=request.user.username,
-                                                        account=form_new.cleaned_data['account'],
-                                                        freeze_condition=form_new.cleaned_data['freeze_condition'],
-                                                        freeze_time=custom.timedelta(
-                                                            uom=str(form_new.cleaned_data['freeze_uom']),
-                                                            duration=form_new.cleaned_data['freeze_time']),
-                                                        freeze_uom=form_new.cleaned_data['freeze_uom'],
-                                                        thaw_condition=form_new.cleaned_data['thaw_condition'],
-                                                        thaw_time=custom.timedelta(
-                                                            uom=str(form_new.cleaned_data['thaw_uom']),
-                                                            duration=form_new.cleaned_data['thaw_time']),
-                                                        thaw_uom=form_new.cleaned_data['thaw_uom'],
-                                                        thaw_count=form_new.cleaned_data['thaw_count'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_new.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-        elif request.POST.get('dialog') == 'delete':
-            response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                    user=request.user.username)
-            data = {'response': response}
-            return JsonResponse(data)
-        elif request.POST.get('dialog') == 'edit':
-            if form_edit.is_valid():
-                response, message = manipulation.edit_at(user=request.user.username,
-                                                         account=form_edit.cleaned_data['account'],
-                                                         freeze_condition=form_edit.cleaned_data['freeze_condition'],
-                                                         freeze_time=custom.timedelta(
-                                                             uom=str(form_edit.cleaned_data['freeze_uom']),
-                                                             duration=form_edit.cleaned_data['freeze_time']),
-                                                         freeze_uom=form_edit.cleaned_data['freeze_uom'],
-                                                         thaw_condition=form_edit.cleaned_data['thaw_condition'],
-                                                         thaw_time=custom.timedelta(
-                                                             uom=str(form_edit.cleaned_data['thaw_uom']),
-                                                             duration=form_edit.cleaned_data['thaw_time']),
-                                                         thaw_uom=form_edit.cleaned_data['thaw_uom'],
-                                                         thaw_count=form_edit.cleaned_data['thaw_count'])
-                data = {'response': response,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Form is not valid.{}'.format(form_edit.errors)
-                data = {'response': False,
-                        'message': message}
-                return JsonResponse(data)
-    elif request.method == 'GET':
-        if request.GET.get('dialog') == 'audit_trail':
-            unique = request.GET.get('unique')
-            id_ref = table.objects.id(unique)
-            response, data = get_audit_trail.get(id_ref=id_ref)
-            data = {'response': response,
-                    'data': data}
-            return JsonResponse(data)
-        else:
-            # html and data
-            context = html_and_data(context=context, get_standard=get_standard, get_audit_trail=get_audit_trail,
-                                    form_render_new=form_render_new, form_render_edit=form_render_edit)
-        return render(request, 'lab/index.html', context)
+@require_POST
+@login_required
+@decorators.permission('ac_w')
+@decorators.require_ajax
+def freeze_thaw_accounts_new(request):
+    manipulation = TableManipulation(table=models.FreezeThawAccounts,
+                                     table_audit_trail=models.FreezeThawAccountsAuditTrail)
+    form = forms.FreezeTHawAccountsFormNew(request.POST)
+    if form.is_valid():
+        response, message = manipulation.new_at(user=request.user.username,
+                                                account=form.cleaned_data['account'],
+                                                freeze_condition=form.cleaned_data['freeze_condition'],
+                                                freeze_time=custom.timedelta(
+                                                    uom=str(form.cleaned_data['freeze_uom']),
+                                                    duration=form.cleaned_data['freeze_time']),
+                                                freeze_uom=form.cleaned_data['freeze_uom'],
+                                                thaw_condition=form.cleaned_data['thaw_condition'],
+                                                thaw_time=custom.timedelta(
+                                                    uom=str(form.cleaned_data['thaw_uom']),
+                                                    duration=form.cleaned_data['thaw_time']),
+                                                thaw_uom=form.cleaned_data['thaw_uom'],
+                                                thaw_count=form.cleaned_data['thaw_count'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ac_w')
+@decorators.require_ajax
+def freeze_thaw_accounts_edit(request):
+    manipulation = TableManipulation(table=models.FreezeThawAccounts,
+                                     table_audit_trail=models.FreezeThawAccountsAuditTrail)
+    form = forms.FreezeThawAccountsFormEdit(request.POST)
+    if form.is_valid():
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 account=form.cleaned_data['account'],
+                                                 freeze_condition=form.cleaned_data['freeze_condition'],
+                                                 freeze_time=custom.timedelta(
+                                                     uom=str(form.cleaned_data['freeze_uom']),
+                                                     duration=form.cleaned_data['freeze_time']),
+                                                 freeze_uom=form.cleaned_data['freeze_uom'],
+                                                 thaw_condition=form.cleaned_data['thaw_condition'],
+                                                 thaw_time=custom.timedelta(
+                                                     uom=str(form.cleaned_data['thaw_uom']),
+                                                     duration=form.cleaned_data['thaw_time']),
+                                                 thaw_uom=form.cleaned_data['thaw_uom'],
+                                                 thaw_count=form.cleaned_data['thaw_count'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        message = 'Form is not valid.{}'.format(form.errors)
+        data = {'response': False,
+                'message': message}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ac_d')
+@decorators.require_ajax
+def freeze_thaw_accounts_delete(request):
+        manipulation = TableManipulation(table=models.FreezeThawAccounts,
+                                         table_audit_trail=models.FreezeThawAccountsAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
 
 
 @require_GET
