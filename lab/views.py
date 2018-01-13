@@ -1013,7 +1013,7 @@ def index(request):
                'session': None,
                'user': None}
     if request.user.is_authenticated:
-        return HttpResponseRedirect('/rtd')
+        return HttpResponseRedirect('/home')
     else:
         context['login'] = [forms.LoginForm().as_p()]
         context['modal_password'] = forms.PasswordForm()
@@ -1148,7 +1148,7 @@ def groups(request):
                  'content': 'groups',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.Groups),
         get_audit_trail=GetAuditTrail(table=models.GroupsAuditTrail),
         form_render_new=forms.GroupsFormNew(),
@@ -1237,7 +1237,7 @@ def users(request):
                  'content': 'users',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.Users),
         get_audit_trail=GetAuditTrail(table=models.UserAuditTrail),
         form_render_new=forms.UsersFormNew(),
@@ -1414,7 +1414,7 @@ def conditions(request):
                  'content': 'conditions',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.Conditions),
         get_audit_trail=GetAuditTrail(table=models.ConditionsAuditTrail),
         form_render_new=forms.ConditionFormNew(),
@@ -1499,7 +1499,7 @@ def locations(request):
                  'content': 'locations',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.Locations),
         get_audit_trail=GetAuditTrail(table=models.LocationsAuditTrail),
         form_render_new=forms.LocationsFormNew(),
@@ -1605,7 +1605,7 @@ def boxes(request):
                  'content': 'boxes',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.Boxes),
         get_audit_trail=GetAuditTrail(table=models.BoxesAuditTrail),
         form_render_new=forms.BoxesFormNew(),
@@ -1713,7 +1713,7 @@ def samples(request):
                  'content': 'samples',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.Samples),
         get_audit_trail=GetAuditTrail(table=models.SamplesAuditTrail),
         form_render_new=forms.SamplesFormNew(),
@@ -1826,7 +1826,7 @@ def freeze_thaw_accounts(request):
                  'content': 'freeze_thaw_accounts',
                  'session': True,
                  'user': request.user.username,
-                 'permissions': request.user.permissions},
+                 'perm': request.user.permissions},
         get_standard=GetStandard(table=models.FreezeThawAccounts),
         get_audit_trail=GetAuditTrail(table=models.FreezeThawAccountsAuditTrail),
         form_render_new=forms.FreezeTHawAccountsFormNew(),
@@ -1933,7 +1933,7 @@ def movement_log(request):
                'content': 'movement_log',
                'session': True,
                'user': request.user.username,
-               'permissions': request.user.permissions,
+               'perm': request.user.permissions,
                'header': get_log.html_header,
                'query': get_log.get()}
     return render(request, 'lab/index.html', context)
@@ -1948,7 +1948,7 @@ def login_log(request):
                'content': 'login_log',
                'session': True,
                'user': request.user.username,
-               'permissions': request.user.permissions,
+               'perm': request.user.permissions,
                'header': get_log.html_header,
                'query': get_log.get()}
     return render(request, 'lab/index.html', context)
@@ -1956,13 +1956,13 @@ def login_log(request):
 
 @require_GET
 @login_required
-@decorators.permission('rtd')
-def rtd(request):
+@decorators.permission('home')
+def home(request):
     context = {'tables': True,
-               'content': 'rtd',
+               'content': 'home',
                'session': True,
                'user': request.user.username,
-               'permissions': request.user.permissions,
+               'perm': request.user.permissions,
                'modal_movement': [forms.MovementsForm().as_p()],
                'header': GetView(table=models.RTD).html_header,
                'query': GetView(table=models.RTD).get()}
@@ -1973,7 +1973,7 @@ def rtd(request):
 @login_required
 @decorators.permission('mo')
 @decorators.require_ajax
-def rtd_movement(request):
+def home_movement(request):
     unique = request.GET.get('unique')
     query_verify = models.RTD.objects.location(unique=unique)
     data = {'response': True,
@@ -1985,7 +1985,7 @@ def rtd_movement(request):
 @login_required
 @decorators.permission('mo')
 @decorators.require_ajax
-def rtd_move(request):
+def home_move(request):
     form = forms.MovementsForm(request.POST)
     manipulation = TableManipulation(table=models.MovementLog)
     if form.is_valid():

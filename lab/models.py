@@ -523,7 +523,7 @@ PERMISSIONS = (
     ('lo_d', 'locations delete'),
     ('lo_l', 'locations labels'),
     # rtd
-    ('rtd', 'run time data'),
+    ('home', 'home'),
     ('mo', 'movements'),
     # samples
     ('sa_r', 'samples read'),

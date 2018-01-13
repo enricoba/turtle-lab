@@ -79,7 +79,7 @@ urlpatterns = [
     url(r'users/activate/$', views.users_activate, name='users activate'),
     url(r'users/deactivate/$', views.users_deactivate, name='users deactivate'),
     # rtd
-    url(r'rtd/$', views.rtd, name='rtd'),
-    url(r'rtd/movement/$', views.rtd_movement, name='rtd movement'),
-    url(r'rtd/move/$', views.rtd_move, name='rtd move'),
+    url(r'home/$', views.home, name='home'),
+    url(r'home/movement/$', views.home_movement, name='home movement'),
+    url(r'home/move/$', views.home_move, name='home move'),
 ]
