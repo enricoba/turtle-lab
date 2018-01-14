@@ -159,49 +159,26 @@ def validate_password_length(value):
 
 
 class PasswordForm(forms.Form):
-    user = forms.CharField(
-        label='Username',
-        max_length=UNIQUE_LENGTH,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'form-control',
-                'disabled': True
-            }
-        ))
-    password = forms.CharField(
-        label='Password',
-        max_length=UNIQUE_LENGTH,
-        widget=forms.PasswordInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'current password'
-            }
-        ),
-        help_text='Enter your password.'
-    )
-    password_new = forms.CharField(
-        label='New password',
-        max_length=UNIQUE_LENGTH,
-        widget=forms.PasswordInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'new password'
-            }
-        ),
-        help_text='Enter a new password. Must be longer than 8 characters.',
-        validators=[validate_password_length]
-    )
-    password_repeat = forms.CharField(
-        label='New password confirmation',
-        max_length=UNIQUE_LENGTH,
-        widget=forms.PasswordInput(
-            attrs={
-                'class': 'form-control',
-                'placeholder': 'new password'
-            }
-        ),
-        help_text='Repeat your new password.'
-    )
+    user = forms.CharField(label='Username',
+                           max_length=UNIQUE_LENGTH,
+                           widget=forms.TextInput(attrs={'class': 'form-control',
+                                                         'disabled': True}))
+    password = forms.CharField(label='Password',
+                               max_length=UNIQUE_LENGTH,
+                               widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                 'placeholder': 'current password'}),
+                               help_text='Enter your password.')
+    password_new = forms.CharField(label='New password',
+                                   max_length=UNIQUE_LENGTH,
+                                   widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                     'placeholder': 'new password'}),
+                                   help_text='Enter a new password. Must be longer than 8 characters.',
+                                   validators=[validate_password_length])
+    password_repeat = forms.CharField(label='New password confirmation',
+                                      max_length=UNIQUE_LENGTH,
+                                      widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                        'placeholder': 'new password'}),
+                                      help_text='Repeat your new password.')
 
     def clean(self):
         cleaned_data = super(PasswordForm, self).clean()
@@ -216,9 +193,20 @@ class PasswordFormUsers(forms.Form):
     user = forms.CharField(label='username', max_length=UNIQUE_LENGTH,
                            widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
     password_new = forms.CharField(label='new password', max_length=UNIQUE_LENGTH,
-                                   widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+                                   widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+                                   help_text='Enter a new password. Must be longer than 8 characters.',
+                                   validators=[validate_password_length])
     password_repeat = forms.CharField(label='password repeat', max_length=UNIQUE_LENGTH,
-                                      widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+                                      widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+                                      help_text='Repeat your new password.')
+
+    def clean(self):
+        cleaned_data = super(PasswordFormUsers, self).clean()
+        password_new = cleaned_data.get('password_new')
+        password_repeat = cleaned_data.get('password_repeat')
+        if password_new and password_repeat:
+            if password_new != password_repeat:
+                raise forms.ValidationError('New passwords must match.')
 
 
 class FreezeTHawAccountsFormNew(forms.Form):

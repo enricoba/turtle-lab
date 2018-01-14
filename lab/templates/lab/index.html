@@ -439,7 +439,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
         <!-- SPECIFIC CONTENT -->
         {% if content == 'index' %}
-            <div class="container">
+            <div class="container" style="max-width: 500px">
                 <form id="id_form_login" onsubmit="return false">
                     {% csrf_token %}
                     <div class="form-group">
@@ -457,8 +457,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <!-- BUTTON -->
                 <button type="button" class="btn btn-primary" id="id_submit_login">Login</button>
-
-
             </div>
         {% endif %}
 
@@ -491,7 +489,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endfor %}
-
                                 <div id="id_error_password" class="alert alert-danger" style="display: None">
                                     <a class="close" onclick="$('#id_error_password').hide()">×</a>
                                     <p id="id_error_password_p"></p>
@@ -525,16 +522,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <p id="id_info_password_users_p">Please provide a new password.</p>
                                 </div>
                                 {% csrf_token %}
-
                                 <!-- SPECIFIC -->
-                                <div class="form-group">
-                                    {% if modal_password_users %}
-                                        {% for item in modal_password_users %}
-                                            {{ item|safe }}
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-
+                                {% for field in modal_password_users %}
+                                    <div class="form-group">
+                                        {{ field.label_tag }}
+                                        {% render_field field %}
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                                        {% endif %}
+                                        {% if field.errors %}
+                                            {% for error in field.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
                                 <div id="id_error_password_users" class="alert alert-danger" style="display: None">
                                     <a class="close" onclick="$('#id_error_password_users').hide()">×</a>
                                     <p id="id_error_password_users_p"></p>

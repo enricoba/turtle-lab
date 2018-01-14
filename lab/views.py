@@ -1242,7 +1242,7 @@ def users(request):
         get_audit_trail=GetAuditTrail(table=models.UserAuditTrail),
         form_render_new=forms.UsersFormNew(),
         form_render_edit=forms.UsersFormEdit())
-    context['modal_password_users'] = [forms.PasswordFormUsers().as_p()]
+    context['modal_password_users'] = forms.PasswordFormUsers()
     return render(request, 'lab/index.html', context)
 
 
