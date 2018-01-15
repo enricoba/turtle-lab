@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             dataType: 'json',
             success: function (data) {
                 if (!data.response) {
-                    displayError('#id_error_login', '#id_error_login_p', data.message);
+                    handleError(data.errors, data.form_id);
                 } else {
                     if (data.action === 'initial') {
                         showModalPassword(v_user);
@@ -80,7 +80,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     function submitPassword(v_user) {
         var myDomElement = document.getElementById("id_form_password");
-        var v_password = $(myDomElement).find("#id_password").val();
+        var v_password = $(myDomElement).find("#id_password_change").val();
         var v_password_new = $(myDomElement).find("#id_password_new").val();
         var v_password_repeat = $(myDomElement).find("#id_password_repeat").val();
         $.ajax({
@@ -88,14 +88,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             url: "/" + "{{ content }}" + "/password/",
             data: {
                 'user': v_user,
-                'password': v_password,
+                'password_change': v_password,
                 'password_new': v_password_new,
                 'password_repeat': v_password_repeat
             },
             dataType: 'json',
             success: function (data) {
                 if (!data.response) {
-                    displayError('#id_error_password', '#id_error_password_p', data.message);
+                    handleError(data.errors, data.form_id);
                 } else {
                     location.reload();
                 }

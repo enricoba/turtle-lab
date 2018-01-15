@@ -1023,106 +1023,67 @@ def index(request):
 @require_POST
 @decorators.require_ajax
 def index_login(request):
-    form = forms.LoginForm(request.POST)
+    form = forms.LoginForm(request.POST, request=request)
     if form.is_valid():
         username = form.cleaned_data['user']
         password = form.cleaned_data['password']
         # authenticate user
         user = authenticate(request=request, username=username, password=password)
-        if user is not None:
-            # change password if initial
-            if user.initial_password is True:
-                data = {'response': True,
-                        'user': username,
-                        'action': 'initial'}
-                return JsonResponse(data)
-            else:
-                # login user
-                login(request, user)
-                # message + log entry
-                message = 'Authentication successful! User "{}" logged in.'.format(user)
-                # create public log entry
-                new_login_log(username=username, action='login', active=True)
-                log.info(message)
-                data = {'response': True,
-                        'message': message}
-                return JsonResponse(data)
+        # change password if initial
+        if user.initial_password is True:
+            data = {'response': True,
+                    'user': username,
+                    'action': 'initial'}
+            return JsonResponse(data)
         else:
-            # check if username exist to track failed login attempts
-            if models.Users.objects.filter(username=username).exists():
-                message = 'User "{}" tried to log in.'.format(username)
-                log.warning(message)
-                # create public log entry
-                new_login_log(username=username, action='attempt')
-            # write logs for attack analysis
-            else:
-                # log entry for security log review
-                message = 'UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username)
-                log.warning(message)
+            # login user
+            login(request, user)
             # message + log entry
-            message = 'Authentication failed! Please provide valid username and password.'
-
-            data = {'response': False,
-                    'message': message}
+            message = 'Authentication successful! User "{}" logged in.'.format(user)
+            # create public log entry
+            new_login_log(username=username, action='login', active=True)
+            log.info(message)
+            data = {'response': True}
             return JsonResponse(data)
     else:
-        errors = str(form.errors) \
-            .replace('user', 'username')
-        message = 'Form is not valid.{}'.format(errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_login',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
 @require_POST
 @decorators.require_ajax
 def index_password(request):
-    form = forms.PasswordForm(request.POST)
+    form = forms.PasswordForm(request.POST, request=request)
     if form.is_valid():
         username = form.cleaned_data['user']
-        password = form.cleaned_data['password']
+        password = form.cleaned_data['password_change']
         password_new = form.cleaned_data['password_new']
         # authenticate user
         user = authenticate(request=request, username=username, password=password)
-        if user is None:
+        user_new = models.Users.objects.set_initial_password(username=user.username,
+                                                             password=password_new,
+                                                             operation_user=username,
+                                                             initial_password=False)
+        if user_new is not None:
+            # login user
+            login(request, user_new)
             # message + log entry
-            message = 'Authentication failed! Please provide valid username and password.'
+            message = 'Authentication successful! User "{}" logged in.'.format(user)
             # create public log entry
-            new_login_log(username=username, action='attempt')
-            log.warning(message)
-            data = {'response': False,
-                    'message': message}
+            new_login_log(username=user_new.username, action='login', active=True)
+            log.info(message)
+            data = {'response': True}
             return JsonResponse(data)
         else:
-            user_new = models.Users.objects.set_initial_password(username=user.username,
-                                                                 password=password_new,
-                                                                 operation_user=username,
-                                                                 initial_password=False)
-            if user_new is not None:
-                # login user
-                login(request, user_new)
-                # message + log entry
-                message = 'Authentication successful! User "{}" logged in.'.format(user)
-                # create public log entry
-                new_login_log(username=user_new.username, action='login', active=True)
-                log.info(message)
-                data = {'response': True,
-                        'message': message}
-                return JsonResponse(data)
-            else:
-                message = 'Fail!'
-                response = False
-            data = {'response': response,
-                    'message': message}
-            return JsonResponse(data)
+            response = False
+        data = {'response': response}
+        return JsonResponse(data)
     else:
-        errors = str(form.errors) \
-            .replace('password_new', 'new password') \
-            .replace('password_repeat', 'new password confirmation') \
-            .replace('__all__', 'password check')
-        message = 'Form is not valid.{}'.format(errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_password',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -1324,8 +1285,8 @@ def users_password(request):
     form = forms.PasswordFormUsers(request.POST)
     if form.is_valid():
         username = form.cleaned_data['user']
-        password_new = form.cleaned_data['password_new']
-        password_repeat = form.cleaned_data['password_repeat']
+        password_new = form.cleaned_data['password_new_users']
+        password_repeat = form.cleaned_data['password_repeat_users']
         if password_new == password_repeat:
             user = models.Users.objects.set_initial_password(username=username,
                                                              password=password_new,
@@ -1346,9 +1307,9 @@ def users_password(request):
                     'message': message}
             return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_password_users',
+                'errors': form.errors}
         return JsonResponse(data)
 
 

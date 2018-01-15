@@ -450,13 +450,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {% endif %}
                     </div>
                 </form>
-                <!-- ALERT -->
-                <div id="id_error_login" class="alert alert-danger" style="display: None">
-                    <a class="close" onclick="$('#id_error_login').hide()">×</a>
-                    <p id="id_error_login_p"></p>
-                </div>
                 <!-- BUTTON -->
-                <button type="button" class="btn btn-primary" id="id_submit_login">Login</button>
+                <button type="button" class="btn btn-primary" id="id_submit_login" style="margin-top: 20px">Login</button>
             </div>
         {% endif %}
 
@@ -482,17 +477,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% if field.help_text %}
                                                 <small class="form-text text-muted">{{ field.help_text }}</small>
                                             {% endif %}
-                                            {% if field.errors %}
-                                                {% for error in field.errors %}
-                                                    {{ error }}
-                                                {% endfor %}
-                                            {% endif %}
                                         </div>
                                     {% endfor %}
-                                <div id="id_error_password" class="alert alert-danger" style="display: None">
-                                    <a class="close" onclick="$('#id_error_password').hide()">×</a>
-                                    <p id="id_error_password_p"></p>
-                                </div>
                             </form>
                         </div>
                         <!-- FOOTER -->
@@ -518,9 +504,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <!-- BODY -->
                         <div class="modal-body">
                             <form id="id_form_password_users">
-                                <div id="id_info_password_users" class="alert alert-info">
-                                    <p id="id_info_password_users_p">Please provide a new password.</p>
-                                </div>
                                 {% csrf_token %}
                                 <!-- SPECIFIC -->
                                 {% for field in modal_password_users %}
@@ -530,17 +513,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         {% if field.help_text %}
                                             <small class="form-text text-muted">{{ field.help_text }}</small>
                                         {% endif %}
-                                        {% if field.errors %}
-                                            {% for error in field.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        {% endif %}
                                     </div>
                                 {% endfor %}
-                                <div id="id_error_password_users" class="alert alert-danger" style="display: None">
-                                    <a class="close" onclick="$('#id_error_password_users').hide()">×</a>
-                                    <p id="id_error_password_users_p"></p>
-                                </div>
                             </form>
                         </div>
                         <!-- FOOTER -->
