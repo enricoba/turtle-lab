@@ -227,13 +227,14 @@ class PasswordForm(forms.Form):
         password_new = cleaned_data.get('password_new')
         password_repeat = cleaned_data.get('password_repeat')
         user = authenticate(request=self.request, username=username, password=password)
-        if user is None:
-            # new_login_log(username=username, action='attempt')
-            # log.warning(message)
-            raise forms.ValidationError('Authentication failed! Please provide valid username and password.')
-        if password_new and password_repeat:
-            if password_new != password_repeat:
-                raise forms.ValidationError('New passwords must match.')
+        if username is not None and password is not None:
+            if user is None:
+                # new_login_log(username=username, action='attempt')
+                # log.warning(message)
+                raise forms.ValidationError('Authentication failed! Please provide valid username and password.')
+            if password_new and password_repeat:
+                if password_new != password_repeat:
+                    raise forms.ValidationError('New passwords must match.')
 
 
 class PasswordFormUsers(forms.Form):
@@ -306,13 +307,14 @@ class LoginForm(forms.Form):
         cleaned_data = super(LoginForm, self).clean()
         username = cleaned_data.get('user')
         password = cleaned_data.get('password')
-        user = authenticate(request=self.request, username=username, password=password)
-        if user is None:
-            if models.Users.objects.filter(username=username).exists():
-                pass
-                # log.warning('User "{}" tried to log in.'.format(username))
-                # new_login_log(username=username, action='attempt')
-            else:
-                pass
-                # log.warning('UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username))
-            raise forms.ValidationError('Authentication failed! Please provide valid username and password.')
+        if username is not None and password is not None:
+            user = authenticate(request=self.request, username=username, password=password)
+            if user is None:
+                if models.Users.objects.filter(username=username).exists():
+                    pass
+                    # log.warning('User "{}" tried to log in.'.format(username))
+                    # new_login_log(username=username, action='attempt')
+                else:
+                    pass
+                    # log.warning('UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username))
+                raise forms.ValidationError('Authentication failed! Please provide valid username and password.')
