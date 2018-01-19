@@ -180,5 +180,3 @@ class UserName(object):
                 self.tmp_first_name = first_name
             else:
                 return username
-
-

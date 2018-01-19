@@ -17,6 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
+# python imports
+import logging
+
 # django imports
 from django import forms
 from django.core.exceptions import ValidationError
@@ -26,7 +29,10 @@ from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, VOLUMES, TIMES, \
 
 # app imports
 import lab.models as models
+import lab.framework as framework
 
+# define logger
+log = logging.getLogger(__name__)
 
 # variables
 COLOR_MANDATORY = '#FA5858'
@@ -205,7 +211,7 @@ class PasswordForm(forms.Form):
                                    widget=forms.PasswordInput(attrs={'class': 'form-control',
                                                                      'placeholder': 'new password'}),
                                    help_text='Enter a new password. Must be longer than 8 characters'
-                                             'and include 2 uppercase, 2 lowercase letters and two numbers.',
+                                             'and include 2 uppercase, 2 lowercase letters and 2 numbers.',
                                    validators=[validate_password_length,
                                                validate_digits,
                                                validate_lower,
@@ -242,7 +248,8 @@ class PasswordFormUsers(forms.Form):
                            widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
     password_new_users = forms.CharField(label='new password', max_length=UNIQUE_LENGTH,
                                          widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-                                         help_text='Enter a new password. Must be longer than 8 characters.',
+                                         help_text='Enter a new password. Must be longer than 8 characters'
+                                                   'and include 2 uppercase, 2 lowercase letters and 2 numbers.',
                                          validators=[validate_password_length,
                                                      validate_digits,
                                                      validate_lower,
@@ -312,9 +319,9 @@ class LoginForm(forms.Form):
             if user is None:
                 if models.Users.objects.filter(username=username).exists():
                     pass
-                    # log.warning('User "{}" tried to log in.'.format(username))
-                    # new_login_log(username=username, action='attempt')
+                    log.warning('User "{}" tried to log in.'.format(username))
+                    framework.new_login_log(username=username, action='attempt')
                 else:
                     pass
-                    # log.warning('UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username))
+                    log.warning('UNKNOWN ATTEMPT: "{}" tried to log in.'.format(username))
                 raise forms.ValidationError('Authentication failed! Please provide valid username and password.')
