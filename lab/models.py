@@ -187,6 +187,19 @@ class LocationsAuditTrail(models.Model):
 # BOXES #
 #########
 
+BOX_ALIGNMENT = (('Horizontal', 'Horizontal'),
+                 ('Vertical', 'Vertical'))
+
+BOX_TYPES = (('Numeric', 'Numeric'),
+             ('Alphabetic', 'Alphabetic'),
+             ('None', 'None'))
+
+BOX_ORIGIN= (('top-left', 'top-left'),
+             ('top-right', 'top-right'),
+             ('bottom-left', 'bottom-left'),
+             ('bottom-right', 'bottom-right'))
+
+
 # manager
 class BoxesManager(GlobalManager):
     @property
@@ -201,8 +214,12 @@ class Boxes(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.IntegerField()
-    columns = models.IntegerField()
+    alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
+    row_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
+    rows = models.PositiveIntegerField()
+    column_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
+    columns = models.PositiveIntegerField()
+    origin = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ORIGIN)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -226,8 +243,12 @@ class BoxesAuditTrail(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.IntegerField()
-    columns = models.IntegerField()
+    alignment = models.CharField(max_length=UNIQUE_LENGTH)
+    row_type = models.CharField(max_length=UNIQUE_LENGTH)
+    rows = models.PositiveIntegerField()
+    column_type = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.PositiveIntegerField()
+    origin = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -503,62 +524,93 @@ class Times(models.Model):
 # GROUPS #
 ##########
 
-PERMISSIONS = (('ac_r', 'accounts read'),
-               ('ac_w', 'accounts write'),
-               ('bo_r', 'boxes read'),
-               ('bo_w', 'boxes write'),
-               ('co_r', 'conditions read'),
-               ('co_w', 'conditions write'),
-               ('la', 'labels'),
-               ('lo_r', 'locations read'),
-               ('lo_w', 'locations write'),
-               ('mo', 'movements'),
-               ('sa_r', 'samples read'),
-               ('sa_w', 'samples write'))
+PERMISSIONS = (
+    ('Accounts', (
+        ('ac_r', 'read'),
+        ('ac_w', 'write'),
+        ('ac_d', 'delete'))),
+    ('Boxes', (
+        ('bo_r', 'read'),
+        ('bo_w', 'write'),
+        ('bo_d', 'delete'),
+        ('bo_l', 'labels'))),
+    ('Conditions', (
+        ('co_r', 'read'),
+        ('co_w', 'write'),
+        ('co_d', 'delete'))),
+    ('Locations', (
+        ('lo_r', 'read'),
+        ('lo_w', 'write'),
+        ('lo_d', 'delete'),
+        ('lo_l', 'labels'))),
+    ('Home', (
+        ('home', 'home'),
+        ('mo', 'movements'))),
+    ('Samples', (
+        ('sa_r', 'read'),
+        ('sa_w', 'write'),
+        ('sa_d', 'delete'),
+        ('sa_l', 'labels'))),
+    ('Logs', (
+        ('log_mo', 'movement'),
+        ('log_lo', 'login'))),
+    # ('log_la', 'log label'),
+    ('Roles', (
+        ('ro_r', 'read'),
+        ('ro_w', 'write'),
+        ('ro_d', 'delete'))),
+    ('Users', (
+        ('us_r', 'read'),
+        ('us_w', 'write'),
+        ('us_a', 'activate'),
+        ('us_p', 'password'))))
 
 
 # manager
-class GroupsManager(GlobalManager):
+class RolesManager(GlobalManager):
     @property
     def unique(self):
-        return 'group'
+        return 'role'
 
-    def permission(self, group, permission):
-        if permission in self.filter(group=group)[0].permissions.split(','):
+    def permission(self, role, permission):
+        if permission in self.filter(role=role)[0].permissions.split(','):
             return True
         else:
             return False
 
+    def permissions(self, role):
+        return self.filter(role=role)[0].permissions.split(',')
+
 
 # table
-class Groups(models.Model):
+class Roles(models.Model):
     # id
     id = models.AutoField(primary_key=True)
     # custom fields
-    group = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    role = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
     permissions = models.CharField(max_length=CHECKSUM_LENGTH)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
     # manager
-    objects = GroupsManager()
+    objects = RolesManager()
 
     def __str__(self):
-        return '{}'.format(self.group)
+        return '{}'.format(self.role)
 
 
 # audit trail manager
-class GroupsAuditTrailManager(GlobalAuditTrailManager):
+class RolesAuditTrailManager(GlobalAuditTrailManager):
     pass
 
 
 # audit trail table
-class GroupsAuditTrail(models.Model):
+class RolesAuditTrail(models.Model):
     # id
     id = models.AutoField(primary_key=True)
     id_ref = models.IntegerField()
     # custom fields
-    group = models.CharField(max_length=UNIQUE_LENGTH)
+    role = models.CharField(max_length=UNIQUE_LENGTH)
     permissions = models.CharField(max_length=CHECKSUM_LENGTH)
     # system fields
     version = models.IntegerField()
@@ -567,7 +619,7 @@ class GroupsAuditTrail(models.Model):
     timestamp = models.DateTimeField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
     # manager
-    objects = GroupsAuditTrailManager()
+    objects = RolesAuditTrailManager()
 
 
 #########
@@ -586,17 +638,17 @@ class UsersManager(BaseUserManager, GlobalManager):
 
     use_in_migrations = True
 
-    def _create_user(self, password, first_name, last_name, group, is_active, username=None):
+    def _create_user(self, password, first_name, last_name, role, is_active, username=None):
         if username is None:
             username = UserName(first_name=first_name, last_name=last_name,
                                 existing_users=self.existing_users).algorithm
         try:
-            user = self.model(username=username, first_name=first_name, last_name=last_name, version=1, group=group,
+            user = self.model(username=username, first_name=first_name, last_name=last_name, version=1, role=role,
                               is_active=is_active, initial_password=True)
             user.set_password(password)
-            to_hash = 'username:{};first_name:{};last_name:{};group:{};is_active:{};' \
+            to_hash = 'username:{};first_name:{};last_name:{};role:{};is_active:{};' \
                       'initial_password:{};password:{};version:{};{}'\
-                .format(username, first_name, last_name, group, is_active, True, user.password, 1, SECRET)
+                .format(username, first_name, last_name, role, is_active, True, user.password, 1, SECRET)
             user.checksum = generate_checksum(to_hash)
             user.save(using=self._db)
             # success message + log entry
@@ -609,7 +661,7 @@ class UsersManager(BaseUserManager, GlobalManager):
         else:
             return user
 
-    def _update_user(self, username, password=None, first_name=None, last_name=None, group=None, is_active=None,
+    def _update_user(self, username, password=None, first_name=None, last_name=None, role=None, is_active=None,
                      initial_password=None):
         existing = self.filter(username=username)[0]
         version = existing.version + 1
@@ -617,8 +669,8 @@ class UsersManager(BaseUserManager, GlobalManager):
             first_name = existing.first_name
         if last_name is None:
             last_name = existing.last_name
-        if group is None:
-            group = existing.group
+        if role is None:
+            role = existing.role
         if is_active is None:
             is_active = existing.is_active
         if initial_password is None:
@@ -627,15 +679,15 @@ class UsersManager(BaseUserManager, GlobalManager):
             user = Users.objects.get(username=username)
             user.first_name = first_name
             user.last_name = last_name
-            user.group = group
+            user.role = role
             user.is_active = is_active
             user.initial_password = initial_password
             user.version = version
             if password is not None:
                 user.set_password(password)
-            to_hash = 'username:{};first_name:{};last_name:{};group:{};is_active:{};' \
+            to_hash = 'username:{};first_name:{};last_name:{};role:{};is_active:{};' \
                       'initial_password:{};password:{};version:{};{}'\
-                .format(username, first_name, last_name, group, is_active,
+                .format(username, first_name, last_name, role, is_active,
                         initial_password, user.password, version, SECRET)
             user.checksum = generate_checksum(to_hash)
             user.save(using=self._db)
@@ -649,11 +701,11 @@ class UsersManager(BaseUserManager, GlobalManager):
         else:
             return user
 
-    def create_user(self, password, first_name, last_name, group, is_active, operation_user):
-        user = self._create_user(password=password, first_name=first_name, last_name=last_name, group=group,
+    def create_user(self, password, first_name, last_name, role, is_active, operation_user):
+        user = self._create_user(password=password, first_name=first_name, last_name=last_name, role=role,
                                  is_active=is_active)
         UserAuditTrail.objects.create_record(username=user.username, first_name=first_name, last_name=last_name,
-                                             group=group, is_active=is_active, version=user.version, id_ref=user.id,
+                                             role=role, is_active=is_active, version=user.version, id_ref=user.id,
                                              initial_password=user.initial_password, user=operation_user,
                                              action='Create')
         return user
@@ -661,20 +713,20 @@ class UsersManager(BaseUserManager, GlobalManager):
     def create_superuser(self, username, password):
         first_name = '-'
         last_name = '-'
-        group = 'all'
+        role = 'all'
         is_active = True
         user = self._create_user(username=username, password=password, first_name=first_name, last_name=last_name,
-                                 group=group, is_active=is_active)
+                                 role=role, is_active=is_active)
         UserAuditTrail.objects.create_record(username=user.username, first_name=first_name, last_name=last_name,
-                                             group=group, is_active=is_active, version=user.version, id_ref=user.id,
+                                             role=role, is_active=is_active, version=user.version, id_ref=user.id,
                                              initial_password=user.initial_password, user='-',
                                              action='Create')
         return user
 
-    def update_user(self, username, first_name, last_name, group, operation_user):
-        user = self._update_user(username=username, first_name=first_name, last_name=last_name, group=group)
+    def update_user(self, username, first_name, last_name, role, operation_user):
+        user = self._update_user(username=username, first_name=first_name, last_name=last_name, role=role)
         UserAuditTrail.objects.create_record(username=user.username, first_name=user.first_name,
-                                             last_name=user.last_name, group=user.group, is_active=user.is_active,
+                                             last_name=user.last_name, role=user.role, is_active=user.is_active,
                                              version=user.version, id_ref=user.id,
                                              initial_password=user.initial_password, user=operation_user,
                                              action='Update')
@@ -683,7 +735,7 @@ class UsersManager(BaseUserManager, GlobalManager):
     def set_initial_password(self, username, password, operation_user, initial_password):
         user = self._update_user(username=username, password=password, initial_password=initial_password)
         UserAuditTrail.objects.create_record(username=user.username, first_name=user.first_name,
-                                             last_name=user.last_name, group=user.group, is_active=user.is_active,
+                                             last_name=user.last_name, role=user.role, is_active=user.is_active,
                                              version=user.version, id_ref=user.id,
                                              initial_password=user.initial_password, user=operation_user,
                                              action='Update')
@@ -692,7 +744,7 @@ class UsersManager(BaseUserManager, GlobalManager):
     def set_is_active(self, username, operation_user, is_active):
         user = self._update_user(username=username, is_active=is_active)
         UserAuditTrail.objects.create_record(username=user.username, first_name=user.first_name,
-                                             last_name=user.last_name, group=user.group, is_active=user.is_active,
+                                             last_name=user.last_name, role=user.role, is_active=user.is_active,
                                              version=user.version, id_ref=user.id,
                                              initial_password=user.initial_password, user=operation_user,
                                              action='Update')
@@ -707,7 +759,7 @@ class Users(AbstractBaseUser):
     username = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
     first_name = models.CharField(max_length=UNIQUE_LENGTH)
     last_name = models.CharField(max_length=UNIQUE_LENGTH)
-    group = models.CharField(max_length=UNIQUE_LENGTH)
+    role = models.CharField(max_length=UNIQUE_LENGTH)
     is_active = models.BooleanField()
     initial_password = models.BooleanField()
     password = models.CharField(max_length=PASSWORD_LENGTH)
@@ -728,17 +780,21 @@ class Users(AbstractBaseUser):
         return '{}'.format(self.username)
 
     def permission(self, permission):
-        return Groups.objects.permission(group=self.group, permission=permission)
+        return Roles.objects.permission(role=self.role, permission=permission)
+
+    @property
+    def permissions(self):
+        return Roles.objects.permissions(role=self.role)
 
 
 # audit trail manager
 class UserAuditTrailManager(GlobalAuditTrailManager):
-    def create_record(self, id_ref, username, first_name, last_name, group, is_active, initial_password, version,
+    def create_record(self, id_ref, username, first_name, last_name, role, is_active, initial_password, version,
                       action, user):
         timestamp = timezone.now()
-        to_hash = 'username:{};first_name:{};last_name:{};group:{};is_active:{};' \
+        to_hash = 'username:{};first_name:{};last_name:{};role:{};is_active:{};' \
                   'initial_password:{};version:{};action:{};user:{};timestamp:{};{}'.format(
-                   username, first_name, last_name, group, is_active, initial_password, version, action, user,
+                   username, first_name, last_name, role, is_active, initial_password, version, action, user,
                    timestamp, SECRET)
         checksum = generate_checksum(to_hash)
         try:
@@ -747,7 +803,7 @@ class UserAuditTrailManager(GlobalAuditTrailManager):
                 username=username,
                 first_name=first_name,
                 last_name=last_name,
-                group=group,
+                role=role,
                 is_active=is_active,
                 initial_password=initial_password,
                 version=version,
@@ -775,7 +831,7 @@ class UserAuditTrail(models.Model):
     username = models.CharField(max_length=UNIQUE_LENGTH)
     first_name = models.CharField(max_length=UNIQUE_LENGTH)
     last_name = models.CharField(max_length=UNIQUE_LENGTH)
-    group = models.CharField(max_length=UNIQUE_LENGTH)
+    role = models.CharField(max_length=UNIQUE_LENGTH)
     is_active = models.BooleanField()
     initial_password = models.BooleanField()
     # system fields

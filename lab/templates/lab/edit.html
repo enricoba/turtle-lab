@@ -1,0 +1,112 @@
+<!--
+turtle-lab.org
+Copyright (C) 2017  Henrik Baran
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<script>
+    $('#id_nav_btn_edit').click(function() {
+        if (!$(this).hasClass("disabled")) {
+            var element = $('#id_form_edit');
+            element.trigger("reset");
+
+            // fill fields
+            var values = [];
+            $('#id_table').find('#id_unique').children('.gui').each(function() {
+                values.push($(this).text());
+            });
+
+            if ("{{ content }}" === "roles") {
+                element.find('div').eq(0).find('input').val(values[0]);
+                var permissions = values[1].split(',');
+                $('.perm').val(permissions);
+            } else {
+                var a = 0;
+                values.forEach(function (i) {
+                    var element_type = element.find('div').eq(a).children().next().prop('nodeName');
+                    if (element_type === "INPUT") {
+                        var type = element.find('div').eq(a).find('input').attr('type');
+                        if (type === "checkbox") {
+                            if (i === "True") {
+                                element.find('div').eq(a).find('input').prop('checked', true);
+                            } else {
+                                element.find('div').eq(a).find('input').prop('checked', false);
+                            }
+                        } else if (type === "password") {
+                            element.find('div').eq(a).find('input').val('');
+                        } else {
+                            element.find('div').eq(a).find('input').val(i);
+                        }
+                    } else if (element_type === "SELECT") {
+                        var manual = element.find('div').eq(a).find('select').hasClass("manual");
+                        if (manual === true) {
+                            element.find('div').eq(a).find('select').val(i);
+                        } else {
+                            element.find('div').eq(a).find('select option').each(function () {
+                                if ($(this).text() === i) {
+                                    element.find('div').eq(a).find('select').val($(this).val());
+                                }
+                            });
+                        }
+                    }
+                    a++;
+                });
+            }
+            $('#id_modal_edit').modal("show");
+        }
+    });
+
+    function edit_record(dialog) {
+        var myDomElement = document.getElementById("id_form_edit");
+        {% for item in modal_js_get %}
+            {{ item|safe }}
+        {% endfor %}
+        $.ajax({
+            method: "POST",
+            url: "/" + dialog + "/edit/",
+            data: {
+                {% for item in modal_js_post %}
+                    {{ item|safe }}
+                {% endfor %}
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.response) {
+                    $('#id_modal_edit').modal('hide');
+                    location.reload();
+                } else {
+                    handleError(data.errors, data.form_id);
+                }
+            }
+        });
+    }
+
+
+    $("#id_submit_edit").click(function () {
+        edit_record('{{ content }}');
+    });
+
+    $('#id_modal_edit').keydown(function(e) {
+        if (e.keyCode === 13) {
+              edit_record('{{ content }}');
+        }
+    }).on('shown.bs.modal', function () {
+        $(this).find('input:text').first().focus()
+    }).on('hidden.bs.modal', function () {
+        $('#id_error_edit').hide();
+        $("br").remove();
+        $("small").remove(".error");
+    });
+</script>

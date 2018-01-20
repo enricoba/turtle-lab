@@ -1,0 +1,51 @@
+<!--
+turtle-lab.org
+Copyright (C) 2017  Henrik Baran
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<script>
+    function print_pdf(url){
+        var iFrameJQueryObject = $('<iframe id="id_iframe" src="'+url+'" style="display:none"></iframe>');
+        $('body').append(iFrameJQueryObject);
+        iFrameJQueryObject.on('load', function() {
+            $(this).get(0).contentWindow.print();
+        });
+    }
+
+    $('#id_nav_btn_barcode').click(function() {
+        if (!$(this).hasClass("disabled")) {
+             var unique = $('#id_table').find('#id_unique').find("td:first").text();
+             var version = $('#id_table').find('#id_unique').find("td.version").text();
+            $.ajax({
+                method: "POST",
+                url: "/" + "{{ content }}" + "/label/",
+                data: {
+                    'unique': unique,
+                    'version': version
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.response) {
+                        // open print dialog
+                        print_pdf(data.pdf);
+                    } else {
+                        alert("Error im Backend.");
+                    }
+                }
+            });
+        }
+    });
+</script>

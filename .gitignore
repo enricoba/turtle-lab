@@ -10,9 +10,16 @@ logs
 labels
 migrations
 security
+fixtures
 
 
 # docker
 Dockerfile
 docker-entrypoint.sh
 gunicorn_config.py
+
+# static files
+static
+
+# others
+*.pdf

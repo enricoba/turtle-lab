@@ -1,0 +1,79 @@
+<!--
+turtle-lab.org
+Copyright (C) 2017  Henrik Baran
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<script>
+    $('#id_nav_btn_movement').click(function() {
+        if (!$(this).hasClass("disabled")) {
+            var item = $('#id_table').find('#id_unique').find("td:first").text();
+            $.ajax({
+                method: "GET",
+                url: "/" + "{{ content }}" + "/movement/",
+                data: {
+                    'unique': item
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.response) {
+                        $('#id_actual_location').val(data.data);
+                        $('#id_modal_movement').modal("show");
+                    }
+                }
+            });
+        }
+    });
+
+    function move() {
+        var new_location = $('#id_new_location').val();
+        var actual_location = $('#id_actual_location').val();
+        var item = $('#id_table').find('#id_unique').find("td:first").text();
+        $.ajax({
+            method: "POST",
+            url: "/" + "{{ content }}" + "/move/",
+            data: {
+                'actual_location': actual_location,
+                'new_location': new_location,
+                'unique': item
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.response) {
+                    $('#id_modal_new').modal('hide');
+                    location.reload();
+                } else {
+                    handleError(data.errors, data.form_id);
+                }
+            }
+        });
+    }
+
+    $("#id_submit_movement").click( function () {
+        move();
+    });
+
+    $('#id_modal_movement').keydown(function(e) {
+        if (e.keyCode === 13) {
+            move();
+        }
+    }).on('shown.bs.modal', function () {
+        $(this).find('#id_new_location').focus()
+    }).on('hidden.bs.modal', function () {
+        $('#id_error_movement').hide();
+        $("br").remove();
+        $("small").remove(".error");
+    });
+</script>
