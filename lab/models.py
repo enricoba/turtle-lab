@@ -187,6 +187,19 @@ class LocationsAuditTrail(models.Model):
 # BOXES #
 #########
 
+BOX_ALIGNMENT = (('Horizontal', 'Horizontal'),
+                 ('Vertical', 'Vertical'))
+
+BOX_TYPES = (('Numeric', 'Numeric'),
+             ('Alphabetic', 'Alphabetic'),
+             ('None', 'None'))
+
+BOX_ORIGIN= (('top-left', 'top-left'),
+             ('top-right', 'top-right'),
+             ('bottom-left', 'bottom-left'),
+             ('bottom-right', 'bottom-right'))
+
+
 # manager
 class BoxesManager(GlobalManager):
     @property
@@ -201,8 +214,12 @@ class Boxes(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.IntegerField()
-    columns = models.IntegerField()
+    alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
+    row_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
+    rows = models.PositiveIntegerField()
+    column_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
+    columns = models.PositiveIntegerField()
+    origin = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ORIGIN)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -226,8 +243,12 @@ class BoxesAuditTrail(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.IntegerField()
-    columns = models.IntegerField()
+    alignment = models.CharField(max_length=UNIQUE_LENGTH)
+    row_type = models.CharField(max_length=UNIQUE_LENGTH)
+    rows = models.PositiveIntegerField()
+    column_type = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.PositiveIntegerField()
+    origin = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)

@@ -173,13 +173,29 @@ class LocationsFormEdit(forms.Form):
                                        help_text='Select a condition.')
 
 
+def validate_positive_number(value):
+    if value < 0:
+        raise ValidationError('Number must be positive.')
+
+
 class BoxesFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    alignment = forms.CharField(label='alignment', max_length=UNIQUE_LENGTH, help_text='Select an alignment type.',
+                                widget=forms.Select(choices=models.BOX_ALIGNMENT,
+                                                    attrs={'class': 'form-control manual'}))
+    row_type = forms.CharField(label='row type', max_length=UNIQUE_LENGTH, help_text='Select a row type.',
+                               widget=forms.Select(choices=models.BOX_TYPES,
+                                                   attrs={'class': 'form-control manual'}))
     rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                              help_text='Enter box rows.')
+                              help_text='Enter box rows.', validators=[validate_positive_number])
+    column_type = forms.CharField(label='column type', max_length=UNIQUE_LENGTH, help_text='Select a column type.',
+                                  widget=forms.Select(choices=models.BOX_TYPES,
+                                                      attrs={'class': 'form-control manual'}))
     columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter box columns.')
+                                 help_text='Enter box columns.', validators=[validate_positive_number])
+    origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select a origin.',
+                             widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
 
 
 class BoxesFormEdit(forms.Form):
@@ -188,10 +204,21 @@ class BoxesFormEdit(forms.Form):
                                                         'disabled': True}))
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    alignment = forms.CharField(label='alignment', max_length=UNIQUE_LENGTH, help_text='Select an alignment type.',
+                                widget=forms.Select(choices=models.BOX_ALIGNMENT,
+                                                    attrs={'class': 'form-control manual'}))
+    row_type = forms.CharField(label='row type', max_length=UNIQUE_LENGTH, help_text='Select a row type.',
+                               widget=forms.Select(choices=models.BOX_TYPES,
+                                                   attrs={'class': 'form-control manual'}))
     rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                              help_text='Enter box rows.')
+                              help_text='Enter box rows.', validators=[validate_positive_number])
+    column_type = forms.CharField(label='column type', max_length=UNIQUE_LENGTH, help_text='Select a column type.',
+                                  widget=forms.Select(choices=models.BOX_TYPES,
+                                                      attrs={'class': 'form-control manual'}))
     columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter box columns.')
+                                 help_text='Enter box columns.', validators=[validate_positive_number])
+    origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select a origin.',
+                             widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
 
 
 class SamplesFormNew(forms.Form):
@@ -207,7 +234,8 @@ class SamplesFormNew(forms.Form):
     uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH, help_text='Select sample unit of measurement.',
                           widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
     amount = forms.IntegerField(label='amount', initial=1, widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                required=False, max_value=100, help_text='Enter sample amount.')
+                                required=False, max_value=100, help_text='Enter sample amount.',
+                                validators=[validate_positive_number])
 
 
 class SamplesFormEdit(forms.Form):
