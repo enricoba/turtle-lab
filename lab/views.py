@@ -637,8 +637,12 @@ def boxes_new(request):
         response, message = manipulation.new_identifier_at(user=request.user.username, prefix='B',
                                                            box='B {}'.format(str(timezone.now())),
                                                            name=form.cleaned_data['name'],
+                                                           alignment=form.cleaned_data['alignment'],
+                                                           row_type=form.cleaned_data['row_type'],
                                                            rows=form.cleaned_data['rows'],
-                                                           columns=form.cleaned_data['columns'])
+                                                           column_type=form.cleaned_data['column_type'],
+                                                           columns=form.cleaned_data['columns'],
+                                                           origin=form.cleaned_data['origin'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -661,8 +665,12 @@ def boxes_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  box=form.cleaned_data['box'],
                                                  name=form.cleaned_data['name'],
+                                                 alignment=form.cleaned_data['alignment'],
+                                                 row_type=form.cleaned_data['row_type'],
                                                  rows=form.cleaned_data['rows'],
-                                                 columns=form.cleaned_data['columns'])
+                                                 column_type=form.cleaned_data['column_type'],
+                                                 columns=form.cleaned_data['columns'],
+                                                 origin=form.cleaned_data['origin'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
