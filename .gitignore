@@ -10,6 +10,7 @@ logs
 labels
 migrations
 security
+fixtures
 
 
 # docker
