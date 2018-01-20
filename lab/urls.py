@@ -63,12 +63,12 @@ urlpatterns = [
     # logs
     url(r'movement_log/$', views.movement_log, name='movement_log'),
     url(r'login_log/$', views.login_log, name='login_log'),
-    # groups
-    url(r'groups/$', views.groups, name='groups'),
-    url(r'groups/new/$', views.groups_new, name='groups new'),
-    url(r'groups/edit/$', views.groups_edit, name='groups edit'),
-    url(r'groups/delete/$', views.groups_delete, name='groups delete'),
-    url(r'groups/audit_trail/$', views.groups_audit_trail, name='groups audit trail'),
+    # roles
+    url(r'roles/$', views.roles, name='roles'),
+    url(r'roles/new/$', views.roles_new, name='roles new'),
+    url(r'roles/edit/$', views.roles_edit, name='roles edit'),
+    url(r'roles/delete/$', views.roles_delete, name='roles delete'),
+    url(r'roles/audit_trail/$', views.roles_audit_trail, name='roles audit trail'),
     # users
     url(r'users/$', views.users, name='users'),
     url(r'users/new/$', views.users_new, name='users new'),

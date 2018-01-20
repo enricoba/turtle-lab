@@ -53,7 +53,7 @@ def index(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('/home')
     else:
-        context['login'] = [forms.LoginForm().as_p()]
+        context['login'] = forms.LoginForm()
         context['modal_password'] = forms.PasswordForm()
         return render(request, 'lab/index.html', context)
 
@@ -140,29 +140,29 @@ def index_logout(request):
 
 @require_GET
 @login_required
-@decorators.permission('gr_r', 'gr_w', 'gr_d')
-def groups(request):
+@decorators.permission('ro_r', 'ro_w', 'ro_d')
+def roles(request):
     context = framework.html_and_data(
         context={'tables': True,
-                 'content': 'groups',
+                 'content': 'roles',
                  'session': True,
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Groups),
-        get_audit_trail=framework.GetAuditTrail(table=models.GroupsAuditTrail),
-        form_render_new=forms.GroupsFormNew(),
-        form_render_edit=forms.GroupsFormEdit())
+        get_standard=framework.GetStandard(table=models.Roles),
+        get_audit_trail=framework.GetAuditTrail(table=models.RolesAuditTrail),
+        form_render_new=forms.RolesFormNew(),
+        form_render_edit=forms.RolesFormEdit())
     return render(request, 'lab/index.html', context)
 
 
 @require_GET
 @login_required
-@decorators.permission('gr_r', 'gr_w', 'gr_d')
+@decorators.permission('ro_r', 'ro_w', 'ro_d')
 @decorators.require_ajax
-def groups_audit_trail(request):
+def roles_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.GroupsAuditTrail).get(
-        id_ref=models.Groups.objects.id(request.GET.get('unique')))
+        table=models.RolesAuditTrail).get(
+        id_ref=models.Roles.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -170,57 +170,57 @@ def groups_audit_trail(request):
 
 @require_POST
 @login_required
-@decorators.permission('gr_w')
+@decorators.permission('ro_w')
 @decorators.require_ajax
-def groups_new(request):
-    manipulation = framework.TableManipulation(table=models.Groups,
-                                               table_audit_trail=models.GroupsAuditTrail)
-    form = forms.GroupsFormNew(request.POST)
+def roles_new(request):
+    manipulation = framework.TableManipulation(table=models.Roles,
+                                               table_audit_trail=models.RolesAuditTrail)
+    form = forms.RolesFormNew(request.POST)
     if form.is_valid():
         permissions = form.cleaned_data['permissions'].strip('[').strip(']').strip("'")
         response, message = manipulation.new_at(user=request.user.username,
-                                                group=form.cleaned_data['group'],
+                                                role=form.cleaned_data['role'],
                                                 permissions=permissions)
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
 @require_POST
 @login_required
-@decorators.permission('gr_w')
+@decorators.permission('ro_w')
 @decorators.require_ajax
-def groups_edit(request):
-    manipulation = framework.TableManipulation(table=models.Groups,
-                                               table_audit_trail=models.GroupsAuditTrail)
-    form = forms.GroupsFormEdit(request.POST)
+def roles_edit(request):
+    manipulation = framework.TableManipulation(table=models.Roles,
+                                               table_audit_trail=models.RolesAuditTrail)
+    form = forms.RolesFormEdit(request.POST)
     if form.is_valid():
         permissions = form.cleaned_data['permissions'].strip('[').strip(']').strip("'")
         response, message = manipulation.edit_at(user=request.user.username,
-                                                 group=form.cleaned_data['group'],
+                                                 role=form.cleaned_data['role'],
                                                  permissions=permissions)
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
 @require_POST
 @login_required
-@decorators.permission('gr_d')
+@decorators.permission('ro_d')
 @decorators.require_ajax
-def groups_delete(request):
-    manipulation = framework.TableManipulation(table=models.Groups,
-                                               table_audit_trail=models.GroupsAuditTrail)
+def roles_delete(request):
+    manipulation = framework.TableManipulation(table=models.Roles,
+                                               table_audit_trail=models.RolesAuditTrail)
     response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
                                             user=request.user.username)
     data = {'response': response}
@@ -269,7 +269,7 @@ def users_new(request):
                                                 first_name=form.cleaned_data['first_name'],
                                                 last_name=form.cleaned_data['last_name'],
                                                 is_active=form.cleaned_data['is_active'],
-                                                group=form.cleaned_data['group'],
+                                                role=form.cleaned_data['role'],
                                                 operation_user=request.user.username)
         if user is not None:
             message = 'Success!'
@@ -281,9 +281,9 @@ def users_new(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -297,7 +297,7 @@ def users_edit(request):
         user = models.Users.objects.update_user(username=form.cleaned_data['username'],
                                                 first_name=form.cleaned_data['first_name'],
                                                 last_name=form.cleaned_data['last_name'],
-                                                group=str(form.cleaned_data['group']),
+                                                role=str(form.cleaned_data['role']),
                                                 operation_user=request.user.username)
         if user is not None:
             message = 'Success!'
@@ -309,9 +309,9 @@ def users_edit(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -449,9 +449,9 @@ def conditions_new(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -470,9 +470,9 @@ def conditions_edit(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -536,9 +536,9 @@ def locations_new(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -559,9 +559,9 @@ def locations_edit(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -643,9 +643,9 @@ def boxes_new(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -667,9 +667,9 @@ def boxes_edit(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -754,9 +754,9 @@ def samples_new(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -780,9 +780,9 @@ def samples_edit(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -872,9 +872,9 @@ def freeze_thaw_accounts_new(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_new',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -904,9 +904,9 @@ def freeze_thaw_accounts_edit(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
         return JsonResponse(data)
 
 
@@ -962,7 +962,7 @@ def home(request):
                'session': True,
                'user': request.user.username,
                'perm': request.user.permissions,
-               'modal_movement': [forms.MovementsForm().as_p()],
+               'modal_movement': forms.MovementsForm(),
                'header': framework.GetView(table=models.RTD).html_header,
                'query': framework.GetView(table=models.RTD).get()}
     return render(request, 'lab/index.html', context)
@@ -996,7 +996,8 @@ def home_move(request):
                 'message': message}
         return JsonResponse(data)
     else:
-        message = 'Form is not valid.{}'.format(form.errors)
         data = {'response': False,
-                'message': message}
+                'form_id': 'id_form_movement',
+                'errors': form.errors}
         return JsonResponse(data)
+

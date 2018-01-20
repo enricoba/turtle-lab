@@ -872,90 +872,83 @@ class TableManipulation(Master):
         # get actual information
         initial_location = '' if models.RTD.objects.location(unique=unique) is None else models.RTD.objects.location(
             unique=unique)
-        # verify if new location is actual location
-        if initial_location != str(new_location):
-            # define user
-            self.user = user
-            # create movement log entry
-            self.timestamp = timezone.now()
-            method = models.RTD.objects.method(unique=unique)
-            # only proceed if log record was written
-            if self.new_log(user=user, object=unique, type=method, initial_location=initial_location,
-                            new_location=new_location, timestamp=self.timestamp):
-                # define new object to manipulate table times
-                manipulation = TableManipulation(table=models.Times)
-                # check if first move, then just move
-                if initial_location != '':
-                    # if samples are moved
-                    if method == 'sample':
-                        # reference id
-                        id_ref = models.Samples.objects.id(unique=unique)
-                        # get condition of new location
-                        new_condition = models.Locations.objects.condition(new_location)
-                        initial_condition = models.Locations.objects.condition(initial_location)
-                        account = models.Samples.objects.account(unique=unique)
-                        freeze_condition, thaw_condition = models.FreezeThawAccounts.objects.conditions(account)
-                        if new_condition != initial_condition:
-                            # determine latest id second (by counting rows, could be done via max of id_second value)
-                            id_second = manipulation.table.objects.filter(id_ref=id_ref).count()
-                            # freeze
-                            if new_condition == freeze_condition:
-                                method = 'freeze'
-                            # thaw
-                            elif new_condition == thaw_condition:
-                                method = 'thaw'
-                            manipulation.new_times(id_ref=id_ref, item=unique, method=method, time=self.timestamp,
-                                                   id_second=id_second + 1, duration=None, )
-                            old_timestamp = manipulation.table.objects.time(id_ref=id_ref, id_second=id_second)
-                            duration = self.timestamp - old_timestamp
-                            # Update duration
-                            try:
-                                manipulation.table.objects.filter(id_ref=id_ref,
-                                                                  id_second=id_second).update(duration=duration)
-                                # success message + log entry
-                                message = 'Times record "{}" id second "{}" has been updated.'.format(unique, id_second)
-                                log.info(message)
-                            except:
-                                # raise error
-                                message = 'Could not update times record "{}" id second "{}".'.format(unique, id_second)
-                                raise NameError(message)
-                            else:
-                                return True, message
-                        else:
-                            # message + log entry
-                            message = 'Initial condition of "{}" is equal to new condition.'.format(unique)
+        # define user
+        self.user = user
+        # create movement log entry
+        self.timestamp = timezone.now()
+        method = models.RTD.objects.method(unique=unique)
+        # only proceed if log record was written
+        if self.new_log(user=user, object=unique, type=method, initial_location=initial_location,
+                        new_location=new_location, timestamp=self.timestamp):
+            # define new object to manipulate table times
+            manipulation = TableManipulation(table=models.Times)
+            # check if first move, then just move
+            if initial_location != '':
+                # if samples are moved
+                if method == 'sample':
+                    # reference id
+                    id_ref = models.Samples.objects.id(unique=unique)
+                    # get condition of new location
+                    new_condition = models.Locations.objects.condition(new_location)
+                    initial_condition = models.Locations.objects.condition(initial_location)
+                    account = models.Samples.objects.account(unique=unique)
+                    freeze_condition, thaw_condition = models.FreezeThawAccounts.objects.conditions(account)
+                    if new_condition != initial_condition:
+                        # determine latest id second (by counting rows, could be done via max of id_second value)
+                        id_second = manipulation.table.objects.filter(id_ref=id_ref).count()
+                        # freeze
+                        if new_condition == freeze_condition:
+                            method = 'freeze'
+                        # thaw
+                        elif new_condition == thaw_condition:
+                            method = 'thaw'
+                        manipulation.new_times(id_ref=id_ref, item=unique, method=method, time=self.timestamp,
+                                               id_second=id_second + 1, duration=None, )
+                        old_timestamp = manipulation.table.objects.time(id_ref=id_ref, id_second=id_second)
+                        duration = self.timestamp - old_timestamp
+                        # Update duration
+                        try:
+                            manipulation.table.objects.filter(id_ref=id_ref,
+                                                              id_second=id_second).update(duration=duration)
+                            # success message + log entry
+                            message = 'Times record "{}" id second "{}" has been updated.'.format(unique, id_second)
                             log.info(message)
+                        except:
+                            # raise error
+                            message = 'Could not update times record "{}" id second "{}".'.format(unique, id_second)
+                            raise NameError(message)
+                        else:
                             return True, message
-                    elif method == 'box':
+                    else:
                         # message + log entry
-                        message = 'Box "{}" has been moved.'.format(unique)
+                        message = 'Initial condition of "{}" is equal to new condition.'.format(unique)
                         log.info(message)
                         return True, message
-                else:
-                    # if samples are moved
-                    if method == 'sample':
-                        # reference id
-                        id_ref = models.Samples.objects.id(unique=unique)
-                        account = models.Samples.objects.account(unique=unique)
-                        freeze_condition, thaw_condition = models.FreezeThawAccounts.objects.conditions(account)
-                        new_condition = models.Locations.objects.condition(new_location)
-                        manipulation.new_times(id_ref=id_ref, item=unique, time=self.timestamp, id_second=1,
-                                               duration=None,
-                                               method=('freeze' if new_condition == freeze_condition else 'thaw'))
-                        # message + log entry
-                        message = 'First movement for "{}" has been executed.'.format(unique)
-                        log.info(message)
-                        return True, message
-                    elif method == 'box':
-                        # message + log entry
-                        message = 'Box "{}" has been moved.'.format(unique)
-                        log.info(message)
-                        return True, message
-        else:
-            # message + log entry
-            message = 'Movement for "{}" failed, actual location is equal to new location.'.format(unique)
-            log.info(message)
-            return False, message
+                elif method == 'box':
+                    # message + log entry
+                    message = 'Box "{}" has been moved.'.format(unique)
+                    log.info(message)
+                    return True, message
+            else:
+                # if samples are moved
+                if method == 'sample':
+                    # reference id
+                    id_ref = models.Samples.objects.id(unique=unique)
+                    account = models.Samples.objects.account(unique=unique)
+                    freeze_condition, thaw_condition = models.FreezeThawAccounts.objects.conditions(account)
+                    new_condition = models.Locations.objects.condition(new_location)
+                    manipulation.new_times(id_ref=id_ref, item=unique, time=self.timestamp, id_second=1,
+                                           duration=None,
+                                           method=('freeze' if new_condition == freeze_condition else 'thaw'))
+                    # message + log entry
+                    message = 'First movement for "{}" has been executed.'.format(unique)
+                    log.info(message)
+                    return True, message
+                elif method == 'box':
+                    # message + log entry
+                    message = 'Box "{}" has been moved.'.format(unique)
+                    log.info(message)
+                    return True, message
 
 
 def new_login_log(username, action, method='manual', active=None):
@@ -985,8 +978,8 @@ def html_and_data(context, get_standard, get_audit_trail, form_render_new, form_
     # html data
     context['modal_js_get'] = get_standard.js_get
     context['modal_js_post'] = get_standard.js_post
-    context['modal_new'] = [form_render_new.as_p()]
-    context['modal_edit'] = [form_render_edit.as_p()]
+    context['modal_new'] = form_render_new
+    context['modal_edit'] = form_render_edit
     context['header'] = get_standard.html_header
     context['header_audit_trail'] = get_audit_trail.html_header
     # pass verified query

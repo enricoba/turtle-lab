@@ -1,0 +1,12 @@
+[
+  {
+    "model": "lab.Roles",
+    "pk": 1,
+    "fields": {
+      "role": "all",
+      "permissions": "ac_r,ac_w,ac_d,bo_r,bo_w,bo_d,bo_l,co_r,co_w,co_d,lo_r,lo_w,lo_d,lo_l,home,mo,sa_r,sa_w,sa_d,sa_l,log_mo,log_lo,ro_r,ro_w,ro_d,us_r,us_w,us_a,us_p",
+      "version": 1,
+      "checksum": "$argon2i$v=19$m=512,t=1,p=2$LwUgREhJ6R2D8H6v1Zrz3rvXeg+B8P4/J+Tce681JmQ$WQNLgtkulsGVA2Gdf4+GL2CSGFv6riLOrBlORRRBRPc"
+    }
+  }
+]

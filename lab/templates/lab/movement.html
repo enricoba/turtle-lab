@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }
     });
 
-    $("#id_submit_movement").click( function () {
+    function move() {
         var new_location = $('#id_new_location').val();
         var actual_location = $('#id_actual_location').val();
         var item = $('#id_table').find('#id_unique').find("td:first").text();
@@ -55,16 +55,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     $('#id_modal_new').modal('hide');
                     location.reload();
                 } else {
-                    displayError('#id_error_movement', '#id_error_movement_p', data.message);
+                    handleError(data.errors, data.form_id);
                 }
             }
         });
+    }
+
+    $("#id_submit_movement").click( function () {
+        move();
     });
 
-
-    $('#id_modal_movement').on('shown.bs.modal', function () {
+    $('#id_modal_movement').keydown(function(e) {
+        if (e.keyCode === 13) {
+            move();
+        }
+    }).on('shown.bs.modal', function () {
         $(this).find('#id_new_location').focus()
     }).on('hidden.bs.modal', function () {
         $('#id_error_movement').hide();
+        $("br").remove();
+        $("small").remove(".error");
     });
 </script>

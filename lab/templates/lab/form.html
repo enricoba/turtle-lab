@@ -17,15 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <script>
-    function displayError(element, p, message) {
-        if (!$(element).is(':visible')) {
-            $(p).text('').append("<strong>Error! </strong>").append(message);
-            $(element).show();
-        } else {
-            $(p).text('').append("<strong>Error! </strong>").append(message);
-        }
-    }
-
     function handleError(errors, form_id) {
         $("br").remove();
         $("small").remove(".error");
@@ -36,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 $("#" + form_id).append(toAppend);
             } else {
                $.each(value, function (index, value) {
-                    var toAppend = "</br><small class='form-text text-muted error' style='color: red'>"+ value + "</small>";
-                    $("#id_" + field).parent().append(toAppend);
+                    var toAppend = "<br><small class='form-text text-muted error' style='color: red'>"+ value + "</small>";
+                    $("#" + form_id).find('#id_' + field).parent().append(toAppend);
                 });
             }
         });

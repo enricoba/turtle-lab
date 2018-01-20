@@ -25,7 +25,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, VOLUMES, TIMES, \
-    Conditions, Locations, ORIGIN, FreezeThawAccounts, PERMISSIONS, Groups
+    Conditions, Locations, ORIGIN, FreezeThawAccounts, PERMISSIONS, Roles
 
 # app imports
 import lab.models as models
@@ -36,132 +36,6 @@ log = logging.getLogger(__name__)
 
 # variables
 COLOR_MANDATORY = '#FA5858'
-
-
-class ConditionFormNew(forms.Form):
-    condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
-                                widget=forms.TextInput(attrs={'class': 'form-control'}))
-
-
-class ConditionFormEdit(forms.Form):
-    condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
-                                widget=forms.TextInput(attrs={'class': 'form-control',
-                                                              'disabled': True},))
-
-
-# groups
-class GroupsFormNew(forms.Form):
-    group = forms.CharField(label='group', max_length=UNIQUE_LENGTH,
-                            widget=forms.TextInput(attrs={'class': 'form-control'}))
-    permissions = forms.CharField(label='permissions', required=False,
-                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control'}))
-
-
-class GroupsFormEdit(forms.Form):
-    group = forms.CharField(label='group', max_length=UNIQUE_LENGTH,
-                            widget=forms.TextInput(attrs={'class': 'form-control',
-                                                          'disabled': True},))
-    permissions = forms.CharField(label='permissions', required=False,
-                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control'}))
-
-
-# user
-class UsersFormNew(forms.Form):
-    first_name = forms.CharField(label='first name', max_length=UNIQUE_LENGTH,
-                                 widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(label='last name', max_length=UNIQUE_LENGTH,
-                                widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(label='password',
-                               widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password_repeat = forms.CharField(label='password repeat',
-                                      widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    is_active = forms.BooleanField(label='active', required=False,
-                                   widget=forms.CheckboxInput(attrs={'class': 'form-control',
-                                                                     'style': 'align: left'}))
-    group = forms.ModelChoiceField(label='group', queryset=Groups.objects.all(), empty_label=None,
-                                   widget=forms.Select(attrs={'class': 'form-control'}))
-
-
-class UsersFormEdit(forms.Form):
-    username = forms.CharField(label='username', max_length=GENERATED_LENGTH,
-                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    first_name = forms.CharField(label='first name', max_length=UNIQUE_LENGTH,
-                                 widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(label='last name', max_length=UNIQUE_LENGTH,
-                                widget=forms.TextInput(attrs={'class': 'form-control'}))
-    group = forms.ModelChoiceField(label='group', queryset=Groups.objects.all(), empty_label=None,
-                                   widget=forms.Select(attrs={'class': 'form-control'}))
-
-
-# locations
-class LocationsFormNew(forms.Form):
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    condition = forms.ModelChoiceField(label='condition', queryset=Conditions.objects.all(), empty_label=None,
-                                       widget=forms.Select(attrs={'class': 'form-control'}))
-
-
-class LocationsFormEdit(forms.Form):
-    location = forms.CharField(label='location', max_length=GENERATED_LENGTH,
-                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    condition = forms.ModelChoiceField(label='condition', queryset=Conditions.objects.all(), empty_label=None,
-                                       widget=forms.Select(attrs={'class': 'form-control'}))
-
-
-class BoxesFormNew(forms.Form):
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}))
-    columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}))
-
-
-class BoxesFormEdit(forms.Form):
-    box = forms.CharField(label='box', max_length=GENERATED_LENGTH,
-                          widget=forms.TextInput(attrs={'class': 'form-control',
-                                                        'disabled': True}))
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}))
-    columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}))
-
-
-class SamplesFormNew(forms.Form):
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
-                                     widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None)
-    type = forms.CharField(label='type', max_length=GENERATED_LENGTH,
-                           widget=forms.Select(choices=ORIGIN, attrs={'class': 'form-control manual'}))
-    volume = forms.FloatField(label='volume', required=False,
-                              widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
-    uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH,
-                          widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
-    amount = forms.IntegerField(label='amount', initial=1, widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                required=False, max_value=100)
-
-
-class SamplesFormEdit(forms.Form):
-    sample = forms.CharField(label='samples', max_length=GENERATED_LENGTH,
-                             widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
-                                     widget=forms.Select(attrs={'class': 'form-control'}))
-    type = forms.CharField(label='type', max_length=GENERATED_LENGTH,
-                           widget=forms.Select(choices=ORIGIN, attrs={'class': 'form-control manual'}))
-    volume = forms.FloatField(label='volume', required=False,
-                              widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
-    uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH,
-                          widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
-
-
-class MovementsForm(forms.Form):
-    actual_location = forms.CharField(label='actual_location', max_length=UNIQUE_LENGTH, required=False,
-                                      widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    new_location = forms.ModelChoiceField(label='new_location', queryset=Locations.objects.all(), empty_label=None,
-                                          widget=forms.Select(attrs={'class': 'form-control'}))
 
 
 def validate_password_length(value):
@@ -194,6 +68,177 @@ def validate_lower(value):
             x += 1
     if x < 2:
         raise ValidationError('Password must at least contain 2 lowercase letters.')
+
+
+class ConditionFormNew(forms.Form):
+    condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
+                                widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                help_text='Enter a condition.')
+
+
+class ConditionFormEdit(forms.Form):
+    condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
+                                widget=forms.TextInput(attrs={'class': 'form-control',
+                                                              'disabled': True},))
+
+
+# groups
+class RolesFormNew(forms.Form):
+    role = forms.CharField(label='role', max_length=UNIQUE_LENGTH,
+                           widget=forms.TextInput(attrs={'class': 'form-control'}),
+                           help_text='Enter a role.')
+    permissions = forms.CharField(label='permissions', required=False,
+                                  help_text='Select permissions.',
+                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control',
+                                                                                          'size': '20'}))
+
+
+class RolesFormEdit(forms.Form):
+    role = forms.CharField(label='role', max_length=UNIQUE_LENGTH,
+                           widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True},))
+    permissions = forms.CharField(label='permissions', required=False,
+                                  help_text='Select permissions.',
+                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control perm',
+                                                                                          'size': '20'}))
+
+
+# user
+class UsersFormNew(forms.Form):
+    first_name = forms.CharField(label='first name', max_length=UNIQUE_LENGTH,
+                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                 help_text='Enter your first name.')
+    last_name = forms.CharField(label='last name', max_length=UNIQUE_LENGTH,
+                                widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                help_text='Enter your last name.')
+    password = forms.CharField(label='password',
+                               widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+                               help_text='Enter a new password. Must be longer than 8 characters'
+                                         'and include 2 uppercase, 2 lowercase letters and 2 numbers.',
+                               validators=[validate_password_length,
+                                           validate_digits,
+                                           validate_lower,
+                                           validate_upper]
+                               )
+    password_repeat = forms.CharField(label='password repeat',
+                                      widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+                                      help_text='Repeat your new password.')
+    is_active = forms.BooleanField(label='active', required=False,
+                                   widget=forms.CheckboxInput(attrs={'class': 'form-control',
+                                                                     'style': 'align: left'}),
+                                   help_text='Select the active status.')
+    role = forms.ModelChoiceField(label='role', queryset=Roles.objects.all(), empty_label=None,
+                                  widget=forms.Select(attrs={'class': 'form-control'}),
+                                  help_text='Select a role.')
+
+    def clean(self):
+        cleaned_data = super(UsersFormNew, self).clean()
+        password = cleaned_data.get('password')
+        password_repeat = cleaned_data.get('password_repeat')
+        if password and password_repeat:
+            if password != password_repeat:
+                raise forms.ValidationError('New passwords must match.')
+
+
+class UsersFormEdit(forms.Form):
+    username = forms.CharField(label='username', max_length=GENERATED_LENGTH,
+                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    first_name = forms.CharField(label='first name', max_length=UNIQUE_LENGTH,
+                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                 help_text='Enter your first name.')
+    last_name = forms.CharField(label='last name', max_length=UNIQUE_LENGTH,
+                                widget=forms.TextInput(attrs={'class': 'form-control'}),
+                                help_text='Enter your last name.')
+    role = forms.ModelChoiceField(label='role', queryset=Roles.objects.all(), empty_label=None,
+                                  widget=forms.Select(attrs={'class': 'form-control'}),
+                                  help_text='Select a role.')
+
+
+# locations
+class LocationsFormNew(forms.Form):
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH,
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False,
+                           help_text='Enter a location name.')
+    condition = forms.ModelChoiceField(label='condition', queryset=Conditions.objects.all(), empty_label=None,
+                                       widget=forms.Select(attrs={'class': 'form-control'}),
+                                       help_text='Select a condition.')
+
+
+class LocationsFormEdit(forms.Form):
+    location = forms.CharField(label='location', max_length=GENERATED_LENGTH,
+                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a location name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    condition = forms.ModelChoiceField(label='condition', queryset=Conditions.objects.all(), empty_label=None,
+                                       widget=forms.Select(attrs={'class': 'form-control'}),
+                                       help_text='Select a condition.')
+
+
+class BoxesFormNew(forms.Form):
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                              help_text='Enter box rows.')
+    columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                 help_text='Enter box columns.')
+
+
+class BoxesFormEdit(forms.Form):
+    box = forms.CharField(label='box', max_length=GENERATED_LENGTH,
+                          widget=forms.TextInput(attrs={'class': 'form-control',
+                                                        'disabled': True}))
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                              help_text='Enter box rows.')
+    columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                 help_text='Enter box columns.')
+
+
+class SamplesFormNew(forms.Form):
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a sample name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
+                                     widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None,
+                                     help_text='Select an account.')
+    type = forms.CharField(label='type', max_length=GENERATED_LENGTH, help_text='Select a sample type.',
+                           widget=forms.Select(choices=ORIGIN, attrs={'class': 'form-control manual'}),)
+    volume = forms.FloatField(label='volume', required=False, help_text='Enter sample volume.',
+                              widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH, help_text='Select sample unit of measurement.',
+                          widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
+    amount = forms.IntegerField(label='amount', initial=1, widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                required=False, max_value=100, help_text='Enter sample amount.')
+
+
+class SamplesFormEdit(forms.Form):
+    sample = forms.CharField(label='samples', max_length=GENERATED_LENGTH,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a sample name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='Select an account.')
+    type = forms.CharField(label='type', max_length=GENERATED_LENGTH, help_text='Select a sample type.',
+                           widget=forms.Select(choices=ORIGIN, attrs={'class': 'form-control manual'}))
+    volume = forms.FloatField(label='volume', required=False, help_text='Enter sample volume.',
+                              widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH, help_text='Select sample unit of measurement.',
+                          widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
+
+
+class MovementsForm(forms.Form):
+    actual_location = forms.CharField(label='actual_location', max_length=UNIQUE_LENGTH, required=False,
+                                      widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    new_location = forms.ModelChoiceField(label='new_location', queryset=Locations.objects.all(), empty_label=None,
+                                          widget=forms.Select(attrs={'class': 'form-control'}),
+                                          help_text='Select the target location.')
+
+    def clean(self):
+        cleaned_data = super(MovementsForm, self).clean()
+        actual_location = cleaned_data.get('actual_location')
+        new_location = str(cleaned_data.get('new_location'))[:7]
+        if actual_location == str(new_location):
+            raise forms.ValidationError('Movement failed: actual location is equal to new location.')
 
 
 class PasswordForm(forms.Form):
@@ -269,19 +314,26 @@ class PasswordFormUsers(forms.Form):
 
 
 class FreezeTHawAccountsFormNew(forms.Form):
-    account = forms.CharField(label='account', max_length=40,
+    account = forms.CharField(label='account', max_length=40, help_text='Enter an account name.',
                               widget=forms.TextInput(attrs={'class': 'form-control'}))
     freeze_condition = forms.ModelChoiceField(label='freeze condition', queryset=Conditions.objects.all(),
-                                              empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}))
-    freeze_time = forms.IntegerField(label='freeze time', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+                                              empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}),
+                                              help_text='Select a freeze condition.')
+    freeze_time = forms.IntegerField(label='freeze time', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                     help_text='Enter a freeze time.')
     freeze_uom = forms.CharField(label='freeze uom', max_length=GENERATED_LENGTH,
-                                 widget=forms.Select(choices=TIMES, attrs={'class': 'form-control manual'}))
+                                 widget=forms.Select(choices=TIMES, attrs={'class': 'form-control manual'}),
+                                 help_text='Select freeze time unit of measurement.')
     thaw_condition = forms.ModelChoiceField(label='thaw condition', queryset=Conditions.objects.all(), empty_label=None,
-                                            widget=forms.Select(attrs={'class': 'form-control'}))
-    thaw_time = forms.IntegerField(label='thaw time', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+                                            widget=forms.Select(attrs={'class': 'form-control'}),
+                                            help_text='Select a thaw condition.')
+    thaw_time = forms.IntegerField(label='thaw time', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                   help_text='Enter a thaw time.')
     thaw_uom = forms.CharField(label='thaw uom', max_length=GENERATED_LENGTH,
+                               help_text='Select thaw time unit of measurement.',
                                widget=forms.Select(choices=TIMES, attrs={'class': 'form-control manual'}))
-    thaw_count = forms.IntegerField(label='thaw count', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    thaw_count = forms.IntegerField(label='thaw count', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                    help_text='Enter thaw count.')
 
 
 class FreezeThawAccountsFormEdit(forms.Form):
@@ -289,22 +341,31 @@ class FreezeThawAccountsFormEdit(forms.Form):
                               widget=forms.TextInput(attrs={'class': 'form-control',
                                                             'disabled': True}))
     freeze_condition = forms.ModelChoiceField(label='freeze condition', queryset=Conditions.objects.all(),
-                                              empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}))
-    freeze_time = forms.IntegerField(label='freeze time', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+                                              empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}),
+                                              help_text='Select a freeze condition.')
+    freeze_time = forms.IntegerField(label='freeze time', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                     help_text='Enter a freeze time.')
     freeze_uom = forms.CharField(label='freeze uom', max_length=GENERATED_LENGTH,
-                                 widget=forms.Select(choices=TIMES, attrs={'class': 'form-control manual'}))
+                                 widget=forms.Select(choices=TIMES, attrs={'class': 'form-control manual'}),
+                                 help_text='Select freeze time unit of measurement.')
     thaw_condition = forms.ModelChoiceField(label='thaw condition', queryset=Conditions.objects.all(), empty_label=None,
-                                            widget=forms.Select(attrs={'class': 'form-control'}))
-    thaw_time = forms.IntegerField(label='thaw time', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+                                            widget=forms.Select(attrs={'class': 'form-control'}),
+                                            help_text='Select a thaw condition.')
+    thaw_time = forms.IntegerField(label='thaw time', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                   help_text='Enter a thaw time.')
     thaw_uom = forms.CharField(label='thaw uom', max_length=GENERATED_LENGTH,
+                               help_text='Select thaw time unit of measurement.',
                                widget=forms.Select(choices=TIMES, attrs={'class': 'form-control manual'}))
-    thaw_count = forms.IntegerField(label='thaw count', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    thaw_count = forms.IntegerField(label='thaw count', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                    help_text='Enter thaw count.')
 
 
 class LoginForm(forms.Form):
     user = forms.CharField(label='username', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+                           widget=forms.TextInput(attrs={'class': 'form-control'}),
+                           help_text='Enter user name.')
+    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+                               help_text='Provide valid password.')
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
