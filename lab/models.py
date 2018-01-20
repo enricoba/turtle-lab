@@ -878,3 +878,8 @@ class LoginLog(models.Model):
 
     def __str__(self):
         return self.user
+
+
+#############
+# LABEL LOG #
+#############
