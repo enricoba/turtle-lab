@@ -590,6 +590,10 @@ def locations_label(request):
     if response:
         log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
                                                                            request.POST.get('version')))
+        # log record
+        manipulation = framework.TableManipulation(table=models.LabelLog)
+        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username, action='print',
+                             timestamp=timezone.now())
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
@@ -706,6 +710,10 @@ def boxes_label(request):
     if response:
         log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
                                                                            request.POST.get('version')))
+        # log record
+        manipulation = framework.TableManipulation(table=models.LabelLog)
+        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username, action='print',
+                             timestamp=timezone.now())
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
@@ -819,6 +827,10 @@ def samples_label(request):
     if response:
         log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
                                                                            request.POST.get('version')))
+        # log record
+        manipulation = framework.TableManipulation(table=models.LabelLog)
+        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username, action='print',
+                             timestamp=timezone.now())
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
@@ -953,6 +965,21 @@ def login_log(request):
     get_log = framework.GetLog(table=models.LoginLog)
     context = {'tables': True,
                'content': 'login_log',
+               'session': True,
+               'user': request.user.username,
+               'perm': request.user.permissions,
+               'header': get_log.html_header,
+               'query': get_log.get()}
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('log_la')
+def label_log(request):
+    get_log = framework.GetLog(table=models.LabelLog)
+    context = {'tables': True,
+               'content': 'label_log',
                'session': True,
                'user': request.user.username,
                'perm': request.user.permissions,

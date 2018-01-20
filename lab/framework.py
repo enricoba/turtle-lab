@@ -642,8 +642,6 @@ class TableManipulation(Master):
             _json += 'version:{};'.format(version)
         self.json = _json
         self.dict = _dict
-        # print("json: ", _json)
-        # print("dict: ", _dict)
         # add secret to json string
         to_hash = _json + str(SECRET)
         # generate checksum

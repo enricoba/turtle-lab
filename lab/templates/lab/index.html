@@ -80,17 +80,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <li><a href="/freeze_thaw_accounts/">Accounts</a></li>
                                 {% endif %}
                                 <!-- samples -->
-                                {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm%}
+                                {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
                                     <li><a href="/samples/">Samples</a></li>
                                 {% endif %}
                                 <!-- Boxes -->
-                                {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm%}
+                                {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
                                     <li><a href="/boxes/">Boxes</a></li>
                                 {% endif %}
                             </ul>
                         </li>
                         <!-- Logs -->
-                        {% if 'log_mo' in perm or 'log_lo' in perm%}
+                        {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm %}
                             <li class="dropdown">
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">Logs
                                 <span class="caret"></span></a>
@@ -102,6 +102,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <!-- Login Log -->
                                     {% if 'log_lo' in perm %}
                                         <li><a href="/login_log">Login</a></li>
+                                    {% endif %}
+                                    <!-- LAbel Log -->
+                                    {% if 'log_la' in perm %}
+                                        <li><a href="/label_log">Labels</a></li>
                                     {% endif %}
                                 </ul>
                             </li>

@@ -63,6 +63,7 @@ urlpatterns = [
     # logs
     url(r'movement_log/$', views.movement_log, name='movement_log'),
     url(r'login_log/$', views.login_log, name='login_log'),
+    url(r'label_log/$', views.label_log, name='label_log'),
     # roles
     url(r'roles/$', views.roles, name='roles'),
     url(r'roles/new/$', views.roles_new, name='roles new'),

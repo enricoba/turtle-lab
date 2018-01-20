@@ -553,7 +553,8 @@ PERMISSIONS = (
         ('sa_l', 'labels'))),
     ('Logs', (
         ('log_mo', 'movement'),
-        ('log_lo', 'login'))),
+        ('log_lo', 'login'),
+        ('log_la', 'labels'))),
     # ('log_la', 'log label'),
     ('Roles', (
         ('ro_r', 'read'),
@@ -884,4 +885,27 @@ class LoginLog(models.Model):
 # LABEL LOG #
 #############
 
-d
+
+# manager
+class LabelLogManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'id'
+
+
+# table
+class LabelLog(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    label = models.CharField(max_length=UNIQUE_LENGTH)
+    action = models.CharField(max_length=UNIQUE_LENGTH)
+    user = models.CharField(max_length=GENERATED_LENGTH)
+    timestamp = models.DateTimeField()
+    # system fields
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = LabelLogManager()
+
+    def __str__(self):
+        return self.user
