@@ -54,6 +54,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     // VARIABLES
     var table_row_color = "#98ccff";
 
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
     // tables
     $('#id_table tbody tr').mousedown (function(event) {
         switch (event.which) {

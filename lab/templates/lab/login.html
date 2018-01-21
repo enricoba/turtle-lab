@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             dataType: 'json',
             success: function (data) {
                 if (!data.response) {
-                    handleError(data.errors, data.form_id);
+                    handleErrorLogin(data.errors, data.form_id);
                 } else {
                     if (data.action === 'initial') {
                         showModalPassword(v_user);
