@@ -513,8 +513,8 @@ class GetView(GetStandard):
             # open table
             tmp = self.table_row_head
             for field in self.header:
-                # locations can be empty
-                if field == 'location':
+                # locations and box can be empty
+                if field == 'location' or field == 'box':
                     tmp += '<td>{}</td>'.format('' if row[field] is None else row[field])
                 # thaw count
                 elif field == 'remaining_thaw_count':

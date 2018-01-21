@@ -469,6 +469,13 @@ class RTDManager(GlobalManager):
     def method(self, unique):
         return self.filter(object=unique)[0].type
 
+    def box(self, unique):
+        return self.filter(object=unique)[0].box
+
+    def validate_location(self, box, sample):
+        if self.filter(object=box)[0].location != self.filter(object=sample)[0].location:
+            return True
+
 
 # table
 class RTD(models.Model):
@@ -476,6 +483,7 @@ class RTD(models.Model):
     object = models.CharField(max_length=UNIQUE_LENGTH)
     type = models.IntegerField()
     location = models.CharField(max_length=UNIQUE_LENGTH)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
     remaining_thaw_count = models.IntegerField()
     remaining_freeze_time = models.DurationField()
 

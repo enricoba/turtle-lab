@@ -272,8 +272,9 @@ class MovementsForm(forms.Form):
         unique = self.request.POST.get('unique')
         if actual_location == new_location:
             raise forms.ValidationError('Actual location is equal to new location.')
-        elif models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
-            raise forms.ValidationError('Target location has no suitable condition.')
+        if unique[:1] == 'S':
+            if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
+                raise forms.ValidationError('Target location has no suitable condition.')
 
 
 class BoxingForm(forms.Form):
@@ -283,10 +284,17 @@ class BoxingForm(forms.Form):
                                      widget=forms.Select(attrs={'class': 'form-control'}),
                                      help_text='Select the target box.')
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(BoxingForm, self).__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super(BoxingForm, self).clean()
         actual_box = cleaned_data.get('actual_box')
         new_box = str(cleaned_data.get('new_box'))[:7]
+        unique = self.request.POST.get('unique')
+        if models.RTD.objects.validate_location(box=new_box, sample=unique):
+            raise forms.ValidationError('Sample and box must be in the same location.')
         if actual_box == new_box:
             raise forms.ValidationError('Actual box is equal to new box.')
 

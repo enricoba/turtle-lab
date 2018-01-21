@@ -1,7 +1,7 @@
 drop view rtd;
 drop view tmp_rtd_freeze;
-drop view tmp_rtd_times;
 drop view tmp_rtd_loc;
+drop view tmp_rtd_box;
 drop view tmp_rtd;
 
 -- union samples and boxes to get all boxes and samples in one view
@@ -33,6 +33,22 @@ CREATE OR REPLACE VIEW public.tmp_rtd_loc AS
        							lab_movementlog l
           					where
           						l.object::text = r.object::text));
+
+-- create view to add actual box and position
+CREATE OR REPLACE VIEW public.tmp_rtd_box AS
+	SELECT
+		r.object,
+    	b.box AS box
+   	FROM
+   		tmp_rtd r,
+    	lab_boxinglog b
+  	WHERE
+  		b."timestamp" = ((	SELECT
+  								max(b."timestamp") AS max
+       						FROM
+       							lab_boxinglog b
+          					where
+          						b."sample" = r.object::text));
 
 -- view to get max thaw counts from linked freeze thaw account
 -- only includes samples because boxes dont have freeze thaw accounts
@@ -92,12 +108,15 @@ CREATE OR REPLACE VIEW public.rtd AS
     	r.object,
     	r.type,
     	tmp_rtd_loc.location,
+    	tmp_rtd_box.box,
     	tmp_rtd_count.remaining_thaw_count,
     	tmp_rtd_freeze.remaining_freeze_time
    	FROM
    		tmp_rtd r
  	LEFT JOIN
  		tmp_rtd_loc ON r.object::text = tmp_rtd_loc.object::text
+ 	LEFT JOIN
+ 		tmp_rtd_box ON r.object::text = tmp_rtd_box.object::text
  	left join
  		tmp_rtd_count on r.object::text = tmp_rtd_count.object::text
  	left join

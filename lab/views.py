@@ -1062,7 +1062,7 @@ def home_box(request):
     # check if selected item is a sample
     if unique[:1] == 'B':
         return JsonResponse({'response': False})
-    query_verify = models.RTD.objects.location(unique=unique)
+    query_verify = models.RTD.objects.box(unique=unique)
     data = {'response': True,
             'data': query_verify}
     return JsonResponse(data)
@@ -1073,7 +1073,7 @@ def home_box(request):
 @decorators.permission('bo')
 @decorators.require_ajax
 def home_boxing(request):
-    form = forms.BoxingForm(request.POST)
+    form = forms.BoxingForm(request.POST, request=request)
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.BoxingLog)
         if manipulation.new_log(text='boxing', unique='sample', user=request.user.username,
