@@ -74,7 +74,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     }).on('shown.bs.modal', function () {
         $(this).find('#id_password').first().focus();
     }).on('hidden.bs.modal', function () {
-        $('#id_error_password').hide();
         $("br").remove();
         $("small").remove(".error");
     });

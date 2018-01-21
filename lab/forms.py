@@ -188,12 +188,12 @@ class BoxesFormNew(forms.Form):
                                widget=forms.Select(choices=models.BOX_TYPES,
                                                    attrs={'class': 'form-control manual'}))
     rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                              help_text='Enter box rows.', validators=[validate_positive_number])
+                              help_text='Enter box rows. (A=1, Z=26)', validators=[validate_positive_number])
     column_type = forms.CharField(label='column type', max_length=UNIQUE_LENGTH, help_text='Select a column type.',
                                   widget=forms.Select(choices=models.BOX_TYPES,
                                                       attrs={'class': 'form-control manual'}))
     columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter box columns.', validators=[validate_positive_number])
+                                 help_text='Enter box columns. (A=1, Z=26)', validators=[validate_positive_number])
     origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select a origin.',
                              widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
 
@@ -255,9 +255,9 @@ class SamplesFormEdit(forms.Form):
 
 
 class MovementsForm(forms.Form):
-    actual_location = forms.CharField(label='actual_location', max_length=UNIQUE_LENGTH, required=False,
+    actual_location = forms.CharField(label='actual location', max_length=UNIQUE_LENGTH, required=False,
                                       widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    new_location = forms.ModelChoiceField(label='new_location', queryset=Locations.objects.all(), empty_label=None,
+    new_location = forms.ModelChoiceField(label='target location', queryset=Locations.objects.all(), empty_label=None,
                                           widget=forms.Select(attrs={'class': 'form-control'}),
                                           help_text='Select the target location.')
 
@@ -270,10 +270,25 @@ class MovementsForm(forms.Form):
         actual_location = cleaned_data.get('actual_location')
         new_location = str(cleaned_data.get('new_location'))[:7]
         unique = self.request.POST.get('unique')
-        if actual_location == str(new_location):
+        if actual_location == new_location:
             raise forms.ValidationError('Actual location is equal to new location.')
         elif models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
             raise forms.ValidationError('Target location has no suitable condition.')
+
+
+class BoxingForm(forms.Form):
+    actual_box = forms.CharField(label='actual box', max_length=UNIQUE_LENGTH, required=False,
+                                 widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    new_box = forms.ModelChoiceField(label='target box', queryset=models.Boxes.objects.all(), empty_label=None,
+                                     widget=forms.Select(attrs={'class': 'form-control'}),
+                                     help_text='Select the target box.')
+
+    def clean(self):
+        cleaned_data = super(BoxingForm, self).clean()
+        actual_box = cleaned_data.get('actual_box')
+        new_box = str(cleaned_data.get('new_box'))[:7]
+        if actual_box == new_box:
+            raise forms.ValidationError('Actual box is equal to new box.')
 
 
 class PasswordForm(forms.Form):
