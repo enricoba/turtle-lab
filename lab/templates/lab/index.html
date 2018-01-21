@@ -474,12 +474,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
         <!-- SPECIFIC CONTENT -->
         {% if content == 'index' %}
-            <div class="container" style="max-width: 500px">
+            <div class="container" style="max-width: 400px">
+                <h1 style="text-align: center; margin-bottom: 20px">Please sign in</h1>
                 <form id="id_form_login" onsubmit="return false">
                     {% csrf_token %}
                     {% for field in login %}
                         <div class="form-group">
-                            {{ field.label_tag }}
                             {% render_field field %}
                             {% if field.help_text %}
                                 <small class="form-text text-muted">{{ field.help_text }}</small>
@@ -488,7 +488,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% endfor %}
                 </form>
                 <!-- BUTTON -->
-                <button type="button" class="btn btn-primary" id="id_submit_login" style="margin-top: 20px">Login</button>
+                <button type="button" class="btn btn-primary btn-lg" id="id_submit_login" style="margin-top: 20px; width: 400px">Sign in</button>
             </div>
         {% endif %}
 

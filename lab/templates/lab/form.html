@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $.each(errors, function (index, value) {
             var field = index;
             if (field === "__all__") {
+                $("br").remove();
                 var toAppend = "<small class='form-text text-muted error' style='color: red'>"+ value + "</small>";
                 $("#" + form_id).append(toAppend);
             } else {

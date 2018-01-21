@@ -420,10 +420,12 @@ class FreezeThawAccountsFormEdit(forms.Form):
 
 class LoginForm(forms.Form):
     user = forms.CharField(label='username', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}),
-                           help_text='Enter user name.')
-    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-                               help_text='Provide valid password.')
+                           widget=forms.TextInput(attrs={'class': 'form-control',
+                                                         'placeholder': 'User name',
+                                                         'style': 'width: 400px'}))
+    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                                   'placeholder': 'Password',
+                                                                                   'style': 'width: 400px'}))
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
