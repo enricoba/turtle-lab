@@ -261,12 +261,19 @@ class MovementsForm(forms.Form):
                                           widget=forms.Select(attrs={'class': 'form-control'}),
                                           help_text='Select the target location.')
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(MovementsForm, self).__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super(MovementsForm, self).clean()
         actual_location = cleaned_data.get('actual_location')
         new_location = str(cleaned_data.get('new_location'))[:7]
+        unique = self.request.POST.get('unique')
         if actual_location == str(new_location):
-            raise forms.ValidationError('Movement failed: actual location is equal to new location.')
+            raise forms.ValidationError('Actual location is equal to new location.')
+        elif models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
+            raise forms.ValidationError('Target location has no suitable condition.')
 
 
 class PasswordForm(forms.Form):

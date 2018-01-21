@@ -1020,7 +1020,7 @@ def home_movement(request):
 @decorators.permission('mo')
 @decorators.require_ajax
 def home_move(request):
-    form = forms.MovementsForm(request.POST)
+    form = forms.MovementsForm(request.POST, request=request)
     manipulation = framework.TableManipulation(table=models.MovementLog)
     if form.is_valid():
         # we need to know the type of thing we move

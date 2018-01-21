@@ -286,6 +286,12 @@ class SamplesManager(GlobalManager):
         dic = {self.unique: unique}
         return self.filter(**dic)[0].account
 
+    def conditions(self, unique):
+        dic = {self.unique: unique}
+        account = self.filter(**dic)[0].account
+        return [FreezeThawAccounts.objects.filter(account=account)[0].freeze_condition,
+                FreezeThawAccounts.objects.filter(account=account)[0].thaw_condition]
+
 
 # table
 class Samples(models.Model):
