@@ -272,6 +272,11 @@ class MovementsForm(forms.Form):
         unique = self.request.POST.get('unique')
         if actual_location == new_location:
             raise forms.ValidationError('Actual location is equal to new location.')
+        if unique[:1] == 'B':
+            boxed_samples = models.RTD.objects.filter(box=unique[:7])
+            for sample in boxed_samples:
+                if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(sample):
+                    raise forms.ValidationError('Target location has no suitable condition for {}.'.format(sample))
         if unique[:1] == 'S':
             if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
                 raise forms.ValidationError('Target location has no suitable condition.')
@@ -280,8 +285,8 @@ class MovementsForm(forms.Form):
 class BoxingForm(forms.Form):
     actual_box = forms.CharField(label='actual box', max_length=UNIQUE_LENGTH, required=False,
                                  widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    new_box = forms.ModelChoiceField(label='target box', queryset=models.Boxes.objects.all(), empty_label=None,
-                                     widget=forms.Select(attrs={'class': 'form-control'}),
+    new_box = forms.ModelChoiceField(label='target box', queryset=models.Boxes.objects.all(), empty_label='',
+                                     widget=forms.Select(attrs={'class': 'form-control'}), required=False,
                                      help_text='Select the target box.')
 
     def __init__(self, *args, **kwargs):
@@ -293,10 +298,11 @@ class BoxingForm(forms.Form):
         actual_box = cleaned_data.get('actual_box')
         new_box = str(cleaned_data.get('new_box'))[:7]
         unique = self.request.POST.get('unique')
-        if models.RTD.objects.validate_location(box=new_box, sample=unique):
-            raise forms.ValidationError('Sample and box must be in the same location.')
-        if actual_box == new_box:
-            raise forms.ValidationError('Actual box is equal to new box.')
+        if new_box != 'None':
+            if models.RTD.objects.validate_location(box=new_box, sample=unique):
+                raise forms.ValidationError('Sample and box must be in the same location.')
+            if actual_box == new_box:
+                raise forms.ValidationError('Actual box is equal to new box.')
 
 
 class PasswordForm(forms.Form):

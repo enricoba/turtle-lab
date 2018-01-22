@@ -1039,10 +1039,18 @@ def home_move(request):
     form = forms.MovementsForm(request.POST, request=request)
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.MovementLog)
-        # we need to know the type of thing we move
+        # check if selected item is a sample
+        unique = request.POST.get('unique')
         response, message = manipulation.movement(user=request.user.username,
                                                   unique=request.POST.get('unique'),
                                                   new_location=str(form.cleaned_data['new_location'])[:7])
+        # if box is moved boxed samples are moved as well
+        if unique[:1] == 'B':
+            boxed_samples = models.RTD.objects.filter(box=unique[:7])
+            for sample in boxed_samples:
+                manipulation.movement(user=request.user.username,
+                                      unique=sample,
+                                      new_location=str(form.cleaned_data['new_location'])[:7])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)

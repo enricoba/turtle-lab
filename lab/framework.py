@@ -627,7 +627,7 @@ class TableManipulation(Master):
             if field in kwargs:
                 # add field value to temporary dictionary
                 _dict[field] = kwargs[field] if field == 'duration' else '' if kwargs[field] is None \
-                    else str(kwargs[field])
+                    else '' if kwargs[field] == 'None' else str(kwargs[field])
                 # else str(kwargs[field]) if type(kwargs[field]) is object else kwargs[field]
                 # create json string for checksum
                 _json += '{}:{};'.format(field, '' if kwargs[field] is None else kwargs[field])
