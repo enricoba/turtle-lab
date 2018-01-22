@@ -22,10 +22,12 @@ from . import views
 
 
 urlpatterns = [
+    # export
+    url(r'export/(?P<dialog>\w+)/$', views.some_streaming_csv_view, name='export'),
     # index
     url(r'^$', views.index, name='index'),
-    url(r'index/login/', views.index_login, name='index login'),
-    url(r'index/password', views.index_password, name='index password'),
+    url(r'index/login/$', views.index_login, name='index login'),
+    url(r'index/password/$', views.index_password, name='index password'),
     url(r'index/logout/$', views.index_logout, name='index logout'),
     # conditions
     url(r'conditions/$', views.conditions, name='conditions'),

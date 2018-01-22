@@ -20,13 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # python imports
 import logging
 import json
+import csv
 
 # django imports
 from django.shortcuts import render
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 
@@ -1093,3 +1094,19 @@ def home_boxing(request):
                 'form_id': 'id_form_boxing',
                 'errors': form.errors}
         return JsonResponse(data)
+
+
+@require_GET
+@login_required
+def some_streaming_csv_view(request, dialog):
+    print(dialog)
+    """A view that streams a large CSV file."""
+    # Generate a sequence of rows. The range is based on the maximum number of
+    # rows that can be handled by a single sheet in most spreadsheet
+    # applications.
+    rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
+    pseudo_buffer = custom.Echo()
+    writer = csv.writer(pseudo_buffer)
+    response = StreamingHttpResponse((writer.writerow(row) for row in rows), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    return response

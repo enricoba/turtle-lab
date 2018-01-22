@@ -97,19 +97,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <ul class="dropdown-menu">
                                     <!-- Movement Log -->
                                     {% if 'log_mo' in perm %}
-                                        <li><a href="/movement_log">Movement</a></li>
+                                        <li><a href="/movement_log/">Movement</a></li>
                                     {% endif %}
                                     <!-- Login Log -->
                                     {% if 'log_lo' in perm %}
-                                        <li><a href="/login_log">Login</a></li>
+                                        <li><a href="/login_log/">Login</a></li>
                                     {% endif %}
                                     <!-- Label Log -->
                                     {% if 'log_la' in perm %}
-                                        <li><a href="/label_log">Labels</a></li>
+                                        <li><a href="/label_log/">Labels</a></li>
                                     {% endif %}
                                     <!-- Boxing Log -->
                                     {% if 'log_bo' in perm %}
-                                        <li><a href="/boxing_log">Boxing</a></li>
+                                        <li><a href="/boxing_log/">Boxing</a></li>
                                     {% endif %}
                                 </ul>
                             </li>
@@ -265,7 +265,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <span class="fa fa-th"></span></button>
                     {% endif %}
                 <!-- UNUSED -->
-                 <button id="id_nav_btn_export" type="button" class="btn btn-default disabled">
+                 <button id="id_nav_btn_export" type="button" class="btn btn-default">
                      <span class="fa fa-download"></span></button>
 
                  <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
@@ -584,6 +584,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
 
     {% include "lab/core.html" %}
+    {% include "lab/export.html" %}
 
     {% if tables %}
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
