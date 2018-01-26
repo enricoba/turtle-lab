@@ -1099,14 +1099,15 @@ def home_boxing(request):
 @require_GET
 @login_required
 def some_streaming_csv_view(request, dialog):
-    print(dialog)
-    """A view that streams a large CSV file."""
-    # Generate a sequence of rows. The range is based on the maximum number of
-    # rows that can be handled by a single sheet in most spreadsheet
-    # applications.
-    rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
+    queryset = framework.GetStandard(table=models.Samples)
+    value_list = models.Samples.objects.values_list(*queryset.header)
+    header = [tuple(custom.capitalize(queryset.header))]
+    for row in value_list:
+        header.append(row)
+
     pseudo_buffer = custom.Echo()
     writer = csv.writer(pseudo_buffer)
-    response = StreamingHttpResponse((writer.writerow(row) for row in rows), content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    response = StreamingHttpResponse((writer.writerow(row) for row in header), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dialog)
     return response
