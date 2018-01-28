@@ -956,3 +956,20 @@ class BoxingLog(models.Model):
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
     # manager
     objects = BoxingLogManager()
+
+
+# tables for export/import
+TABLES = {
+    'samples': Samples,
+    'boxes': Boxes,
+    'conditions': Conditions,
+    'locations': Locations,
+    'roles': Roles,
+    'users': Users,
+    'freeze_thaw_accounts': FreezeThawAccounts,
+    'movement_log': MovementLog,
+    'login_log': LoginLog,
+    'label_log': LabelLog,
+    'boxing_log': BoxingLog,
+    'home': RTD
+}

@@ -23,7 +23,7 @@ from . import views
 
 urlpatterns = [
     # export
-    url(r'export/(?P<dialog>\w+)/$', views.some_streaming_csv_view, name='export'),
+    url(r'export/(?P<dialog>\w+)/$', views.export, name='export'),
     # index
     url(r'^$', views.index, name='index'),
     url(r'index/login/$', views.index_login, name='index login'),

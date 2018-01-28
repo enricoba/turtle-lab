@@ -1098,16 +1098,18 @@ def home_boxing(request):
 
 @require_GET
 @login_required
-def some_streaming_csv_view(request, dialog):
-    queryset = framework.GetStandard(table=models.Samples)
-    value_list = models.Samples.objects.values_list(*queryset.header)
-    header = [tuple(custom.capitalize(queryset.header))]
-    for row in value_list:
-        header.append(row)
-
+def export(request, dialog):
+    if dialog == 'home':
+        queryset = framework.GetView(table=models.RTD)
+        data = queryset.export
+    else:
+        table = models.TABLES[dialog]
+        queryset = framework.GetStandard(table=table)
+        data = queryset.export
+    # write pseudo buffer for streaming
     pseudo_buffer = custom.Echo()
     writer = csv.writer(pseudo_buffer)
-
-    response = StreamingHttpResponse((writer.writerow(row) for row in header), content_type="text/csv")
+    # response
+    response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dialog)
     return response
