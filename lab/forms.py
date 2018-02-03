@@ -38,6 +38,21 @@ log = logging.getLogger(__name__)
 COLOR_MANDATORY = '#FA5858'
 
 
+def validate_unique_condition(value):
+    if models.Conditions.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_roles(value):
+    if models.Roles.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_freeze_thaw_accounts(value):
+    if models.FreezeThawAccounts.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
 def validate_password_length(value):
     if len(value) < 8:
         raise ValidationError('Password must be longer than 8 characters.')
@@ -73,7 +88,8 @@ def validate_lower(value):
 class ConditionFormNew(forms.Form):
     condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                help_text='Enter a condition.')
+                                help_text='Enter a condition.',
+                                validators=[validate_unique_condition])
 
 
 class ConditionFormEdit(forms.Form):
@@ -86,10 +102,11 @@ class ConditionFormEdit(forms.Form):
 class RolesFormNew(forms.Form):
     role = forms.CharField(label='role', max_length=UNIQUE_LENGTH,
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
-                           help_text='Enter a role.')
+                           help_text='Enter a role.',
+                           validators=[validate_unique_roles])
     permissions = forms.CharField(label='permissions', required=False,
                                   help_text='Select permissions.',
-                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control',
+                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control perm',
                                                                                           'size': '20'}))
 
 
@@ -379,7 +396,8 @@ class PasswordFormUsers(forms.Form):
 
 class FreezeTHawAccountsFormNew(forms.Form):
     account = forms.CharField(label='account', max_length=40, help_text='Enter an account name.',
-                              widget=forms.TextInput(attrs={'class': 'form-control'}))
+                              widget=forms.TextInput(attrs={'class': 'form-control'}),
+                              validators=[validate_unique_freeze_thaw_accounts])
     freeze_condition = forms.ModelChoiceField(label='freeze condition', queryset=Conditions.objects.all(),
                                               empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}),
                                               help_text='Select a freeze condition.')

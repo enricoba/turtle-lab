@@ -159,6 +159,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% if content == 'conditions' and 'co_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
                             <span class="fa fa-plus"></span></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-files-o"></span></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <span class="fa fa-pencil-square-o"></span></button>
                     {% endif %}
@@ -170,6 +172,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% if content == 'locations' and 'lo_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
                             <span class="fa fa-plus"></span></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-files-o"></span></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <span class="fa fa-pencil-square-o"></span></button>
                     {% endif %}
@@ -181,6 +185,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% if content == 'samples' and 'sa_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
                             <span class="fa fa-plus"></span></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-files-o"></span></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <span class="fa fa-pencil-square-o"></span></button>
                     {% endif %}
@@ -192,6 +198,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% if content == 'boxes' and 'bo_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
                             <span class="fa fa-plus"></span></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-files-o"></span></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <span class="fa fa-pencil-square-o"></span></button>
                     {% endif %}
@@ -203,6 +211,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% if content == 'freeze_thaw_accounts' and 'ac_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
                             <span class="fa fa-plus"></span></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-files-o"></span></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <span class="fa fa-pencil-square-o"></span></button>
                     {% endif %}
@@ -229,6 +239,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% if content == 'roles' and 'ro_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
                             <span class="fa fa-plus"></span></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <span class="fa fa-files-o"></span></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <span class="fa fa-pencil-square-o"></span></button>
                     {% endif %}
@@ -324,6 +336,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                                 <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_new">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- DUPLICATE -->
+                <div class="modal fade" id="id_modal_duplicate" tabindex="-1" role="dialog" aria-labelledby="id_modal_duplicate">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <a type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                                <h4 class="modal-title" id="id_modal_duplicate">Duplicate</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body">
+                                <form id="id_form_duplicate" onsubmit="return false">
+                                    {% csrf_token %}
+                                    <!-- SPECIFIC -->
+                                    {% for field in modal_new %}
+                                        <div class="form-group">
+                                            {{ field.label_tag }}
+                                            {% render_field field %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_duplicate">Save changes</button>
                             </div>
                         </div>
                     </div>
@@ -590,6 +635,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
             {% include "lab/audittrail.html" %}
             {% include "lab/new.html" %}
+            {% include "lab/duplicate.html" %}
             {% include "lab/edit.html" %}
             {% include "lab/delete.html" %}
             {% include "lab/form.html" %}

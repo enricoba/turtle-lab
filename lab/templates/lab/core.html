@@ -66,6 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 document.getSelection().removeAllRanges();
                 $("#id_nav_btn_delete").removeClass('disabled').removeClass('btn-default').addClass('btn-danger');
                 $("#id_nav_btn_edit").removeClass('disabled').removeClass('btn-default').addClass('btn-primary');
+                $("#id_nav_btn_duplicate").removeClass('disabled').removeClass('btn-default').addClass('btn-success');
                 $("#id_nav_btn_audit_trail").removeClass('disabled').removeClass('btn-default').addClass('btn-warning');
                 $("#id_nav_btn_movement").removeClass('disabled').removeClass('btn-default').addClass('btn-info');
                 $("#id_nav_btn_boxing").removeClass('disabled').removeClass('btn-default').addClass('btn-primary');
@@ -77,6 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     $(this).addClass('selected');
                     $(this).css("background-color", table_row_color);
                     $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
+                    $("#id_nav_btn_duplicate").addClass('disabled').removeClass('btn-success').addClass('btn-default');
                     $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
                     $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
                     $("#id_nav_btn_boxing").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
@@ -92,6 +94,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         $(this).attr('id', '');
                         $("#id_nav_btn_delete").addClass('disabled').removeClass('btn-danger').addClass('btn-default');
                         $("#id_nav_btn_edit").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
+                        $("#id_nav_btn_duplicate").addClass('disabled').removeClass('btn-success').addClass('btn-default');
                         $("#id_nav_btn_audit_trail").addClass('disabled').removeClass('btn-warning').addClass('btn-default');
                         $("#id_nav_btn_movement").addClass('disabled').removeClass('btn-info').addClass('btn-default');
                         $("#id_nav_btn_boxing").addClass('disabled').removeClass('btn-primary').addClass('btn-default');
