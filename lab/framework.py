@@ -372,9 +372,9 @@ class GetStandard(Master):
 
     def generate_integrity_column(self, row=None):
         if self.verify_checksum(row=row):
-            _tmp = '<td><i class="fa fa-check-circle" style="color: green"></td>'
+            _tmp = '<td><i class="fas fa-check-circle" style="color: green"></td>'
         else:
-            _tmp = '<td><i class="fa fa-close" style="color: red"></i></td>'
+            _tmp = '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
         return _tmp
 
     def get(self, **dic):
@@ -413,9 +413,9 @@ class GetStandard(Master):
                     tmp += '<td>*****</td>'
                 elif field == 'is_active' or field == 'initial_password' or field == 'active':
                     if row[field]:
-                        tmp += '<td><i class="fa fa-check-circle" style="color: green"></td>'
+                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fa fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
                 elif field != self.unique and field != 'version':
                     tmp += '<td class="gui">{}</td>'.format(row[field])
                 else:
@@ -476,9 +476,9 @@ class GetAuditTrail(GetStandard):
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['thaw_uom'], dt=row[field]))
                 elif field == 'is_active' or field == 'initial_password':
                     if row[field]:
-                        tmp += '<td><i class="fa fa-check-circle" style="color: green"></td>'
+                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fa fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
             # add verify column

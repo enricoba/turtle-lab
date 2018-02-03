@@ -27,15 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turtle Lab</title>
     {% load static %}
-    <!-- Stylesheets via CDN -->
-    <!-- <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-          crossorigin="anonymous"> -->
+    <!-- Stylesheet Bootstrap -->
     <link rel="stylesheet" href="{% static "bootstrap-3.3.7-dist/css/bootstrap.min.css" %}">
-    <!-- Stylesheet Font Awesome CDN -->
-    <!-- <link rel="stylesheet" href="https://use.fontawesome.com/5e4c6b402a.css"> -->
-    <link rel="stylesheet" href="{% static "font-awesome-4.7.0/css/font-awesome.min.css" %}">
+    <!-- JS Font Awesome -->
+    <script defer src="{% static "fontawesome-free-5.0.6/svg-with-js/js/fontawesome-all.min.js" %}"></script>
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- NAVBAR -->
@@ -135,10 +130,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <!-- NAVBAR RIGHT -->
                     <ul class="nav navbar-nav navbar-right" style="padding-right: 10px;">
                         {% if session %}
-                            <li><a href="#"><i class="fa fa-lock" style="color: green"></i> {{ user }}</a></li>
-                            <li><a href="/index/logout/"><i class="glyphicon glyphicon-log-out"></i></a></li>
+                            <li><a href="#"><i class="fas fa-lock" style="color: green"></i> {{ user }}</a></li>
+                            <li><a href="/index/logout/"><i class="fas fa-sign-out-alt"></i></a></li>
                         {% else %}
-                            <li><a href="#"><i class="fa fa-unlock-alt" style="color: red"></i></a></li>
+                            <li><a href="#"><i class="fas fa-lock-open" style="color: red"></i></a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -158,130 +153,130 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <!-- Conditions -->
                     {% if content == 'conditions' and 'co_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-files-o"></span></button>
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'conditions' and 'co_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Locations -->
                     {% if content == 'locations' and 'lo_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-files-o"></span></button>
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'locations' and 'lo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Samples -->
                     {% if content == 'samples' and 'sa_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-files-o"></span></button>
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'samples' and 'sa_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Boxes -->
                     {% if content == 'boxes' and 'bo_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-files-o"></span></button>
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'boxes' and 'bo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Accounts -->
                     {% if content == 'freeze_thaw_accounts' and 'ac_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-files-o"></span></button>
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'freeze_thaw_accounts' and 'ac_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- User -->
                     {% if content == 'users' and 'us_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'users' and 'us_p' in perm %}
                         <button id="id_nav_btn_password" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-key"></span></button>
+                            <i class="fas fa-key"></i></button>
                     {% endif %}
                     {% if content == 'users' and 'us_a' in perm %}
                         <button id="id_nav_btn_active" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-user-times"></span></button>
+                            <i class="fas fa-user-times"></i></button>
                     {% endif %}
                     <!-- Roles -->
                     {% if content == 'roles' and 'ro_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-files-o"></span></button>
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'roles' and 'ro_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Label -->
                     {% if content == 'locations' and 'lo_l' in perm %}
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-barcode"></span></button>
+                            <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'samples' and 'sa_l' in perm %}
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-barcode"></span></button>
+                            <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'boxes' and 'bo_l' in perm %}
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-barcode"></span></button>
+                            <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     <!-- Audit trail -->
                         <button id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-clock-o"></span></button>
+                            <i class="fas fa-clock"></i></button>
                     {% endif %}
                 <!-- Home -->
                     <!-- Movement -->
                     {% if content == 'home' and 'mo' in perm %}
                         <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-exchange"></span></button>
+                            <i class="fas fa-exchange-alt"></i></button>
                     {% endif %}
                     <!-- Boxing -->
                     {% if content == 'home' and 'bo' in perm %}
                         <button id="id_nav_btn_boxing" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-th"></span></button>
+                            <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- UNUSED -->
                  <button id="id_nav_btn_export" type="button" class="btn btn-default">
-                     <span class="fa fa-download"></span></button>
+                     <i class="fas fa-download"></i></button>
 
                  <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
-                     <span class="fa fa-filter"></span></button>
+                     <i class="fas fa-filter"></i></button>
             </div>
         </div>
     {% endif %}
@@ -438,7 +433,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <!-- FOOTER -->
                             <div class="modal-footer">
                                 <button style="float:left" id="id_nav_audit_trail_btn_export" type="button" class="btn btn-default disabled">
-                                         <span class="glyphicon glyphicon-download-alt"></span></button>
+                                         <i class="fas fa-download"></i></button>
                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             </div>
                         </div>
