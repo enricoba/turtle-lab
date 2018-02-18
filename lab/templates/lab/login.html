@@ -73,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             submitPassword(v_user);
         }
     }).on('shown.bs.modal', function () {
-        $(this).find('#id_password').first().focus();
+        $('#id_password_change').focus();
     }).on('hidden.bs.modal', function () {
         $("br").remove();
         $("small").remove(".error");
