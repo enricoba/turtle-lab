@@ -22,5 +22,4 @@ gunicorn_config.py
 static
 
 # others
-*.pdf
 others
