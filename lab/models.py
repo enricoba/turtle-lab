@@ -245,9 +245,10 @@ class TypesAuditTrail(models.Model):
     objects = TypesAuditTrailManager()
 
 
-#########
-# BOXES #
-#########
+#############
+# BOX TYPES #
+#############
+
 
 BOX_ALIGNMENT = (('Horizontal', 'Horizontal'),
                  ('Vertical', 'Vertical'))
@@ -260,6 +261,75 @@ BOX_ORIGIN = (('top-left', 'top-left'),
               ('top-right', 'top-right'),
               ('bottom-left', 'bottom-left'),
               ('bottom-right', 'bottom-right'))
+
+
+# manager
+class BoxTypesManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'box_type'
+
+    @property
+    def default(self):
+        dic = {'default': True}
+        return self.filter(**dic).exists()
+
+
+# table
+class BoxTypes(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    box_type = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
+    row_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
+    rows = models.PositiveIntegerField()
+    column_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
+    columns = models.PositiveIntegerField()
+    origin = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ORIGIN)
+    default = models.BooleanField()
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxTypesManager()
+
+    def __str__(self):
+        return self.box_type
+
+
+# audit trail manager
+class BoxTypesAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class BoxTypesAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    box_type = models.CharField(max_length=UNIQUE_LENGTH)
+    alignment = models.CharField(max_length=UNIQUE_LENGTH)
+    row_type = models.CharField(max_length=UNIQUE_LENGTH)
+    rows = models.PositiveIntegerField()
+    column_type = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.PositiveIntegerField()
+    origin = models.CharField(max_length=UNIQUE_LENGTH)
+    default = models.BooleanField()
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxTypesAuditTrailManager()
+
+
+#########
+# BOXES #
+#########
 
 
 # manager
@@ -276,12 +346,8 @@ class Boxes(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
-    row_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
-    rows = models.PositiveIntegerField()
-    column_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
-    columns = models.PositiveIntegerField()
-    origin = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ORIGIN)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    box_type = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -309,12 +375,8 @@ class BoxesAuditTrail(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    alignment = models.CharField(max_length=UNIQUE_LENGTH)
-    row_type = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.PositiveIntegerField()
-    column_type = models.CharField(max_length=UNIQUE_LENGTH)
-    columns = models.PositiveIntegerField()
-    origin = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    box_type = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -615,6 +677,10 @@ PERMISSIONS = (
         ('bo_w', 'write'),
         ('bo_d', 'delete'),
         ('bo_l', 'labels'))),
+    ('Box Types', (
+        ('bt_r', 'read'),
+        ('bt_w', 'write'),
+        ('bt_d', 'delete'))),
     ('Conditions', (
         ('co_r', 'read'),
         ('co_w', 'write'),
@@ -1028,6 +1094,7 @@ class BoxingLog(models.Model):
 TABLES = {
     'samples': Samples,
     'boxes': Boxes,
+    'box_types': BoxTypes,
     'conditions': Conditions,
     'types': Types,
     'locations': Locations,

@@ -325,7 +325,7 @@ class GetStandard(Master):
         for item in self.js_header:
             if item == 'permissions':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val().toString();'.format(item))
-            elif item == 'is_active':
+            elif item == 'is_active' or item == 'default':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").is(":checked");'.format(item))
             else:
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val();'.format(item))
@@ -411,11 +411,13 @@ class GetStandard(Master):
                     tmp += '<td class="version">{}</td>'.format(row[field])
                 elif field == 'password':
                     tmp += '<td>*****</td>'
-                elif field == 'is_active' or field == 'initial_password' or field == 'active':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
                     if row[field]:
-                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
+                        tmp += '<td class="gui"><p style="display: none">True</p>' \
+                               '<i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td class="gui"><p style="display: none">False</p>' \
+                               '<i class="fas fa-minus-circle" style="color: red"></i></td>'
                 elif field != self.unique and field != 'version':
                     tmp += '<td class="gui">{}</td>'.format(row[field])
                 else:

@@ -693,6 +693,11 @@ def types_delete(request):
     return JsonResponse(data)
 
 
+#########
+# BOXES #
+#########
+
+
 @require_GET
 @login_required
 @decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
@@ -735,12 +740,8 @@ def boxes_new(request):
         response, message = manipulation.new_identifier_at(user=request.user.username, prefix='B',
                                                            box='B {}'.format(str(timezone.now())),
                                                            name=form.cleaned_data['name'],
-                                                           alignment=form.cleaned_data['alignment'],
-                                                           row_type=form.cleaned_data['row_type'],
-                                                           rows=form.cleaned_data['rows'],
-                                                           column_type=form.cleaned_data['column_type'],
-                                                           columns=form.cleaned_data['columns'],
-                                                           origin=form.cleaned_data['origin'])
+                                                           box_type=form.cleaned_data['box_type'],
+                                                           type=form.cleaned_data['type'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -763,12 +764,8 @@ def boxes_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  box=form.cleaned_data['box'],
                                                  name=form.cleaned_data['name'],
-                                                 alignment=form.cleaned_data['alignment'],
-                                                 row_type=form.cleaned_data['row_type'],
-                                                 rows=form.cleaned_data['rows'],
-                                                 column_type=form.cleaned_data['column_type'],
-                                                 columns=form.cleaned_data['columns'],
-                                                 origin=form.cleaned_data['origin'])
+                                                 box_type=form.cleaned_data['box_type'],
+                                                 type=form.cleaned_data['type'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -811,6 +808,116 @@ def boxes_label(request):
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
+
+
+#############
+# BOX TYPES #
+#############
+
+
+@require_GET
+@login_required
+@decorators.permission('bt_r', 'bt_w', 'bt_d')
+def box_types(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'box_types',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.BoxTypes),
+        get_audit_trail=framework.GetAuditTrail(table=models.BoxTypesAuditTrail),
+        form_render_new=forms.BoxTypesFormNew(),
+        form_render_edit=forms.BoxTypesFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('bt_r', 'bt_w', 'bt_d')
+@decorators.require_ajax
+def box_types_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.BoxTypesAuditTrail).get(
+        id_ref=models.BoxTypes.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bt_w')
+@decorators.require_ajax
+def box_types_new(request):
+    form = forms.BoxTypesFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.BoxTypes,
+                                                   table_audit_trail=models.BoxTypesAuditTrail)
+        print(form.cleaned_data['default'])
+        response, message = manipulation.new_at(user=request.user.username,
+                                                box_type=form.cleaned_data['box_type'],
+                                                alignment=form.cleaned_data['alignment'],
+                                                row_type=form.cleaned_data['row_type'],
+                                                rows=form.cleaned_data['rows'],
+                                                column_type=form.cleaned_data['column_type'],
+                                                columns=form.cleaned_data['columns'],
+                                                origin=form.cleaned_data['origin'],
+                                                default=form.cleaned_data['default'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bt_w')
+@decorators.require_ajax
+def box_types_edit(request):
+    form = forms.BoxTypesFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.BoxTypes,
+                                                   table_audit_trail=models.BoxTypesAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 box_type=form.cleaned_data['box_type'],
+                                                 alignment=form.cleaned_data['alignment'],
+                                                 row_type=form.cleaned_data['row_type'],
+                                                 rows=form.cleaned_data['rows'],
+                                                 column_type=form.cleaned_data['column_type'],
+                                                 columns=form.cleaned_data['columns'],
+                                                 origin=form.cleaned_data['origin'],
+                                                 default=form.cleaned_data['default'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bt_d')
+@decorators.require_ajax
+def box_types_delete(request):
+    manipulation = framework.TableManipulation(table=models.BoxTypes,
+                                               table_audit_trail=models.BoxTypesAuditTrail)
+    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                            user=request.user.username)
+    data = {'response': response}
+    return JsonResponse(data)
+
+
+###########
+# SAMPLES #
+###########
 
 
 @require_GET

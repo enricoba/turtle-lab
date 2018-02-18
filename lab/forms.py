@@ -25,7 +25,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, VOLUMES, TIMES, \
-    Conditions, Locations, ORIGIN, FreezeThawAccounts, PERMISSIONS, Roles
+    Conditions, Locations, ORIGIN, FreezeThawAccounts, PERMISSIONS, Roles, \
+    Types, BoxTypes
 
 # app imports
 import lab.models as models
@@ -40,6 +41,11 @@ COLOR_MANDATORY = '#FA5858'
 
 def validate_unique_condition(value):
     if models.Conditions.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_box_type(value):
+    if models.BoxTypes.objects.exist(value):
         raise ValidationError('Record already exists.')
 
 
@@ -61,6 +67,11 @@ def validate_unique_freeze_thaw_accounts(value):
 def validate_password_length(value):
     if len(value) < 8:
         raise ValidationError('Password must be longer than 8 characters.')
+
+
+def validate_box_types_default(value):
+    if models.BoxTypes.objects.default:
+        raise ValidationError('Only one box type can be default.')
 
 
 def validate_digits(value):
@@ -206,6 +217,11 @@ class LocationsFormEdit(forms.Form):
                                    validators=[validate_positive_number], required=False)
 
 
+#########
+# TYPES #
+#########
+
+
 class TypesFormNew(forms.Form):
     type = forms.CharField(label='type', max_length=UNIQUE_LENGTH,
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -239,9 +255,45 @@ class TypesFormEdit(TypesFormNew):
                            widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
 
 
+#########
+# BOXES #
+#########
+
+
 class BoxesFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.all(), empty_label=None,
+                                      widget=forms.Select(attrs={'class': 'form-control'}),
+                                      help_text='Select a box type.')
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
+                                  widget=forms.Select(attrs={'class': 'form-control'}), required=False,
+                                  help_text='Select a type. This field is optional.')
+
+
+class BoxesFormEdit(forms.Form):
+    box = forms.CharField(label='box', max_length=GENERATED_LENGTH,
+                          widget=forms.TextInput(attrs={'class': 'form-control',
+                                                        'disabled': True}))
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.all(), empty_label=None,
+                                      widget=forms.Select(attrs={'class': 'form-control',
+                                                                 'disabled': True}))
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
+                                  widget=forms.Select(attrs={'class': 'form-control'}), required=False,
+                                  help_text='Select a type. This field is optional.')
+
+
+#############
+# BOX TYPES #
+#############
+
+
+class BoxTypesFormNew(forms.Form):
+    box_type = forms.CharField(label='box type', max_length=UNIQUE_LENGTH, help_text='Enter a box type.',
+                               widget=forms.TextInput(attrs={'class': 'form-control'}),
+                               validators=[validate_unique_box_type])
     alignment = forms.CharField(label='alignment', max_length=UNIQUE_LENGTH, help_text='Select an alignment type.',
                                 widget=forms.Select(choices=models.BOX_ALIGNMENT,
                                                     attrs={'class': 'form-control manual'}))
@@ -255,31 +307,21 @@ class BoxesFormNew(forms.Form):
                                                       attrs={'class': 'form-control manual'}))
     columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
                                  help_text='Enter box columns. (A=1, Z=26)', validators=[validate_positive_number])
-    origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select a origin.',
+    origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select an origin.',
                              widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
+    default = forms.BooleanField(label='active', required=False, help_text='Select the default status.',
+                                 widget=forms.CheckboxInput(attrs={'class': 'form-control', 'style': 'align: left'}),
+                                 validators=[validate_box_types_default])
 
 
-class BoxesFormEdit(forms.Form):
-    box = forms.CharField(label='box', max_length=GENERATED_LENGTH,
-                          widget=forms.TextInput(attrs={'class': 'form-control',
-                                                        'disabled': True}))
-    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
-                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    alignment = forms.CharField(label='alignment', max_length=UNIQUE_LENGTH, help_text='Select an alignment type.',
-                                widget=forms.Select(choices=models.BOX_ALIGNMENT,
-                                                    attrs={'class': 'form-control manual'}))
-    row_type = forms.CharField(label='row type', max_length=UNIQUE_LENGTH, help_text='Select a row type.',
-                               widget=forms.Select(choices=models.BOX_TYPES,
-                                                   attrs={'class': 'form-control manual'}))
-    rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                              help_text='Enter box rows.', validators=[validate_positive_number])
-    column_type = forms.CharField(label='column type', max_length=UNIQUE_LENGTH, help_text='Select a column type.',
-                                  widget=forms.Select(choices=models.BOX_TYPES,
-                                                      attrs={'class': 'form-control manual'}))
-    columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter box columns.', validators=[validate_positive_number])
-    origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select a origin.',
-                             widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
+class BoxTypesFormEdit(BoxTypesFormNew):
+    box_type = forms.CharField(label='box type', max_length=UNIQUE_LENGTH,
+                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+
+
+###########
+# SAMPLES #
+###########
 
 
 class SamplesFormNew(forms.Form):
