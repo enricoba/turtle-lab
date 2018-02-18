@@ -43,6 +43,11 @@ def validate_unique_condition(value):
         raise ValidationError('Record already exists.')
 
 
+def validate_unique_type(value):
+    if models.Types.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
 def validate_unique_roles(value):
     if models.Roles.objects.exist(value):
         raise ValidationError('Record already exists.')
@@ -199,6 +204,39 @@ class LocationsFormEdit(forms.Form):
     max_boxes = forms.IntegerField(label='max boxes', widget=forms.NumberInput(attrs={'class': 'form-control'}),
                                    help_text='Enter an appropriate value for maximum box capacity.',
                                    validators=[validate_positive_number], required=False)
+
+
+class TypesFormNew(forms.Form):
+    type = forms.CharField(label='type', max_length=UNIQUE_LENGTH,
+                           widget=forms.TextInput(attrs={'class': 'form-control'}),
+                           help_text='Enter a type.',
+                           validators=[validate_unique_type])
+    affiliation = forms.CharField(label='affiliation', max_length=UNIQUE_LENGTH, help_text='Select an affiliation.',
+                                  widget=forms.Select(choices=models.AFFILIATIONS,
+                                                      attrs={'class': 'form-control manual'}))
+    storage_condition = forms.ModelChoiceField(label='storage condition', queryset=Conditions.objects.all(),
+                                               widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None,
+                                               help_text='Select a storage condition.')
+    usage_condition = forms.ModelChoiceField(label='usage condition', queryset=Conditions.objects.all(), required=False,
+                                             widget=forms.Select(attrs={'class': 'form-control'}), empty_label='',
+                                             help_text='Select a usage condition. Optional for reagents.')
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(TypesFormNew, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(TypesFormNew, self).clean()
+        affiliation = cleaned_data.get('affiliation')
+        usage_condition = cleaned_data.get('usage_condition')
+        if affiliation == 'Samples':
+            if usage_condition is None:
+                raise forms.ValidationError('Samples must have usage condition.')
+
+
+class TypesFormEdit(TypesFormNew):
+    type = forms.CharField(label='type', max_length=UNIQUE_LENGTH,
+                           widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
 
 
 class BoxesFormNew(forms.Form):

@@ -36,6 +36,12 @@ urlpatterns = [
     url(r'conditions/edit/$', views.conditions_edit, name='conditions edit'),
     url(r'conditions/delete/$', views.conditions_delete, name='conditions delete'),
     url(r'conditions/audit_trail/$', views.conditions_audit_trail, name='conditions audit trail'),
+    # types
+    url(r'types/$', views.types, name='types'),
+    url(r'types/new/$', views.types_new, name='types new'),
+    url(r'types/edit/$', views.types_edit, name='types edit'),
+    url(r'types/delete/$', views.types_delete, name='types delete'),
+    url(r'types/audit_trail/$', views.types_audit_trail, name='types audit trail'),
     # locations
     url(r'locations/$', views.locations, name='locations'),
     url(r'locations/new/$', views.locations_new, name='locations new'),

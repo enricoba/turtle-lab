@@ -604,6 +604,97 @@ def locations_label(request):
 
 @require_GET
 @login_required
+@decorators.permission('ty_r', 'ty_w', 'ty_d')
+def types(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'types',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.Types),
+        get_audit_trail=framework.GetAuditTrail(table=models.TypesAuditTrail),
+        form_render_new=forms.TypesFormNew(),
+        form_render_edit=forms.TypesFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('ty_r', 'ty_w', 'ty_d')
+@decorators.require_ajax
+def types_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.TypesAuditTrail).get(
+        id_ref=models.Types.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ty_w')
+@decorators.require_ajax
+def types_new(request):
+    form = forms.TypesFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Types,
+                                                   table_audit_trail=models.TypesAuditTrail)
+        response, message = manipulation.new_at(user=request.user.username,
+                                                type=form.cleaned_data['type'],
+                                                affiliation=form.cleaned_data['affiliation'],
+                                                storage_condition=form.cleaned_data['storage_condition'],
+                                                usage_condition=form.cleaned_data['usage_condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ty_w')
+@decorators.require_ajax
+def types_edit(request):
+    form = forms.TypesFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Types,
+                                                   table_audit_trail=models.TypesAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 type=form.cleaned_data['type'],
+                                                 affiliation=form.cleaned_data['affiliation'],
+                                                 storage_condition=form.cleaned_data['storage_condition'],
+                                                 usage_condition=form.cleaned_data['usage_condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ty_d')
+@decorators.require_ajax
+def types_delete(request):
+    manipulation = framework.TableManipulation(table=models.Types,
+                                               table_audit_trail=models.TypesAuditTrail)
+    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                            user=request.user.username)
+    data = {'response': response}
+    return JsonResponse(data)
+
+
+@require_GET
+@login_required
 @decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
 def boxes(request):
     context = framework.html_and_data(

@@ -186,6 +186,66 @@ class LocationsAuditTrail(models.Model):
 
 
 #########
+# TYPES #
+#########
+
+
+AFFILIATIONS = (('Reagents', 'Reagents'),
+                ('Samples', 'Samples'))
+
+
+# manager
+class TypesManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'type'
+
+
+# table
+class Types(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    type = models.CharField(max_length=GENERATED_LENGTH, unique=True)
+    affiliation = models.CharField(max_length=UNIQUE_LENGTH, choices=AFFILIATIONS)
+    storage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    usage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypesManager()
+
+    def __str__(self):
+        return self.type
+
+
+# audit trail manager
+class TypesAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class TypesAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    type = models.CharField(max_length=GENERATED_LENGTH)
+    affiliation = models.CharField(max_length=UNIQUE_LENGTH)
+    storage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    usage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypesAuditTrailManager()
+
+
+#########
 # BOXES #
 #########
 
@@ -564,6 +624,10 @@ PERMISSIONS = (
         ('lo_w', 'write'),
         ('lo_d', 'delete'),
         ('lo_l', 'labels'))),
+    ('Types', (
+        ('ty_r', 'read'),
+        ('ty_w', 'write'),
+        ('ty_d', 'delete'))),
     ('Home', (
         ('home', 'home'),
         ('bo', 'boxing'),
@@ -965,6 +1029,7 @@ TABLES = {
     'samples': Samples,
     'boxes': Boxes,
     'conditions': Conditions,
+    'types': Types,
     'locations': Locations,
     'roles': Roles,
     'users': Users,

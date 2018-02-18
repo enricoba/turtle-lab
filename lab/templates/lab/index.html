@@ -70,6 +70,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 {% if 'lo_r' in perm or 'lo_w' in perm or 'lo_d' in perm or 'lo_l' in perm %}
                                     <li><a href="/locations/">Locations</a></li>
                                 {% endif %}
+                                <!-- Types -->
+                                {% if 'ty_r' in perm or 'ty_w' in perm or 'ty_d' in perm %}
+                                    <li><a href="/types/">Types</a></li>
+                                {% endif %}
                                 <!-- Accounts -->
                                 {% if 'ac_r' in perm or 'ac_w' in perm or 'ac_d' in perm %}
                                     <li><a href="/freeze_thaw_accounts/">Accounts</a></li>
@@ -173,6 +177,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'locations' and 'lo_d' in perm %}
+                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-trash-alt"></i></button>
+                    {% endif %}
+                    <!-- Types -->
+                    {% if content == 'types' and 'ty_w' in perm %}
+                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
+                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-edit"></i></button>
+                    {% endif %}
+                    {% if content == 'types' and 'ty_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
