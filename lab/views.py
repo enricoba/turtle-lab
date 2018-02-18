@@ -532,7 +532,8 @@ def locations_new(request):
         response, message = manipulation.new_identifier_at(user=request.user.username, prefix='L',
                                                            location='L {}'.format(str(timezone.now())),
                                                            name=form.cleaned_data['name'],
-                                                           condition=form.cleaned_data['condition'])
+                                                           condition=form.cleaned_data['condition'],
+                                                           max_boxes=form.cleaned_data['max_boxes'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -555,7 +556,8 @@ def locations_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  location=form.cleaned_data['location'],
                                                  name=form.cleaned_data['name'],
-                                                 condition=form.cleaned_data['condition'])
+                                                 condition=form.cleaned_data['condition'],
+                                                 max_boxes=form.cleaned_data['max_boxes'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)

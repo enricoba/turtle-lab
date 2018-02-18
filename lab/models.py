@@ -149,6 +149,7 @@ class Locations(models.Model):
     location = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     condition = models.CharField(max_length=UNIQUE_LENGTH)
+    max_boxes = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -173,6 +174,7 @@ class LocationsAuditTrail(models.Model):
     location = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     condition = models.CharField(max_length=UNIQUE_LENGTH)
+    max_boxes = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -194,10 +196,10 @@ BOX_TYPES = (('Numeric', 'Numeric'),
              ('Alphabetic', 'Alphabetic'),
              ('None', 'None'))
 
-BOX_ORIGIN= (('top-left', 'top-left'),
-             ('top-right', 'top-right'),
-             ('bottom-left', 'bottom-left'),
-             ('bottom-right', 'bottom-right'))
+BOX_ORIGIN = (('top-left', 'top-left'),
+              ('top-right', 'top-right'),
+              ('bottom-left', 'bottom-left'),
+              ('bottom-right', 'bottom-right'))
 
 
 # manager
