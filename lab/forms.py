@@ -85,6 +85,11 @@ def validate_lower(value):
         raise ValidationError('Password must at least contain 2 lowercase letters.')
 
 
+def validate_positive_number(value):
+    if value < 0:
+        raise ValidationError('Number must be positive.')
+
+
 class ConditionFormNew(forms.Form):
     condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -178,6 +183,9 @@ class LocationsFormNew(forms.Form):
     condition = forms.ModelChoiceField(label='condition', queryset=Conditions.objects.all(), empty_label=None,
                                        widget=forms.Select(attrs={'class': 'form-control'}),
                                        help_text='Select a condition.')
+    max_boxes = forms.IntegerField(label='max boxes', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                   help_text='Enter an appropriate value for maximum box capacity.',
+                                   validators=[validate_positive_number], required=False)
 
 
 class LocationsFormEdit(forms.Form):
@@ -188,11 +196,9 @@ class LocationsFormEdit(forms.Form):
     condition = forms.ModelChoiceField(label='condition', queryset=Conditions.objects.all(), empty_label=None,
                                        widget=forms.Select(attrs={'class': 'form-control'}),
                                        help_text='Select a condition.')
-
-
-def validate_positive_number(value):
-    if value < 0:
-        raise ValidationError('Number must be positive.')
+    max_boxes = forms.IntegerField(label='max boxes', widget=forms.NumberInput(attrs={'class': 'form-control'}),
+                                   help_text='Enter an appropriate value for maximum box capacity.',
+                                   validators=[validate_positive_number], required=False)
 
 
 class BoxesFormNew(forms.Form):
