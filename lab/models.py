@@ -227,7 +227,11 @@ class Boxes(models.Model):
     objects = BoxesManager()
 
     def __str__(self):
-        return self.box
+        if self.name == '':
+            _return = self.box
+        else:
+            _return = '{} ({})'.format(self.box, self.name)
+        return _return
 
 
 # audit trail manager
@@ -285,6 +289,12 @@ class SamplesManager(GlobalManager):
     def account(self, unique):
         dic = {self.unique: unique}
         return self.filter(**dic)[0].account
+
+    def conditions(self, unique):
+        dic = {self.unique: unique}
+        account = self.filter(**dic)[0].account
+        return [FreezeThawAccounts.objects.filter(account=account)[0].freeze_condition,
+                FreezeThawAccounts.objects.filter(account=account)[0].thaw_condition]
 
 
 # table
@@ -459,6 +469,13 @@ class RTDManager(GlobalManager):
     def method(self, unique):
         return self.filter(object=unique)[0].type
 
+    def box(self, unique):
+        return self.filter(object=unique)[0].box
+
+    def validate_location(self, box, sample):
+        if self.filter(object=box)[0].location != self.filter(object=sample)[0].location:
+            return True
+
 
 # table
 class RTD(models.Model):
@@ -466,6 +483,7 @@ class RTD(models.Model):
     object = models.CharField(max_length=UNIQUE_LENGTH)
     type = models.IntegerField()
     location = models.CharField(max_length=UNIQUE_LENGTH)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
     remaining_thaw_count = models.IntegerField()
     remaining_freeze_time = models.DurationField()
 
@@ -524,6 +542,7 @@ class Times(models.Model):
 # GROUPS #
 ##########
 
+
 PERMISSIONS = (
     ('Accounts', (
         ('ac_r', 'read'),
@@ -545,6 +564,7 @@ PERMISSIONS = (
         ('lo_l', 'labels'))),
     ('Home', (
         ('home', 'home'),
+        ('bo', 'boxing'),
         ('mo', 'movements'))),
     ('Samples', (
         ('sa_r', 'read'),
@@ -553,7 +573,9 @@ PERMISSIONS = (
         ('sa_l', 'labels'))),
     ('Logs', (
         ('log_mo', 'movement'),
-        ('log_lo', 'login'))),
+        ('log_lo', 'login'),
+        ('log_la', 'labels'),
+        ('log_bo', 'boxing'))),
     # ('log_la', 'log label'),
     ('Roles', (
         ('ro_r', 'read'),
@@ -878,3 +900,76 @@ class LoginLog(models.Model):
 
     def __str__(self):
         return self.user
+
+
+#############
+# LABEL LOG #
+#############
+
+
+# manager
+class LabelLogManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'id'
+
+
+# table
+class LabelLog(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    label = models.CharField(max_length=UNIQUE_LENGTH)
+    action = models.CharField(max_length=UNIQUE_LENGTH)
+    # system fields
+    user = models.CharField(max_length=GENERATED_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = LabelLogManager()
+
+    def __str__(self):
+        return self.user
+
+
+##############
+# BOXING LOG #
+##############
+
+# manager
+class BoxingLogManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'id'
+
+
+# table
+class BoxingLog(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    sample = models.CharField(max_length=UNIQUE_LENGTH)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
+    position = models.CharField(max_length=GENERATED_LENGTH)
+    # system fields
+    user = models.CharField(max_length=GENERATED_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxingLogManager()
+
+
+# tables for export/import
+TABLES = {
+    'samples': Samples,
+    'boxes': Boxes,
+    'conditions': Conditions,
+    'locations': Locations,
+    'roles': Roles,
+    'users': Users,
+    'freeze_thaw_accounts': FreezeThawAccounts,
+    'movement_log': MovementLog,
+    'login_log': LoginLog,
+    'label_log': LabelLog,
+    'boxing_log': BoxingLog,
+    'home': RTD
+}

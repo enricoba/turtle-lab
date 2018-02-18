@@ -22,10 +22,12 @@ from . import views
 
 
 urlpatterns = [
+    # export
+    url(r'export/(?P<dialog>\w+)/$', views.export, name='export'),
     # index
     url(r'^$', views.index, name='index'),
-    url(r'index/login/', views.index_login, name='index login'),
-    url(r'index/password', views.index_password, name='index password'),
+    url(r'index/login/$', views.index_login, name='index login'),
+    url(r'index/password/$', views.index_password, name='index password'),
     url(r'index/logout/$', views.index_logout, name='index logout'),
     # conditions
     url(r'conditions/$', views.conditions, name='conditions'),
@@ -61,8 +63,10 @@ urlpatterns = [
     url(r'freeze_thaw_accounts/delete/$', views.freeze_thaw_accounts_delete, name='freeze_thaw_accounts delete'),
     url(r'freeze_thaw_accounts/audit_trail/$', views.freeze_thaw_accounts_audit_trail, name='freeze_thaw_accounts audit trail'),
     # logs
-    url(r'movement_log/$', views.movement_log, name='movement_log'),
-    url(r'login_log/$', views.login_log, name='login_log'),
+    url(r'movement_log/$', views.movement_log, name='movement log'),
+    url(r'login_log/$', views.login_log, name='login log'),
+    url(r'label_log/$', views.label_log, name='label log'),
+    url(r'boxing_log/$', views.boxing_log, name='boxing log'),
     # roles
     url(r'roles/$', views.roles, name='roles'),
     url(r'roles/new/$', views.roles_new, name='roles new'),
@@ -82,4 +86,6 @@ urlpatterns = [
     url(r'home/$', views.home, name='home'),
     url(r'home/movement/$', views.home_movement, name='home movement'),
     url(r'home/move/$', views.home_move, name='home move'),
+    url(r'home/box/$', views.home_box, name='home box'),
+    url(r'home/boxing/$', views.home_boxing, name='home boxing'),
 ]

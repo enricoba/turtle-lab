@@ -23,12 +23,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $.each(errors, function (index, value) {
             var field = index;
             if (field === "__all__") {
+                $("br").remove();
                 var toAppend = "<small class='form-text text-muted error' style='color: red'>"+ value + "</small>";
                 $("#" + form_id).append(toAppend);
             } else {
                $.each(value, function (index, value) {
                     var toAppend = "<br><small class='form-text text-muted error' style='color: red'>"+ value + "</small>";
                     $("#" + form_id).find('#id_' + field).parent().append(toAppend);
+                });
+            }
+        });
+    }
+
+        function handleErrorLogin(errors, form_id) {
+        $("small").remove(".error");
+        $("span").remove(".error");
+        $.each(errors, function (index, value) {
+            var field = index;
+            if (field === "__all__") {
+                $("br").remove();
+                var toAppend = "<small class='form-text text-muted error' style='color: red'>"+ value + "</small>";
+                $("#" + form_id).append(toAppend);
+            } else {
+               $.each(value, function (index, value) {
+                    var toAppend = "<span style='color: red' class='glyphicon glyphicon-remove form-control-feedback error'></span>";
+                    $("#" + form_id).find('#id_' + field).attr('title', value).parent().append(toAppend);
                 });
             }
         });

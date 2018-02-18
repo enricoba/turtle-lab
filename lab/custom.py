@@ -22,6 +22,13 @@ import datetime
 from passlib.hash import argon2
 
 
+class Echo:
+    """An object that implements just the write method of the file-like interface."""
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+
 def capitalize(header):
     """Table header names provided as strings in a list are capitalized and underscores get replaced with spaces.  
 

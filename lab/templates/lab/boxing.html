@@ -17,36 +17,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <script>
-    $('#id_nav_btn_movement').click(function() {
+    $('#id_nav_btn_boxing').click(function() {
         if (!$(this).hasClass("disabled")) {
             var item = $('#id_table').find('#id_unique').find("td:first").text();
             $.ajax({
                 method: "GET",
-                url: "/" + "{{ content }}" + "/movement/",
+                url: "/" + "{{ content }}" + "/box/",
                 data: {
                     'unique': item
                 },
                 dataType: 'json',
                 success: function (data) {
                     if (data.response) {
-                        $('#id_actual_location').val(data.data);
-                        $('#id_modal_movement').modal("show");
+                        $('#id_actual_box').val(data.data);
+                        $('#id_modal_boxing').modal("show");
+                    } else {
+                        alert('Only samples can be boxed.')
                     }
                 }
             });
         }
     });
 
-    function move() {
-        var new_location = $('#id_new_location').val();
-        var actual_location = $('#id_actual_location').val();
+    function boxing() {
+        var new_box = $('#id_new_box').val();
+        var actual_box = $('#id_actual_box').val();
         var item = $('#id_table').find('#id_unique').find("td:first").text();
         $.ajax({
             method: "POST",
-            url: "/" + "{{ content }}" + "/move/",
+            url: "/" + "{{ content }}" + "/boxing/",
             data: {
-                'actual_location': actual_location,
-                'new_location': new_location,
+                'new_box': new_box,
+                'actual_box': actual_box,
                 'unique': item
             },
             dataType: 'json',
@@ -61,16 +63,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         });
     }
 
-    $("#id_submit_movement").click( function () {
-        move();
+    $("#id_submit_boxing").click( function () {
+        boxing();
     });
 
-    $('#id_modal_movement').keydown(function(e) {
+    $('#id_modal_boxing').keydown(function(e) {
         if (e.keyCode === 13) {
-            move();
+            boxing();
         }
     }).on('shown.bs.modal', function () {
-        $(this).find('#id_new_location').focus()
+        $(this).find('#id_new_box').focus()
     }).on('hidden.bs.modal', function () {
         $("br").remove();
         $("small").remove(".error");

@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <script>
-    $('#id_nav_btn_edit').click(function() {
+    $('#id_nav_btn_duplicate').click(function() {
         if (!$(this).hasClass("disabled")) {
-            var element = $('#id_form_edit');
+            var element = $('#id_form_duplicate');
             element.trigger("reset");
 
             // fill fields
@@ -27,7 +27,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             $('#id_table').find('#id_unique').children('.gui').each(function() {
                 values.push($(this).text());
             });
-
+            if (("{{ content }}" === "samples") || ("{{ content }}" === "boxes") || ("{{ content }}" === "locations")) {
+                values.shift();
+            }
             if ("{{ content }}" === "roles") {
                 element.find('div').eq(0).find('input').val(values[0]);
                 var permissions = values[1].split(',');
@@ -64,18 +66,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     a++;
                 });
             }
-            $('#id_modal_edit').modal("show");
+            $('#id_modal_duplicate').modal("show");
         }
     });
 
-    function edit_record(dialog) {
-        var myDomElement = document.getElementById("id_form_edit");
+    function duplicate_record(dialog) {
+        var myDomElement = document.getElementById("id_form_duplicate");
         {% for item in modal_js_get %}
             {{ item|safe }}
         {% endfor %}
         $.ajax({
             method: "POST",
-            url: "/" + dialog + "/edit/",
+            url: "/" + dialog + "/new/",
             data: {
                 {% for item in modal_js_post %}
                     {{ item|safe }}
@@ -84,23 +86,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             dataType: 'json',
             success: function (data) {
                 if (data.response) {
-                    $('#id_modal_edit').modal('hide');
+                    $('#id_modal_duplicate').modal('hide');
                     location.reload();
                 } else {
-                    handleError(data.errors, data.form_id);
+                    handleError(data.errors, "id_form_duplicate");
                 }
             }
         });
     }
 
 
-    $("#id_submit_edit").click(function () {
-        edit_record('{{ content }}');
+    $("#id_submit_duplicate").click(function () {
+        duplicate_record('{{ content }}');
     });
 
-    $('#id_modal_edit').keydown(function(e) {
+    $('#id_modal_duplicate').keydown(function(e) {
         if (e.keyCode === 13) {
-              edit_record('{{ content }}');
+              duplicate_record('{{ content }}');
         }
     }).on('shown.bs.modal', function () {
         $(this).find('input:text').first().focus()

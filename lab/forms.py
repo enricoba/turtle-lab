@@ -38,6 +38,21 @@ log = logging.getLogger(__name__)
 COLOR_MANDATORY = '#FA5858'
 
 
+def validate_unique_condition(value):
+    if models.Conditions.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_roles(value):
+    if models.Roles.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_freeze_thaw_accounts(value):
+    if models.FreezeThawAccounts.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
 def validate_password_length(value):
     if len(value) < 8:
         raise ValidationError('Password must be longer than 8 characters.')
@@ -73,7 +88,8 @@ def validate_lower(value):
 class ConditionFormNew(forms.Form):
     condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                help_text='Enter a condition.')
+                                help_text='Enter a condition.',
+                                validators=[validate_unique_condition])
 
 
 class ConditionFormEdit(forms.Form):
@@ -86,10 +102,11 @@ class ConditionFormEdit(forms.Form):
 class RolesFormNew(forms.Form):
     role = forms.CharField(label='role', max_length=UNIQUE_LENGTH,
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
-                           help_text='Enter a role.')
+                           help_text='Enter a role.',
+                           validators=[validate_unique_roles])
     permissions = forms.CharField(label='permissions', required=False,
                                   help_text='Select permissions.',
-                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control',
+                                  widget=forms.SelectMultiple(choices=PERMISSIONS, attrs={'class': 'form-control perm',
                                                                                           'size': '20'}))
 
 
@@ -188,12 +205,12 @@ class BoxesFormNew(forms.Form):
                                widget=forms.Select(choices=models.BOX_TYPES,
                                                    attrs={'class': 'form-control manual'}))
     rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                              help_text='Enter box rows.', validators=[validate_positive_number])
+                              help_text='Enter box rows. (A=1, Z=26)', validators=[validate_positive_number])
     column_type = forms.CharField(label='column type', max_length=UNIQUE_LENGTH, help_text='Select a column type.',
                                   widget=forms.Select(choices=models.BOX_TYPES,
                                                       attrs={'class': 'form-control manual'}))
     columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter box columns.', validators=[validate_positive_number])
+                                 help_text='Enter box columns. (A=1, Z=26)', validators=[validate_positive_number])
     origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select a origin.',
                              widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
 
@@ -255,18 +272,54 @@ class SamplesFormEdit(forms.Form):
 
 
 class MovementsForm(forms.Form):
-    actual_location = forms.CharField(label='actual_location', max_length=UNIQUE_LENGTH, required=False,
+    actual_location = forms.CharField(label='actual location', max_length=UNIQUE_LENGTH, required=False,
                                       widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    new_location = forms.ModelChoiceField(label='new_location', queryset=Locations.objects.all(), empty_label=None,
+    new_location = forms.ModelChoiceField(label='target location', queryset=Locations.objects.all(), empty_label=None,
                                           widget=forms.Select(attrs={'class': 'form-control'}),
                                           help_text='Select the target location.')
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(MovementsForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super(MovementsForm, self).clean()
         actual_location = cleaned_data.get('actual_location')
         new_location = str(cleaned_data.get('new_location'))[:7]
-        if actual_location == str(new_location):
-            raise forms.ValidationError('Movement failed: actual location is equal to new location.')
+        unique = self.request.POST.get('unique')
+        if actual_location == new_location:
+            raise forms.ValidationError('Actual location is equal to new location.')
+        if unique[:1] == 'B':
+            boxed_samples = models.RTD.objects.filter(box=unique[:7])
+            for sample in boxed_samples:
+                if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(sample):
+                    raise forms.ValidationError('Target location has no suitable condition for {}.'.format(sample))
+        if unique[:1] == 'S':
+            if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
+                raise forms.ValidationError('Target location has no suitable condition.')
+
+
+class BoxingForm(forms.Form):
+    actual_box = forms.CharField(label='actual box', max_length=UNIQUE_LENGTH, required=False,
+                                 widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    new_box = forms.ModelChoiceField(label='target box', queryset=models.Boxes.objects.all(), empty_label='',
+                                     widget=forms.Select(attrs={'class': 'form-control'}), required=False,
+                                     help_text='Select the target box.')
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(BoxingForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(BoxingForm, self).clean()
+        actual_box = cleaned_data.get('actual_box')
+        new_box = str(cleaned_data.get('new_box'))[:7]
+        unique = self.request.POST.get('unique')
+        if new_box != 'None':
+            if models.RTD.objects.validate_location(box=new_box, sample=unique):
+                raise forms.ValidationError('Sample and box must be in the same location.')
+            if actual_box == new_box:
+                raise forms.ValidationError('Actual box is equal to new box.')
 
 
 class PasswordForm(forms.Form):
@@ -343,7 +396,8 @@ class PasswordFormUsers(forms.Form):
 
 class FreezeTHawAccountsFormNew(forms.Form):
     account = forms.CharField(label='account', max_length=40, help_text='Enter an account name.',
-                              widget=forms.TextInput(attrs={'class': 'form-control'}))
+                              widget=forms.TextInput(attrs={'class': 'form-control'}),
+                              validators=[validate_unique_freeze_thaw_accounts])
     freeze_condition = forms.ModelChoiceField(label='freeze condition', queryset=Conditions.objects.all(),
                                               empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}),
                                               help_text='Select a freeze condition.')
@@ -390,10 +444,12 @@ class FreezeThawAccountsFormEdit(forms.Form):
 
 class LoginForm(forms.Form):
     user = forms.CharField(label='username', max_length=UNIQUE_LENGTH,
-                           widget=forms.TextInput(attrs={'class': 'form-control'}),
-                           help_text='Enter user name.')
-    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-                               help_text='Provide valid password.')
+                           widget=forms.TextInput(attrs={'class': 'form-control',
+                                                         'placeholder': 'User name',
+                                                         'style': 'width: 400px'}))
+    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                                   'placeholder': 'Password',
+                                                                                   'style': 'width: 400px'}))
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)

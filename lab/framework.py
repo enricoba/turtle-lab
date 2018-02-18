@@ -372,9 +372,9 @@ class GetStandard(Master):
 
     def generate_integrity_column(self, row=None):
         if self.verify_checksum(row=row):
-            _tmp = '<td><i class="fa fa-check-circle" style="color: green"></td>'
+            _tmp = '<td><i class="fas fa-check-circle" style="color: green"></td>'
         else:
-            _tmp = '<td><i class="fa fa-close" style="color: red"></i></td>'
+            _tmp = '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
         return _tmp
 
     def get(self, **dic):
@@ -413,9 +413,9 @@ class GetStandard(Master):
                     tmp += '<td>*****</td>'
                 elif field == 'is_active' or field == 'initial_password' or field == 'active':
                     if row[field]:
-                        tmp += '<td><i class="fa fa-check-circle" style="color: green"></td>'
+                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fa fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
                 elif field != self.unique and field != 'version':
                     tmp += '<td class="gui">{}</td>'.format(row[field])
                 else:
@@ -427,6 +427,14 @@ class GetStandard(Master):
             # append table row
             _list.append(tmp)
         return _list
+
+    @property
+    def export(self):
+        value_list = self.table.objects.values_list(*self.header)
+        _return = [tuple(custom.capitalize(self.header))]
+        for row in value_list:
+            _return.append(row)
+        return _return
 
 
 class GetAuditTrail(GetStandard):
@@ -468,9 +476,9 @@ class GetAuditTrail(GetStandard):
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['thaw_uom'], dt=row[field]))
                 elif field == 'is_active' or field == 'initial_password':
                     if row[field]:
-                        tmp += '<td><i class="fa fa-check-circle" style="color: green"></td>'
+                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fa fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
             # add verify column
@@ -513,8 +521,8 @@ class GetView(GetStandard):
             # open table
             tmp = self.table_row_head
             for field in self.header:
-                # locations can be empty
-                if field == 'location':
+                # locations and box can be empty
+                if field == 'location' or field == 'box':
                     tmp += '<td>{}</td>'.format('' if row[field] is None else row[field])
                 # thaw count
                 elif field == 'remaining_thaw_count':
@@ -539,6 +547,14 @@ class GetView(GetStandard):
             # append table row
             _list.append(tmp)
         return _list
+
+    @property
+    def export(self):
+        value_list = self.table.objects.values_list(*self.header)
+        _return = [tuple(custom.capitalize(self.header))]
+        for row in value_list:
+            _return.append(row)
+        return _return
 
 
 class GetLog(GetStandard):
@@ -627,7 +643,7 @@ class TableManipulation(Master):
             if field in kwargs:
                 # add field value to temporary dictionary
                 _dict[field] = kwargs[field] if field == 'duration' else '' if kwargs[field] is None \
-                    else str(kwargs[field])
+                    else '' if kwargs[field] == 'None' else str(kwargs[field])
                 # else str(kwargs[field]) if type(kwargs[field]) is object else kwargs[field]
                 # create json string for checksum
                 _json += '{}:{};'.format(field, '' if kwargs[field] is None else kwargs[field])
@@ -642,8 +658,6 @@ class TableManipulation(Master):
             _json += 'version:{};'.format(version)
         self.json = _json
         self.dict = _dict
-        # print("json: ", _json)
-        # print("dict: ", _dict)
         # add secret to json string
         to_hash = _json + str(SECRET)
         # generate checksum

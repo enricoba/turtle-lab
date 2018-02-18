@@ -27,15 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turtle Lab</title>
     {% load static %}
-    <!-- Stylesheets via CDN -->
-    <!-- <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-          crossorigin="anonymous"> -->
+    <!-- Stylesheet Bootstrap -->
     <link rel="stylesheet" href="{% static "bootstrap-3.3.7-dist/css/bootstrap.min.css" %}">
-    <!-- Stylesheet Font Awesome CDN -->
-    <!-- <link rel="stylesheet" href="https://use.fontawesome.com/5e4c6b402a.css"> -->
-    <link rel="stylesheet" href="{% static "font-awesome-4.7.0/css/font-awesome.min.css" %}">
+    <!-- JS Font Awesome -->
+    <script defer src="{% static "fontawesome-free-5.0.6/svg-with-js/js/fontawesome-all.min.js" %}"></script>
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- NAVBAR -->
@@ -80,28 +75,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <li><a href="/freeze_thaw_accounts/">Accounts</a></li>
                                 {% endif %}
                                 <!-- samples -->
-                                {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm%}
+                                {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
                                     <li><a href="/samples/">Samples</a></li>
                                 {% endif %}
                                 <!-- Boxes -->
-                                {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm%}
+                                {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
                                     <li><a href="/boxes/">Boxes</a></li>
                                 {% endif %}
                             </ul>
                         </li>
                         <!-- Logs -->
-                        {% if 'log_mo' in perm or 'log_lo' in perm%}
+                        {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm or 'log_bo' in perm %}
                             <li class="dropdown">
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">Logs
                                 <span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <!-- Movement Log -->
                                     {% if 'log_mo' in perm %}
-                                        <li><a href="/movement_log">Movement</a></li>
+                                        <li><a href="/movement_log/">Movement</a></li>
                                     {% endif %}
                                     <!-- Login Log -->
                                     {% if 'log_lo' in perm %}
-                                        <li><a href="/login_log">Login</a></li>
+                                        <li><a href="/login_log/">Login</a></li>
+                                    {% endif %}
+                                    <!-- Label Log -->
+                                    {% if 'log_la' in perm %}
+                                        <li><a href="/label_log/">Labels</a></li>
+                                    {% endif %}
+                                    <!-- Boxing Log -->
+                                    {% if 'log_bo' in perm %}
+                                        <li><a href="/boxing_log/">Boxing</a></li>
                                     {% endif %}
                                 </ul>
                             </li>
@@ -127,10 +130,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <!-- NAVBAR RIGHT -->
                     <ul class="nav navbar-nav navbar-right" style="padding-right: 10px;">
                         {% if session %}
-                            <li><a href="#"><i class="fa fa-lock" style="color: green"></i> {{ user }}</a></li>
-                            <li><a href="/index/logout/"><i class="glyphicon glyphicon-log-out"></i></a></li>
+                            <li><a href="#"><i class="fas fa-lock" style="color: green"></i> {{ user }}</a></li>
+                            <li><a href="/index/logout/"><i class="fas fa-sign-out-alt"></i></a></li>
                         {% else %}
-                            <li><a href="#"><i class="fa fa-unlock-alt" style="color: red"></i></a></li>
+                            <li><a href="#"><i class="fas fa-lock-open" style="color: red"></i></a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -140,122 +143,140 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% endif %}
 
     <!-- CONTROLBAR -->
-    {% if tables or log%}
+    {% if tables or log %}
         <div id="id_controlbar" class="container-fluid" style="background: lightgrey; position: fixed; width:100%">
              <div class="btn-group-lg" role="group">
                  <!--<button id="id_nav_btn_duplicate" type="button" class="btn btn-info">
                         <span class="glyphicon glyphicon-duplicate"></span></button>-->
                 <!-- Tables -->
-                {% if content != 'movement_log' and content != 'home' and content != 'login_log' %}
+                {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'label_log' and content != 'boxing_log' %}
                     <!-- Conditions -->
                     {% if content == 'conditions' and 'co_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'conditions' and 'co_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Locations -->
                     {% if content == 'locations' and 'lo_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'locations' and 'lo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Samples -->
                     {% if content == 'samples' and 'sa_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'samples' and 'sa_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Boxes -->
                     {% if content == 'boxes' and 'bo_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'boxes' and 'bo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Accounts -->
                     {% if content == 'freeze_thaw_accounts' and 'ac_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'freeze_thaw_accounts' and 'ac_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- User -->
                     {% if content == 'users' and 'us_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'users' and 'us_p' in perm %}
                         <button id="id_nav_btn_password" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-key"></span></button>
+                            <i class="fas fa-key"></i></button>
                     {% endif %}
                     {% if content == 'users' and 'us_a' in perm %}
                         <button id="id_nav_btn_active" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-user-times"></span></button>
+                            <i class="fas fa-user-times"></i></button>
                     {% endif %}
                     <!-- Roles -->
                     {% if content == 'roles' and 'ro_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <span class="fa fa-plus"></span></button>
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-pencil-square-o"></span></button>
+                            <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'roles' and 'ro_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-trash-o"></span></button>
+                            <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Label -->
                     {% if content == 'locations' and 'lo_l' in perm %}
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-barcode"></span></button>
+                            <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'samples' and 'sa_l' in perm %}
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-barcode"></span></button>
+                            <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'boxes' and 'bo_l' in perm %}
                         <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-barcode"></span></button>
+                            <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     <!-- Audit trail -->
                         <button id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
-                            <span class="fa fa-clock-o"></span></button>
+                            <i class="fas fa-clock"></i></button>
                     {% endif %}
                 <!-- Home -->
-                {% if content == 'home' and 'mo' in perm %}
-                    <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
-                        <span class="fa fa-exchange"></span></button>
-                {% endif %}
+                    <!-- Movement -->
+                    {% if content == 'home' and 'mo' in perm %}
+                        <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-exchange-alt"></i></button>
+                    {% endif %}
+                    <!-- Boxing -->
+                    {% if content == 'home' and 'bo' in perm %}
+                        <button id="id_nav_btn_boxing" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-th"></i></button>
+                    {% endif %}
                 <!-- UNUSED -->
-                 <button id="id_nav_btn_export" type="button" class="btn btn-default disabled">
-                     <span class="fa fa-download"></span></button>
+                 <button id="id_nav_btn_export" type="button" class="btn btn-default">
+                     <i class="fas fa-download"></i></button>
 
                  <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
-                     <span class="fa fa-filter"></span></button>
+                     <i class="fas fa-filter"></i></button>
             </div>
         </div>
     {% endif %}
@@ -310,6 +331,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                                 <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_new">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- DUPLICATE -->
+                <div class="modal fade" id="id_modal_duplicate" tabindex="-1" role="dialog" aria-labelledby="id_modal_duplicate">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <a type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                                <h4 class="modal-title" id="id_modal_duplicate">Duplicate</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body">
+                                <form id="id_form_duplicate" onsubmit="return false">
+                                    {% csrf_token %}
+                                    <!-- SPECIFIC -->
+                                    {% for field in modal_new %}
+                                        <div class="form-group">
+                                            {{ field.label_tag }}
+                                            {% render_field field %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_duplicate">Save changes</button>
                             </div>
                         </div>
                     </div>
@@ -379,7 +433,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <!-- FOOTER -->
                             <div class="modal-footer">
                                 <button style="float:left" id="id_nav_audit_trail_btn_export" type="button" class="btn btn-default disabled">
-                                         <span class="glyphicon glyphicon-download-alt"></span></button>
+                                         <i class="fas fa-download"></i></button>
                                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             </div>
                         </div>
@@ -387,51 +441,85 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
             {% endif %}
 
-            <!-- MOVEMENT -->
+            <!-- HOME -->
             {% if content == 'home' %}
-            <div class="modal fade" id="id_modal_movement" tabindex="-1" role="dialog" aria-labelledby="id_modal_movement">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <!-- HEADER -->
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="id_modal_movement">Movement</h4>
-                        </div>
-                        <!-- BODY -->
-                        <div class="modal-body">
-                            <form id="id_form_movement">
-                                {% csrf_token %}
-                                <!-- SPECIFIC -->
-                                {% for field in modal_movement %}
-                                    <div class="form-group">
-                                        {{ field.label_tag }}
-                                        {% render_field field %}
-                                        {% if field.help_text %}
-                                            <small class="form-text text-muted">{{ field.help_text }}</small>
-                                        {% endif %}
-                                    </div>
-                                {% endfor %}
-                            </form>
-                        </div>
-                        <!-- FOOTER -->
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_movement">Save changes</button>
+                <!-- MOVEMENT -->
+                <div class="modal fade" id="id_modal_movement" tabindex="-1" role="dialog" aria-labelledby="id_modal_movement">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="id_modal_movement">Movement</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body">
+                                <form id="id_form_movement">
+                                    {% csrf_token %}
+                                    <!-- SPECIFIC -->
+                                    {% for field in modal_movement %}
+                                        <div class="form-group">
+                                            {{ field.label_tag }}
+                                            {% render_field field %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_movement">Save changes</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                <!-- BOXING -->
+                <div class="modal fade" id="id_modal_boxing" tabindex="-1" role="dialog" aria-labelledby="id_modal_boxing">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="id_modal_boxing">Boxing</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body">
+                                <form id="id_form_boxing">
+                                    {% csrf_token %}
+                                    <!-- SPECIFIC -->
+                                    {% for field in modal_boxing %}
+                                        <div class="form-group">
+                                            {{ field.label_tag }}
+                                            {% render_field field %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_boxing">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endif %}
         {% endif %}
 
         <!-- SPECIFIC CONTENT -->
         {% if content == 'index' %}
-            <div class="container" style="max-width: 500px">
+            <div class="container" style="max-width: 400px">
+                <h1 style="text-align: center; margin-bottom: 20px">Please sign in</h1>
                 <form id="id_form_login" onsubmit="return false">
                     {% csrf_token %}
                     {% for field in login %}
-                        <div class="form-group">
-                            {{ field.label_tag }}
+                        <div class="form-group has-feedback">
                             {% render_field field %}
                             {% if field.help_text %}
                                 <small class="form-text text-muted">{{ field.help_text }}</small>
@@ -440,7 +528,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% endfor %}
                 </form>
                 <!-- BUTTON -->
-                <button type="button" class="btn btn-primary" id="id_submit_login" style="margin-top: 20px">Login</button>
+                <button type="button" class="btn btn-primary btn-lg" id="id_submit_login" style="margin-top: 20px; width: 400px">Sign in</button>
             </div>
         {% endif %}
 
@@ -536,11 +624,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
 
     {% include "lab/core.html" %}
+    {% include "lab/export.html" %}
 
     {% if tables %}
-        {% if content != 'movement_log' and content != 'home' and content != 'login_log' %}
+        {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
             {% include "lab/audittrail.html" %}
             {% include "lab/new.html" %}
+            {% include "lab/duplicate.html" %}
             {% include "lab/edit.html" %}
             {% include "lab/delete.html" %}
             {% include "lab/form.html" %}
@@ -553,6 +643,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'home' %}
         {% include "lab/movement.html" %}
+        {% include "lab/boxing.html" %}
         {% include "lab/form.html" %}
     {% endif %}
 
