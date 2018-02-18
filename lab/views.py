@@ -1108,8 +1108,14 @@ def export(request, dialog):
         data = queryset.export
     # write pseudo buffer for streaming
     pseudo_buffer = custom.Echo()
-    writer = csv.writer(pseudo_buffer)
+    writer = csv.writer(pseudo_buffer, delimiter=';')
     # response
     response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dialog)
     return response
+
+
+@require_POST
+@login_required
+def import_data(request, dialog):
+    pass

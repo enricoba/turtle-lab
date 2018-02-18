@@ -272,8 +272,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- UNUSED -->
-                 <button id="id_nav_btn_export" type="button" class="btn btn-default">
-                     <i class="fas fa-download"></i></button>
+                <button id="id_nav_btn_export" type="button" class="btn btn-default">
+                    <i class="fas fa-download"></i></button>
+                <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                    <i class="fas fa-upload"></i></button>
 
                  <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
                      <i class="fas fa-filter"></i></button>
@@ -625,6 +627,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% include "lab/core.html" %}
     {% include "lab/export.html" %}
+    {% include "lab/import.html" %}
 
     {% if tables %}
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}

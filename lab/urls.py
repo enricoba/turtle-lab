@@ -24,6 +24,7 @@ from . import views
 urlpatterns = [
     # export
     url(r'export/(?P<dialog>\w+)/$', views.export, name='export'),
+    url(r'import/(?P<dialog>\w+)/$', views.import_data, name='import'),
     # index
     url(r'^$', views.index, name='index'),
     url(r'index/login/$', views.index_login, name='index login'),
