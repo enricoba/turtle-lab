@@ -1031,6 +1031,126 @@ def samples_label(request):
     return JsonResponse(data)
 
 
+############
+# REAGENTS #
+############
+
+
+@require_GET
+@login_required
+@decorators.permission('re_r', 're_w', 're_d', 're_l')
+def reagents(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'reagents',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.Reagents),
+        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail),
+        form_render_new=forms.ReagentsFormNew(),
+        form_render_edit=forms.ReagentsFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('re_r', 're_w', 're_d', 're_l')
+@decorators.require_ajax
+def reagents_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.ReagentsAuditTrail).get(
+        id_ref=models.Reagents.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_w')
+@decorators.require_ajax
+def reagents_new(request):
+    form = forms.ReagentsFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Reagents,
+                                                   table_audit_trail=models.ReagentsAuditTrail)
+        response, message = manipulation.new_identifier_at(user=request.user.username, prefix='R',
+                                                           reagent='R {}'.format(str(timezone.now())),
+                                                           name=form.cleaned_data['name'],
+                                                           type=form.cleaned_data['type'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_w')
+@decorators.require_ajax
+def reagents_edit(request):
+    form = forms.ReagentsFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Reagents,
+                                                   table_audit_trail=models.ReagentsAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 reagent=form.cleaned_data['reagent'],
+                                                 name=form.cleaned_data['name'],
+                                                 type=form.cleaned_data['type'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_d')
+@decorators.require_ajax
+def reagents_delete(request):
+        manipulation = framework.TableManipulation(table=models.Reagents,
+                                                   table_audit_trail=models.ReagentsAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_l')
+@decorators.require_ajax
+def reagents_label(request):
+    label = framework.Labels()
+    # barcode printing
+    response, filename = label.location(unique=request.POST.get('unique'),
+                                        version=request.POST.get('version'))
+    if response:
+        log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
+                                                                           request.POST.get('version')))
+        # log record
+        manipulation = framework.TableManipulation(table=models.LabelLog)
+        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username, action='print',
+                             timestamp=timezone.now())
+    data = {'response': response,
+            'pdf': filename}
+    return JsonResponse(data)
+
+
+############
+# ACCOUNTS #
+############
+
+
 @require_GET
 @login_required
 @decorators.permission('ac_r', 'ac_w', 'ac_d')

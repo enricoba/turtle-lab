@@ -200,6 +200,10 @@ class TypesManager(GlobalManager):
     def unique(self):
         return 'type'
 
+    @property
+    def reagents(self):
+        return self.filter(affiliation='Reagents')
+
 
 # table
 class Types(models.Model):
@@ -454,6 +458,62 @@ class SamplesAuditTrail(models.Model):
 
 
 ############
+# REAGENTS #
+############
+
+
+# manager
+class ReagentsManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'reagent'
+
+
+# table
+class Reagents(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    reagent = models.CharField(max_length=GENERATED_LENGTH, unique=True)
+    name = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = ReagentsManager()
+
+    def __str__(self):
+        return self.reagent
+
+
+# audit trail manager
+class ReagentsAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class ReagentsAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    reagent = models.CharField(max_length=GENERATED_LENGTH)
+    name = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = ReagentsAuditTrailManager()
+
+
+############
 # ACCOUNTS #
 ############
 
@@ -644,9 +704,9 @@ class Times(models.Model):
     def __str__(self):
         return self.item
 
-##########
-# GROUPS #
-##########
+#########
+# ROLES #
+#########
 
 
 PERMISSIONS = (
@@ -685,6 +745,11 @@ PERMISSIONS = (
         ('sa_w', 'write'),
         ('sa_d', 'delete'),
         ('sa_l', 'labels'))),
+    ('Reagents', (
+        ('re_r', 'read'),
+        ('re_w', 'write'),
+        ('re_d', 'delete'),
+        ('re_l', 'labels'))),
     ('Logs', (
         ('log_mo', 'movement'),
         ('log_lo', 'login'),
@@ -724,7 +789,7 @@ class Roles(models.Model):
     id = models.AutoField(primary_key=True)
     # custom fields
     role = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
-    permissions = models.CharField(max_length=CHECKSUM_LENGTH)
+    permissions = models.CharField(max_length=255)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -747,7 +812,7 @@ class RolesAuditTrail(models.Model):
     id_ref = models.IntegerField()
     # custom fields
     role = models.CharField(max_length=UNIQUE_LENGTH)
-    permissions = models.CharField(max_length=CHECKSUM_LENGTH)
+    permissions = models.CharField(max_length=255)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -1075,6 +1140,7 @@ class BoxingLog(models.Model):
 # tables for export/import
 TABLES = {
     'samples': Samples,
+    'reagents': Reagents,
     'boxes': Boxes,
     'box_types': BoxTypes,
     'conditions': Conditions,

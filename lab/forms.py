@@ -336,13 +336,36 @@ class SamplesFormNew(forms.Form):
 
 
 class SamplesFormEdit(forms.Form):
-    sample = forms.CharField(label='samples', max_length=GENERATED_LENGTH,
+    sample = forms.CharField(label='sample', max_length=GENERATED_LENGTH,
                              widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a sample name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
     account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
-                                     widget=forms.Select(attrs={'class': 'form-control'}),
-                                     help_text='Select an account.')
+                                     widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}),
+                                     help_text='Select an account.', empty_label=None)
+
+
+############
+# REAGENTS #
+############
+
+
+class ReagentsFormNew(forms.Form):
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.reagents,
+                                  widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None,
+                                  help_text='Select a type.')
+
+
+class ReagentsFormEdit(forms.Form):
+    reagent = forms.CharField(label='reagent', max_length=GENERATED_LENGTH,
+                              widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
+                           widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.reagents,
+                                  widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}),
+                                  empty_label=None, help_text='Select a type.')
 
 
 class MovementsForm(forms.Form):
