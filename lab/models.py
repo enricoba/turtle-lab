@@ -257,14 +257,34 @@ class TypesAuditTrail(models.Model):
 BOX_ALIGNMENT = (('Horizontal', 'Horizontal'),
                  ('Vertical', 'Vertical'))
 
-BOX_TYPES = (('Numeric', 'Numeric'),
-             ('Alphabetic', 'Alphabetic'),
-             ('None', 'None'))
-
-BOX_ORIGIN = (('top-left', 'top-left'),
-              ('top-right', 'top-right'),
-              ('bottom-left', 'bottom-left'),
-              ('bottom-right', 'bottom-right'))
+BOX_ALPHABET = {
+    'A': 1,
+    'B': 2,
+    'C': 3,
+    'D': 4,
+    'E': 5,
+    'F': 6,
+    'G': 7,
+    'H': 8,
+    'I': 9,
+    'J': 10,
+    'K': 11,
+    'L': 12,
+    'M': 13,
+    'N': 14,
+    'O': 15,
+    'P': 16,
+    'Q': 17,
+    'R': 18,
+    'S': 19,
+    'T': 20,
+    'U': 21,
+    'V': 22,
+    'W': 23,
+    'X': 24,
+    'Y': 25,
+    'Z': 26,
+}
 
 
 # manager
@@ -286,11 +306,8 @@ class BoxTypes(models.Model):
     # custom fields
     box_type = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
     alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
-    row_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
-    rows = models.PositiveIntegerField()
-    column_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
-    columns = models.PositiveIntegerField()
-    origin = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ORIGIN)
+    rows = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.CharField(max_length=UNIQUE_LENGTH)
     default = models.BooleanField()
     # system fields
     version = models.IntegerField()
@@ -315,11 +332,8 @@ class BoxTypesAuditTrail(models.Model):
     # custom fields
     box_type = models.CharField(max_length=UNIQUE_LENGTH)
     alignment = models.CharField(max_length=UNIQUE_LENGTH)
-    row_type = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.PositiveIntegerField()
-    column_type = models.CharField(max_length=UNIQUE_LENGTH)
-    columns = models.PositiveIntegerField()
-    origin = models.CharField(max_length=UNIQUE_LENGTH)
+    rows = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.CharField(max_length=UNIQUE_LENGTH)
     default = models.BooleanField()
     # system fields
     version = models.IntegerField()

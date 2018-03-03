@@ -26,7 +26,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, TIMES, \
     Conditions, Locations, FreezeThawAccounts, PERMISSIONS, Roles, \
-    Types, BoxTypes
+    Types, BoxTypes, BOX_ALPHABET
 
 # app imports
 import lab.models as models
@@ -72,6 +72,16 @@ def validate_password_length(value):
 def validate_box_types_default(value):
     if value and models.BoxTypes.objects.default:
         raise ValidationError('Only one box type can be default.')
+
+
+def validate_box_types_figures(value):
+    try:
+        _value = int(value)
+        if _value > 26:
+            raise ValidationError('Input must be smaller than 27.')
+    except ValueError:
+        if value.capitalize() not in BOX_ALPHABET.keys():
+            raise ValidationError('Input must be a character of the alphabet.')
 
 
 def validate_digits(value):
@@ -297,18 +307,12 @@ class BoxTypesFormNew(forms.Form):
     alignment = forms.CharField(label='alignment', max_length=UNIQUE_LENGTH, help_text='Select an alignment type.',
                                 widget=forms.Select(choices=models.BOX_ALIGNMENT,
                                                     attrs={'class': 'form-control manual'}))
-    row_type = forms.CharField(label='row type', max_length=UNIQUE_LENGTH, help_text='Select a row type.',
-                               widget=forms.Select(choices=models.BOX_TYPES,
-                                                   attrs={'class': 'form-control manual'}))
-    rows = forms.IntegerField(label='rows', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                              help_text='Enter box rows. (A=1, Z=26)', validators=[validate_positive_number])
-    column_type = forms.CharField(label='column type', max_length=UNIQUE_LENGTH, help_text='Select a column type.',
-                                  widget=forms.Select(choices=models.BOX_TYPES,
-                                                      attrs={'class': 'form-control manual'}))
-    columns = forms.IntegerField(label='columns', widget=forms.NumberInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter box columns. (A=1, Z=26)', validators=[validate_positive_number])
-    origin = forms.CharField(label='origin', max_length=UNIQUE_LENGTH, help_text='Select an origin.',
-                             widget=forms.Select(choices=models.BOX_ORIGIN, attrs={'class': 'form-control manual'}))
+    rows = forms.CharField(label='rows', widget=forms.TextInput(attrs={'class': 'form-control'}),
+                           help_text='Enter box rows in numbers of characters of the alphabet.',
+                           validators=[validate_box_types_figures])
+    columns = forms.CharField(label='columns', widget=forms.TextInput(attrs={'class': 'form-control'}),
+                              help_text='Enter box columns in numbers of characters of the alphabet.',
+                              validators=[validate_box_types_figures])
     default = forms.BooleanField(label='active', required=False, help_text='Select the default status.',
                                  widget=forms.CheckboxInput(attrs={'class': 'form-control', 'style': 'align: left'}),
                                  validators=[validate_box_types_default])

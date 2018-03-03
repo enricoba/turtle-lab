@@ -854,15 +854,11 @@ def box_types_new(request):
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.BoxTypes,
                                                    table_audit_trail=models.BoxTypesAuditTrail)
-        print(form.cleaned_data['default'])
         response, message = manipulation.new_at(user=request.user.username,
                                                 box_type=form.cleaned_data['box_type'],
                                                 alignment=form.cleaned_data['alignment'],
-                                                row_type=form.cleaned_data['row_type'],
-                                                rows=form.cleaned_data['rows'],
-                                                column_type=form.cleaned_data['column_type'],
-                                                columns=form.cleaned_data['columns'],
-                                                origin=form.cleaned_data['origin'],
+                                                rows=form.cleaned_data['rows'].capitalize(),
+                                                columns=form.cleaned_data['columns'].capitalize(),
                                                 default=form.cleaned_data['default'])
         data = {'response': response,
                 'message': message}
@@ -886,11 +882,8 @@ def box_types_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  box_type=form.cleaned_data['box_type'],
                                                  alignment=form.cleaned_data['alignment'],
-                                                 row_type=form.cleaned_data['row_type'],
                                                  rows=form.cleaned_data['rows'],
-                                                 column_type=form.cleaned_data['column_type'],
                                                  columns=form.cleaned_data['columns'],
-                                                 origin=form.cleaned_data['origin'],
                                                  default=form.cleaned_data['default'])
         data = {'response': response,
                 'message': message}
