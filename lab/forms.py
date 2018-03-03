@@ -70,7 +70,7 @@ def validate_password_length(value):
 
 
 def validate_box_types_default(value):
-    if models.BoxTypes.objects.default:
+    if value and models.BoxTypes.objects.default:
         raise ValidationError('Only one box type can be default.')
 
 
