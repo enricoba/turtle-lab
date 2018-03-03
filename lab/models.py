@@ -392,18 +392,6 @@ class BoxesAuditTrail(models.Model):
 ###########
 
 
-# types
-ORIGIN = (('P', 'Parent'),
-          ('A', 'Aliquot'))
-
-VOLUMES = (('', ''),
-           ('l', 'l - litre'),
-           ('dl', 'dl - decilitre'),
-           ('cl', 'cl - centilitre'),
-           ('ml', 'ml - millilitre'),
-           ('μl', 'μl - microlitre'))
-
-
 # manager
 class SamplesManager(GlobalManager):
     @property
@@ -429,9 +417,6 @@ class Samples(models.Model):
     sample = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     account = models.CharField(max_length=UNIQUE_LENGTH)
-    type = models.CharField(max_length=GENERATED_LENGTH, choices=ORIGIN)
-    volume = models.CharField(max_length=UNIQUE_LENGTH)
-    uom = models.CharField(max_length=GENERATED_LENGTH, choices=VOLUMES)
 
     # system fields
     version = models.IntegerField()
@@ -457,9 +442,6 @@ class SamplesAuditTrail(models.Model):
     sample = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     account = models.CharField(max_length=UNIQUE_LENGTH)
-    type = models.CharField(max_length=GENERATED_LENGTH)
-    volume = models.CharField(max_length=UNIQUE_LENGTH)
-    uom = models.CharField(max_length=GENERATED_LENGTH)
 
     # system fields
     version = models.IntegerField()

@@ -24,8 +24,8 @@ import logging
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
-from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, VOLUMES, TIMES, \
-    Conditions, Locations, ORIGIN, FreezeThawAccounts, PERMISSIONS, Roles, \
+from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, TIMES, \
+    Conditions, Locations, FreezeThawAccounts, PERMISSIONS, Roles, \
     Types, BoxTypes
 
 # app imports
@@ -330,12 +330,6 @@ class SamplesFormNew(forms.Form):
     account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
                                      widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None,
                                      help_text='Select an account.')
-    type = forms.CharField(label='type', max_length=GENERATED_LENGTH, help_text='Select a sample type.',
-                           widget=forms.Select(choices=ORIGIN, attrs={'class': 'form-control manual'}),)
-    volume = forms.FloatField(label='volume', required=False, help_text='Enter sample volume.',
-                              widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
-    uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH, help_text='Select sample unit of measurement.',
-                          widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
     amount = forms.IntegerField(label='amount', initial=1, widget=forms.NumberInput(attrs={'class': 'form-control'}),
                                 required=False, max_value=100, help_text='Enter sample amount.',
                                 validators=[validate_positive_number])
@@ -349,12 +343,6 @@ class SamplesFormEdit(forms.Form):
     account = forms.ModelChoiceField(label='account', queryset=FreezeThawAccounts.objects.all(),
                                      widget=forms.Select(attrs={'class': 'form-control'}),
                                      help_text='Select an account.')
-    type = forms.CharField(label='type', max_length=GENERATED_LENGTH, help_text='Select a sample type.',
-                           widget=forms.Select(choices=ORIGIN, attrs={'class': 'form-control manual'}))
-    volume = forms.FloatField(label='volume', required=False, help_text='Enter sample volume.',
-                              widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
-    uom = forms.CharField(label='uom', max_length=GENERATED_LENGTH, help_text='Select sample unit of measurement.',
-                          widget=forms.Select(choices=VOLUMES, attrs={'class': 'form-control manual'}), required=False)
 
 
 class MovementsForm(forms.Form):

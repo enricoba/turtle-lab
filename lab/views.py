@@ -963,10 +963,7 @@ def samples_new(request):
             response, message = manipulation.new_identifier_at(user=request.user.username, prefix='S',
                                                                sample='S {}'.format(str(timezone.now())),
                                                                name=form.cleaned_data['name'],
-                                                               type=form.cleaned_data['type'],
-                                                               account=form.cleaned_data['account'],
-                                                               volume=form.cleaned_data['volume'],
-                                                               uom=form.cleaned_data['uom'])
+                                                               account=form.cleaned_data['account'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -989,10 +986,7 @@ def samples_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  sample=form.cleaned_data['sample'],
                                                  name=form.cleaned_data['name'],
-                                                 type=form.cleaned_data['type'],
-                                                 account=form.cleaned_data['account'],
-                                                 volume=form.cleaned_data['volume'],
-                                                 uom=form.cleaned_data['uom'])
+                                                 account=form.cleaned_data['account'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
