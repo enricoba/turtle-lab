@@ -26,10 +26,11 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, TIMES, \
     Conditions, Locations, FreezeThawAccounts, PERMISSIONS, Roles, \
-    Types, BoxTypes, BOX_ALPHABET
+    Types, BoxTypes
 
 # app imports
 import lab.models as models
+import lab.custom as custom
 import lab.framework as framework
 
 # define logger
@@ -80,7 +81,7 @@ def validate_box_types_figures(value):
         if _value > 26:
             raise ValidationError('Input must be smaller than 27.')
     except ValueError:
-        if value.capitalize() not in BOX_ALPHABET.keys():
+        if value.capitalize() not in custom.ALPHABET.keys():
             raise ValidationError('Input must be a character of the alphabet.')
 
 

@@ -27,8 +27,8 @@ from django.conf import settings
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 
-# custom imports
-from lab.custom import generate_checksum, UserName
+# app imports
+import lab.custom as custom
 
 # secret key
 SECRET = settings.SECRET
@@ -257,35 +257,6 @@ class TypesAuditTrail(models.Model):
 BOX_ALIGNMENT = (('Horizontal', 'Horizontal'),
                  ('Vertical', 'Vertical'))
 
-BOX_ALPHABET = {
-    'A': 1,
-    'B': 2,
-    'C': 3,
-    'D': 4,
-    'E': 5,
-    'F': 6,
-    'G': 7,
-    'H': 8,
-    'I': 9,
-    'J': 10,
-    'K': 11,
-    'L': 12,
-    'M': 13,
-    'N': 14,
-    'O': 15,
-    'P': 16,
-    'Q': 17,
-    'R': 18,
-    'S': 19,
-    'T': 20,
-    'U': 21,
-    'V': 22,
-    'W': 23,
-    'X': 24,
-    'Y': 25,
-    'Z': 26,
-}
-
 
 # manager
 class BoxTypesManager(GlobalManager):
@@ -297,6 +268,12 @@ class BoxTypesManager(GlobalManager):
     def default(self):
         dic = {'default': True}
         return self.filter(**dic).exists()
+
+    def max(self, unique):
+        dic = {self.unique: unique}
+        rows = custom.transform_box_type_figures(self.filter(**dic)[0].rows)
+        columns = custom.transform_box_type_figures(self.filter(**dic)[0].columns)
+        return rows * columns
 
 
 # table
@@ -718,6 +695,36 @@ class Times(models.Model):
     def __str__(self):
         return self.item
 
+
+##########
+# BOXING #
+##########
+
+
+# manager
+class BoxingManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'object'
+
+
+# table
+class Boxing(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    object = models.CharField(max_length=UNIQUE_LENGTH, blank=True)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
+    position = models.CharField(max_length=UNIQUE_LENGTH, blank=True)
+    # system fields
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxingManager()
+
+    def __str__(self):
+        return self.object
+
+
 #########
 # ROLES #
 #########
@@ -855,8 +862,8 @@ class UsersManager(BaseUserManager, GlobalManager):
 
     def _create_user(self, password, first_name, last_name, role, is_active, username=None):
         if username is None:
-            username = UserName(first_name=first_name, last_name=last_name,
-                                existing_users=self.existing_users).algorithm
+            username = custom.UserName(first_name=first_name, last_name=last_name,
+                                       existing_users=self.existing_users).algorithm
         try:
             user = self.model(username=username, first_name=first_name, last_name=last_name, version=1, role=role,
                               is_active=is_active, initial_password=True)
@@ -864,7 +871,7 @@ class UsersManager(BaseUserManager, GlobalManager):
             to_hash = 'username:{};first_name:{};last_name:{};role:{};is_active:{};' \
                       'initial_password:{};password:{};version:{};{}'\
                 .format(username, first_name, last_name, role, is_active, True, user.password, 1, SECRET)
-            user.checksum = generate_checksum(to_hash)
+            user.checksum = custom.generate_checksum(to_hash)
             user.save(using=self._db)
             # success message + log entry
             message = 'Record "{}" has been created.'.format(username)
@@ -904,7 +911,7 @@ class UsersManager(BaseUserManager, GlobalManager):
                       'initial_password:{};password:{};version:{};{}'\
                 .format(username, first_name, last_name, role, is_active,
                         initial_password, user.password, version, SECRET)
-            user.checksum = generate_checksum(to_hash)
+            user.checksum = custom.generate_checksum(to_hash)
             user.save(using=self._db)
             # success message + log entry
             message = 'Record "{}" has been updated.'.format(username)
@@ -1011,7 +1018,7 @@ class UserAuditTrailManager(GlobalAuditTrailManager):
                   'initial_password:{};version:{};action:{};user:{};timestamp:{};{}'.format(
                    username, first_name, last_name, role, is_active, initial_password, version, action, user,
                    timestamp, SECRET)
-        checksum = generate_checksum(to_hash)
+        checksum = custom.generate_checksum(to_hash)
         try:
             record = self.model(
                 id_ref=id_ref,

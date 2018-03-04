@@ -23,6 +23,33 @@ import lab.custom as custom
 from django.test import TestCase
 
 
+class TestCheckEqual(TestCase):
+    def test_check_equal(self):
+        self.assertEqual(custom.check_equal([True, True, True, True]), True)
+        self.assertEqual(custom.check_equal([True, True, False, True]), False)
+
+        with self.assertRaises(TypeError):
+            custom.check_equal('1')
+            custom.check_equal(2)
+            custom.check_equal(dict())
+            custom.check_equal(tuple())
+            custom.check_equal(object())
+
+
+class TestTransformBoxTypeFigures(TestCase):
+    def test_transform_box_type_figures(self):
+        self.assertEqual(custom.transform_box_type_figures('2'), 2)
+        self.assertEqual(custom.transform_box_type_figures('B'), 2)
+        self.assertEqual(custom.transform_box_type_figures('c'), 3)
+
+        with self.assertRaises(TypeError):
+            custom.transform_box_type_figures(2)
+            custom.transform_box_type_figures(list())
+            custom.transform_box_type_figures(dict())
+            custom.transform_box_type_figures(tuple())
+            custom.transform_box_type_figures(object())
+
+
 class TestCapitalize(TestCase):
     def test_capitalize(self):
         self.assertEqual(custom.capitalize(['freeze_condition']), ['Freeze condition'])
@@ -84,3 +111,47 @@ class TestGenerateChecksum(TestCase):
             custom.generate_checksum(list())
             custom.generate_checksum(tuple())
             custom.generate_checksum(object())
+
+
+class TestDetermineBoxTypeFiguresType(TestCase):
+    def test_determine_box_type_figures_type(self):
+        self.assertEqual(custom.determine_box_type_figures_type('2'), int)
+        self.assertEqual(custom.determine_box_type_figures_type('B'), str)
+        self.assertEqual(custom.determine_box_type_figures_type('c'), str)
+
+        with self.assertRaises(TypeError):
+            custom.determine_box_type_figures_type(2)
+            custom.determine_box_type_figures_type(list())
+            custom.determine_box_type_figures_type(dict())
+            custom.determine_box_type_figures_type(tuple())
+            custom.determine_box_type_figures_type(object())
+
+
+class TestDetermineBoxPosition(TestCase):
+    def test_determine_box_position(self):
+        self.assertEqual(custom.determine_box_position('Horizontal', '4', '4', 15), '34')
+        self.assertEqual(custom.determine_box_position('Horizontal', 'D', '4', 12), 'D3')
+        self.assertEqual(custom.determine_box_position('Vertical', '4', 'D', 6), 'B2')
+        self.assertEqual(custom.determine_box_position('Vertical', '4', '4', 3), '31')
+
+        with self.assertRaises(TypeError):
+            custom.determine_box_position(2, '4', '4', 15)
+            custom.determine_box_position(list(), '4', '4', 15)
+            custom.determine_box_position(dict(), '4', '4', 15)
+            custom.determine_box_position(tuple(), '4', '4', 15)
+            custom.determine_box_position(object(), '4', '4', 15)
+            custom.determine_box_position('Horizontal', 2, '4', 15)
+            custom.determine_box_position('Horizontal', list(), '4', 15)
+            custom.determine_box_position('Horizontal', dict(), '4', 15)
+            custom.determine_box_position('Horizontal', tuple(), '4', 15)
+            custom.determine_box_position('Horizontal', object(), '4', 15)
+            custom.determine_box_position('Horizontal', '4', 2, 15)
+            custom.determine_box_position('Horizontal', '4', list(), 15)
+            custom.determine_box_position('Horizontal', '4', dict(), 15)
+            custom.determine_box_position('Horizontal', '4', tuple(), 15)
+            custom.determine_box_position('Horizontal', '4', object(), 15)
+            custom.determine_box_position('Horizontal', '4', '4', '2')
+            custom.determine_box_position('Horizontal', '4', '4', list())
+            custom.determine_box_position('Horizontal', '4', '4', dict())
+            custom.determine_box_position('Horizontal', '4', '4', tuple())
+            custom.determine_box_position('Horizontal', '4', '4', object())

@@ -726,6 +726,9 @@ class TableManipulation(Master):
     def new_times(self, **kwargs):
         return self.new_log(text='times', unique='item', **kwargs)
 
+    def new_boxing(self, **kwargs):
+        return self.new_log(text='boxing', unique='box', **kwargs)
+
     def edit(self, user, **kwargs):
         """Function to update existing standard table records. 
 
@@ -804,7 +807,7 @@ class TableManipulation(Master):
                 message = 'Could not automatically update entry for "{}".'.format(self.unique_value)
                 raise NameError(message)
             if self.audit_trail(action='Create'):
-                return True, 'Success!'
+                return True, self.unique_value
         else:
             return result, message
 

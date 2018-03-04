@@ -702,6 +702,8 @@ def types_delete(request):
 @login_required
 @decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
 def boxes(request):
+    # print(models.Boxing.objects.filter(object='').order_by('box')[0].position)
+    # print(models.Boxing.objects.filter(object='').order_by('box')[0].box)
     context = framework.html_and_data(
         context={'tables': True,
                  'content': 'boxes',
@@ -737,13 +739,25 @@ def boxes_new(request):
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.Boxes,
                                                    table_audit_trail=models.BoxesAuditTrail)
-        response, message = manipulation.new_identifier_at(user=request.user.username, prefix='B',
-                                                           box='B {}'.format(str(timezone.now())),
-                                                           name=form.cleaned_data['name'],
-                                                           box_type=form.cleaned_data['box_type'],
-                                                           type=form.cleaned_data['type'])
+        response, created_box = manipulation.new_identifier_at(user=request.user.username, prefix='B',
+                                                               box='B {}'.format(str(timezone.now())),
+                                                               name=form.cleaned_data['name'],
+                                                               box_type=form.cleaned_data['box_type'],
+                                                               type=form.cleaned_data['type'])
+        if response:
+            query = models.BoxTypes.objects.filter(box_type=form.cleaned_data['box_type'])[0]
+            _max = models.BoxTypes.objects.max(form.cleaned_data['box_type'])
+            manipulation_boxing = framework.TableManipulation(table=models.Boxing)
+            _success_list = list()
+            for x in range(_max):
+                _position = custom.determine_box_position(alignment=query.alignment, x=query.columns, y=query.rows,
+                                                          value=x + 1)
+                _success = manipulation_boxing.new_boxing(object='', box=created_box, position=_position)
+                _success_list.append(_success)
+            response = custom.check_equal(_success_list)
+
         data = {'response': response,
-                'message': message}
+                'message': created_box}
         return JsonResponse(data)
     else:
         data = {'response': False,
