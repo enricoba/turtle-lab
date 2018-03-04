@@ -60,6 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <!-- Master data -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                     <ul class="nav navbar-nav">
+                        <li><a class="navbar-brand" href="/overview/">Overview</a></li>
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">Master Data
                             <span class="caret"></span></a>
@@ -163,7 +164,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                  <!--<button id="id_nav_btn_duplicate" type="button" class="btn btn-info">
                         <span class="glyphicon glyphicon-duplicate"></span></button>-->
                 <!-- Tables -->
-                {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'label_log' and content != 'boxing_log' %}
+                {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'label_log' and content != 'boxing_log' and content != 'overview' %}
                     <!-- Conditions -->
                     {% if content == 'conditions' and 'co_w' in perm %}
                         <button id="id_nav_btn_new" type="button" class="btn btn-success">

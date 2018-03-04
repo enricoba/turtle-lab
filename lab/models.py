@@ -655,6 +655,51 @@ class RTD(models.Model):
         return self.object
 
 
+############
+# Overview #
+############
+
+
+# manager
+class OverviewManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'object'
+
+    def location(self, unique):
+        return self.filter(object=unique)[0].location
+
+    def method(self, unique):
+        return self.filter(object=unique)[0].type
+
+    def box(self, unique):
+        return self.filter(object=unique)[0].box
+
+    def validate_location(self, box, sample):
+        if self.filter(object=box)[0].location != self.filter(object=sample)[0].location:
+            return True
+
+
+# table
+class Overview(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    object = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    location = models.CharField(max_length=UNIQUE_LENGTH)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
+    position = models.CharField(max_length=UNIQUE_LENGTH)
+
+    # manager
+    objects = OverviewManager()
+
+    class Meta:
+        managed = False
+        db_table = 'overview'
+
+    def __str__(self):
+        return self.object
+
+
 #########
 # TIMES #
 #########

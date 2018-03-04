@@ -1343,6 +1343,20 @@ def home(request):
 
 @require_GET
 @login_required
+# @decorators.permission('overview')
+def overview(request):
+    context = {'tables': True,
+               'content': 'overview',
+               'session': True,
+               'user': request.user.username,
+               'perm': request.user.permissions,
+               'header': framework.GetView(table=models.Overview).html_header,
+               'query': framework.GetView(table=models.Overview).get()}
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
 @decorators.permission('mo')
 @decorators.require_ajax
 def home_movement(request):

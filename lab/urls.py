@@ -108,4 +108,6 @@ urlpatterns = [
     url(r'^home/move/$', views.home_move, name='home move'),
     url(r'^home/box/$', views.home_box, name='home box'),
     url(r'^home/boxing/$', views.home_boxing, name='home boxing'),
+    # overview
+    url(r'^overview/$', views.overview, name='overview'),
 ]
