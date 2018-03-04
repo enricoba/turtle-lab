@@ -476,11 +476,13 @@ class GetAuditTrail(GetStandard):
                 # formatting duration fields
                 elif field == 'thaw_time':
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['thaw_uom'], dt=row[field]))
-                elif field == 'is_active' or field == 'initial_password':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
                     if row[field]:
-                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
+                        tmp += '<td><p style="display: none">True</p>' \
+                               '<i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td><p style="display: none">False</p>' \
+                               '<i class="fas fa-minus-circle" style="color: red"></td>'
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
             # add verify column
