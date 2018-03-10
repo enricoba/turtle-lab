@@ -117,6 +117,11 @@ def validate_positive_number(value):
         raise ValidationError('Number must be positive.')
 
 
+def validate_box_exist(value):
+    if not models.Boxes.objects.box_by_type(type=value):
+        raise ValidationError('No box for type "{}" found'.format(value))
+
+
 class ConditionFormNew(forms.Form):
     condition = forms.CharField(label='condition', max_length=UNIQUE_LENGTH,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -422,6 +427,21 @@ class BoxingForm(forms.Form):
                 raise forms.ValidationError('Sample and box must be in the same location.')
             if actual_box == new_box:
                 raise forms.ValidationError('Actual box is equal to new box.')
+
+
+class OverviewBoxingForm(forms.Form):
+    r_s = forms.ChoiceField(label='R / S', choices=(('R', 'Reagent'), ('S', 'Sample')),
+                            widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_r_s'}))
+    type_r = forms.ModelChoiceField(label='Type R', queryset=models.Types.objects.reagents.all(), empty_label=None,
+                                    widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_r'}),
+                                    required=False, validators=[validate_box_exist])
+    type_s = forms.ModelChoiceField(label='Type S', queryset=models.Types.objects.samples.all(), empty_label=None,
+                                    widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_s'}),
+                                    required=False, validators=[validate_box_exist])
+    box = forms.CharField(label='Box', max_length=UNIQUE_LENGTH,
+                          widget=forms.TextInput(attrs={'class': 'form-control',
+                                                        'placeholder': 'scan target box',
+                                                        'id': 'id_target_box'}))
 
 
 class PasswordForm(forms.Form):

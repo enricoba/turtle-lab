@@ -1,0 +1,125 @@
+<!--
+turtle-lab.org
+Copyright (C) 2017  Henrik Baran
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<script>
+    $('#id_nav_btn_overview_boxing').click(function() {
+        if (!$(this).hasClass("disabled")) {
+            var type = $('#id_r option:first').text();
+            $.ajax({
+               method: "GET",
+               url: "/" + "{{ content }}" + "/locate/",
+               data: {
+                   "type": type
+               },
+               dataType: "json",
+               success: function (data) {
+                   if (data.response) {
+                       $('#id_overview_boxing_p_location').text(data.location);
+                       $('#id_overview_boxing_p_box').text(data.box);
+                       $('#id_overview_boxing_p_position').text(data.position);
+                       $('#id_form_overview_boxing').trigger("reset");
+                       $('#id_modal_overview_boxing').modal("show");
+                   } else {
+                       alert("Test error.")
+                   }
+                }
+            });
+        }
+    });
+
+    function positioning(id, method) {
+        var type;
+        if (method === "first") {
+            var id_con = id + " option:selected";
+            type = $(id_con).text();
+        } else {
+            type = $(id).text();
+        }
+        $.ajax({
+           method: "GET",
+           url: "/" + "{{ content }}" + "/locate/",
+           data: {
+               "type": type
+           },
+           dataType: "json",
+           success: function (data) {
+               if (data.response) {
+                   $('#id_overview_boxing_p_location').text(data.location);
+                   $('#id_overview_boxing_p_box').text(data.box);
+                   $('#id_overview_boxing_p_position').text(data.position);
+               }
+           }
+       });
+    }
+
+
+    $('#id_r_s').change(function() {
+       if ($(this).val() === "R") {
+           $('#id_type_s').hide();
+           $('#id_type_r').show();
+           positioning('#id_r', 'first')
+       } else {
+           $('#id_type_r').hide();
+           $('#id_type_s').show();
+           positioning('#id_s', 'first')
+       }
+    });
+
+    $('#id_type_r').change(function() {
+       positioning('#id_r', 'first')
+    });
+
+    function boxing() {
+        var new_box = $('#id_new_box').val();
+        var actual_box = $('#id_actual_box').val();
+        var item = $('#id_table').find('#id_unique').find("td:first").text();
+        $.ajax({
+            method: "POST",
+            url: "/" + "{{ content }}" + "/boxing/",
+            data: {
+                'new_box': new_box,
+                'actual_box': actual_box,
+                'unique': item
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.response) {
+                    $('#id_modal_movement').modal('hide');
+                    location.reload();
+                } else {
+                    handleError(data.errors, data.form_id);
+                }
+            }
+        });
+    }
+
+    $("#id_submit_overview_boxing").click( function () {
+        boxing();
+    });
+
+    $('#id_modal_overview_boxing').keydown(function(e) {
+        if (e.keyCode === 13) {
+            boxing();
+        }
+    }).on('shown.bs.modal', function () {
+        $(this).find('#id_target_box').focus();
+    }).on('hidden.bs.modal', function () {
+        $("br").remove();
+        $("small").remove(".error");
+    });
+</script>

@@ -702,8 +702,6 @@ def types_delete(request):
 @login_required
 @decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
 def boxes(request):
-    # print(models.Boxing.objects.filter(object='').order_by('box')[0].position)
-    # print(models.Boxing.objects.filter(object='').order_by('box')[0].box)
     context = framework.html_and_data(
         context={'tables': True,
                  'content': 'boxes',
@@ -1350,9 +1348,40 @@ def overview(request):
                'session': True,
                'user': request.user.username,
                'perm': request.user.permissions,
+               'modal_overview_boxing': forms.OverviewBoxingForm(),
                'header': framework.GetView(table=models.Overview).html_header,
                'query': framework.GetView(table=models.Overview).get()}
     return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+# permission missing
+@decorators.require_ajax
+def overview_locate(request):
+    box = models.Boxes.objects.box_by_type(type=request.GET.get('type'))
+    if box is False:
+        box = '---'
+        location = '---'
+        position = '---'
+        data = {'response': True,
+                'location': location,
+                'box': box,
+                'position': position}
+        return JsonResponse(data)
+    location = models.RTD.objects.location(unique=box[:7])
+    position = models.Boxing.objects.next_position(box=box[:7])
+    if position:
+        print('Location: ', location, type(location))
+        print('Box: ', box, type(box))
+        print('Position: ', position, type(position))
+    else:
+        print('Position not free')
+    data = {'response': True,
+            'location': location,
+            'box': box,
+            'position': position}
+    return JsonResponse(data)
 
 
 @require_GET
@@ -1427,6 +1456,21 @@ def home_boxing(request):
     else:
         data = {'response': False,
                 'form_id': 'id_form_boxing',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+# @decorators.permission('re')
+@decorators.require_ajax
+def overview_boxing(request):
+    form = forms.OverviewBoxingForm(request.POST)
+    if form.is_valid():
+        pass
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_overview_boxing',
                 'errors': form.errors}
         return JsonResponse(data)
 

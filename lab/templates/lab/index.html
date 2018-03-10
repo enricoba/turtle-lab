@@ -329,6 +329,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <button id="id_nav_btn_boxing" type="button" class="btn btn-default disabled">
                             <i class="fas fa-th"></i></button>
                     {% endif %}
+                <!-- Overview -->
+                    <!-- BOXING -->
+                    {% if content == 'overview'%}
+                        <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-success">
+                            <i class="fas fa-plus"></i></button>
+                    {% endif %}
                 <!-- UNUSED -->
                 <button id="id_nav_btn_export" type="button" class="btn btn-default">
                     <i class="fas fa-download"></i></button>
@@ -570,6 +576,99 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                 </div>
             {% endif %}
+
+            <!-- OVERVIEW -->
+            {% if content == 'overview' %}
+                <!-- BOXING -->
+                <div class="modal fade" id="id_modal_overview_boxing" tabindex="-1" role="dialog" aria-labelledby="id_modal_overview_boxing">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="id_modal_overview_boxing">New Reagent / Sample</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body">
+                                <form id="id_form_overview_boxing" class="form-horizontal">
+                                    {% csrf_token %}
+                                    <!-- SPECIFIC -->
+                                    {% for field in modal_overview_boxing %}
+                                        {% if field.label == 'Type R' %}
+                                            <div id="id_type_r" class="form-group" style="">
+                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
+                                                <div class="col-sm-10">
+                                                    {% render_field field %}
+                                                </div>
+                                                {% if field.help_text %}
+                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                                {% endif %}
+                                            </div>
+                                        {% elif field.label == 'Type S' %}
+                                            <div id="id_type_s" class="form-group" style="display: none">
+                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
+                                                <div class="col-sm-10">
+                                                    {% render_field field %}
+                                                </div>
+                                                {% if field.help_text %}
+                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                                {% endif %}
+                                            </div>
+                                        {% elif field.label == 'Box' %}
+                                        {% else %}
+                                            <div class="form-group">
+                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
+                                                <div class="col-sm-10">
+                                                    {% render_field field %}
+                                                </div>
+                                                {% if field.help_text %}
+                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">Location:</label>
+                                        <div class="col-sm-10">
+                                            <p class="form-control-static" id="id_overview_boxing_p_location"></p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">Box:</label>
+                                        <div class="col-sm-10">
+                                            <p class="form-control-static" id="id_overview_boxing_p_box"></p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">Position:</label>
+                                        <div class="col-sm-10">
+                                            <p class="form-control-static" id="id_overview_boxing_p_position"></p>
+                                        </div>
+                                    </div>
+                                    {% for field in modal_overview_boxing %}
+                                        {% if field.label == 'Box' %}
+                                            <div class="form-group">
+                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
+                                                <div class="col-sm-10">
+                                                    {% render_field field %}
+                                                </div>
+                                                {% if field.help_text %}
+                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </form>
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="" id="id_submit_overview_boxing">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         {% endif %}
 
         <!-- SPECIFIC CONTENT -->
@@ -705,6 +804,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% if content == 'home' %}
         {% include "lab/movement.html" %}
         {% include "lab/boxing.html" %}
+        {% include "lab/form.html" %}
+    {% endif %}
+
+    {% if content == 'overview' %}
+        {% include "lab/overview_boxing.html" %}
         {% include "lab/form.html" %}
     {% endif %}
 

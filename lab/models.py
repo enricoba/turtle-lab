@@ -26,6 +26,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 # app imports
 import lab.custom as custom
@@ -157,7 +158,11 @@ class Locations(models.Model):
     objects = LocationsManager()
 
     def __str__(self):
-        return '{} ({})'.format(self.location, self.condition)
+        if self.name == '':
+            _return = '{} ({})'.format(self.location, self.condition)
+        else:
+            _return = '{} ({}) ({})'.format(self.location, self.name, self.condition)
+        return _return
 
 
 # audit trail manager
@@ -203,6 +208,10 @@ class TypesManager(GlobalManager):
     @property
     def reagents(self):
         return self.filter(affiliation='Reagents')
+
+    @property
+    def samples(self):
+        return self.filter(affiliation='Samples')
 
 
 # table
@@ -332,6 +341,12 @@ class BoxesManager(GlobalManager):
     @property
     def unique(self):
         return 'box'
+
+    def box_by_type(self, type, count=0):
+        try:
+            return self.filter(type=type).order_by('box')[count].__str__()
+        except IndexError:
+            return False
 
 
 # table
@@ -621,7 +636,10 @@ class RTDManager(GlobalManager):
         return 'object'
 
     def location(self, unique):
-        return self.filter(object=unique)[0].location
+        try:
+            return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+        except IndexError:
+            return '---'
 
     def method(self, unique):
         return self.filter(object=unique)[0].type
@@ -667,17 +685,13 @@ class OverviewManager(GlobalManager):
         return 'object'
 
     def location(self, unique):
-        return self.filter(object=unique)[0].location
+        return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
 
     def method(self, unique):
         return self.filter(object=unique)[0].type
 
     def box(self, unique):
         return self.filter(object=unique)[0].box
-
-    def validate_location(self, box, sample):
-        if self.filter(object=box)[0].location != self.filter(object=sample)[0].location:
-            return True
 
 
 # table
@@ -751,6 +765,12 @@ class BoxingManager(GlobalManager):
     @property
     def unique(self):
         return 'object'
+
+    def next_position(self, box):
+        try:
+            return self.filter(object='', box=box).order_by('id')[0].position
+        except IndexError:
+            False
 
 
 # table
