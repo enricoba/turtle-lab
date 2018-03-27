@@ -21,6 +21,8 @@ from functools import wraps
 # django imports
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest
+# app imports
+from lab.models import EXPORT_PERMISSIONS
 
 
 def permission(*perms):
@@ -43,4 +45,15 @@ def require_ajax(view_func):
         if not request.is_ajax():
             return HttpResponseBadRequest()
         return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def export_permission(view_func):
+    """Decorator to validate permissions for export"""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        perm = EXPORT_PERMISSIONS[kwargs['dialog']]
+        if request.user.permission(perm):
+            return view_func(request, *args, **kwargs)
+        raise PermissionDenied
     return wrapper

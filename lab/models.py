@@ -770,7 +770,7 @@ class BoxingManager(GlobalManager):
         try:
             return self.filter(object='', box=box).order_by('id')[0].position
         except IndexError:
-            False
+            return False
 
 
 # table
@@ -796,61 +796,51 @@ class Boxing(models.Model):
 
 
 PERMISSIONS = (
-    ('Accounts', (
-        ('ac_r', 'read'),
-        ('ac_w', 'write'),
-        ('ac_d', 'delete'))),
-    ('Boxes', (
-        ('bo_r', 'read'),
-        ('bo_w', 'write'),
-        ('bo_d', 'delete'),
-        ('bo_l', 'labels'))),
-    ('Box Types', (
-        ('bt_r', 'read'),
-        ('bt_w', 'write'),
-        ('bt_d', 'delete'))),
-    ('Conditions', (
-        ('co_r', 'read'),
-        ('co_w', 'write'),
-        ('co_d', 'delete'))),
-    ('Locations', (
-        ('lo_r', 'read'),
-        ('lo_w', 'write'),
-        ('lo_d', 'delete'),
-        ('lo_l', 'labels'))),
-    ('Types', (
-        ('ty_r', 'read'),
-        ('ty_w', 'write'),
-        ('ty_d', 'delete'))),
-    ('Home', (
-        ('home', 'home'),
-        ('bo', 'boxing'),
-        ('mo', 'movements'))),
-    ('Samples', (
-        ('sa_r', 'read'),
-        ('sa_w', 'write'),
-        ('sa_d', 'delete'),
-        ('sa_l', 'labels'))),
-    ('Reagents', (
-        ('re_r', 'read'),
-        ('re_w', 'write'),
-        ('re_d', 'delete'),
-        ('re_l', 'labels'))),
-    ('Logs', (
-        ('log_mo', 'movement'),
-        ('log_lo', 'login'),
-        ('log_la', 'labels'),
-        ('log_bo', 'boxing'))),
-    # ('log_la', 'log label'),
-    ('Roles', (
-        ('ro_r', 'read'),
-        ('ro_w', 'write'),
-        ('ro_d', 'delete'))),
-    ('Users', (
-        ('us_r', 'read'),
-        ('us_w', 'write'),
-        ('us_a', 'activate'),
-        ('us_p', 'password'))))
+    ('ac_r', 'Accounts read'),
+    ('ac_w', 'Accounts write'),
+    ('ac_d', 'Accounts delete'),
+    ('bo_r', 'Boxes read'),
+    ('bo_w', 'Boxes write'),
+    ('bo_d', 'Boxes delete'),
+    ('bo_l', 'Boxes labels'),
+    ('bt_r', 'Box Types read'),
+    ('bt_w', 'Box Types write'),
+    ('bt_d', 'Box Types delete'),
+    ('co_r', 'Conditions read'),
+    ('co_w', 'Conditions write'),
+    ('co_d', 'Conditions delete'),
+    ('lo_r', 'Locations read'),
+    ('lo_w', 'Locations write'),
+    ('lo_d', 'Locations delete'),
+    ('lo_l', 'Locations labels'),
+    ('ty_r', 'Types read'),
+    ('ty_w', 'Types write'),
+    ('ty_d', 'Types delete'),
+    ('overview', 'Overview'),
+    ('ov_w', 'Overview write'),
+    ('home', 'Home'),
+    ('bo', 'Home boxing'),
+    ('mo', 'Home movements'),
+    ('sa_r', 'Samples read'),
+    ('sa_w', 'Samples write'),
+    ('sa_d', 'Samples delete'),
+    ('sa_l', 'Samples labels'),
+    ('re_r', 'Reagents read'),
+    ('re_w', 'Reagents write'),
+    ('re_d', 'Reagents delete'),
+    ('re_l', 'Reagents labels'),
+    ('log_mo', 'Logs movement'),
+    ('log_lo', 'Logs login'),
+    ('log_la', 'Logs labels'),
+    ('log_bo', 'Logs boxing'),
+    ('ro_r', 'Roles read'),
+    ('ro_w', 'Roles write'),
+    ('ro_d', 'Roles delete'),
+    ('us_r', 'Users read'),
+    ('us_w', 'Users write'),
+    ('us_a', 'Users activate'),
+    ('us_p', 'Users password'),
+)
 
 
 # manager
@@ -1239,5 +1229,25 @@ TABLES = {
     'login_log': LoginLog,
     'label_log': LabelLog,
     'boxing_log': BoxingLog,
-    'home': RTD
+    'home': RTD,
+    'Overview': Overview
+}
+
+EXPORT_PERMISSIONS = {
+    'samples': 'sa_r',
+    'reagents': 're_r',
+    'boxes': 'bo_r',
+    'box_types': 'bt_r',
+    'conditions': 'co_r',
+    'types': 'ty_r',
+    'locations': 'lo_r',
+    'roles': 'ro_r',
+    'users': 'us_r',
+    'freeze_thaw_accounts': 'ac_r',
+    'movement_log': 'log_mo',
+    'login_log': 'log_lo',
+    'label_log': 'log_la',
+    'boxing_log': 'log_bo',
+    'home': 'home',
+    'Overview': 'overview'
 }

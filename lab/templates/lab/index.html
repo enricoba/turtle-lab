@@ -47,8 +47,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
             <div>
                 <ul class="sidebar-menu">
-                    <li><a href="/home/"><i class="fas fa-home"></i><span> Home</span></a></li>
-                    <li><a href="/overview/"><i class="fas fa-home"></i><span> Overview</span></a></li>
+                    {% if 'home' in perm %}
+                        <li><a href="/home/"><i class="fas fa-home"></i><span> Home</span></a></li>
+                    {% endif %}
+                    {% if 'overview' in perm %}
+                        <li><a href="/overview/"><i class="fas fa-home"></i><span> Overview</span></a></li>
+                    {% endif %}
                     <li id="id_sidebar_menu_par_md"><a><i class="fas fa-database"></i><span> Master Data</span></a></li>
                         {% if 'co_r' in perm or 'co_w' in perm or 'co_d' in perm %}
                             <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/conditions/"><span> Conditions</span></a></li>
@@ -122,6 +126,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'conditions' and 'co_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -135,6 +141,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'locations' and 'lo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -148,6 +156,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'types' and 'ty_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -161,6 +171,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'box_types' and 'bt_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -174,6 +186,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'samples' and 'sa_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -187,6 +201,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'reagents' and 're_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -200,6 +216,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'boxes' and 'bo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -213,6 +231,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'freeze_thaw_accounts' and 'ac_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -241,6 +261,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'roles' and 'ro_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -264,9 +286,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     <!-- Audit trail -->
-                        <button id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-clock"></i></button>
-                    {% endif %}
+                    <button id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
+                        <i class="fas fa-clock"></i></button>
+                {% endif %}
                 <!-- Home -->
                     <!-- Movement -->
                     {% if content == 'home' and 'mo' in perm %}
@@ -284,14 +306,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
                     {% endif %}
+                <!-- Export -->
+                    <button id="id_nav_btn_export" type="button" class="btn btn-default">
+                        <i class="fas fa-download"></i></button>
                 <!-- UNUSED -->
-                <button id="id_nav_btn_export" type="button" class="btn btn-default">
-                    <i class="fas fa-download"></i></button>
-                <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                    <i class="fas fa-upload"></i></button>
-
-                 <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
-                     <i class="fas fa-filter"></i></button>
+                    <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
+                        <i class="fas fa-filter"></i></button>
             </div>
             <form style="float: left; padding-left: 5px;">
                 <div class="input-group" style="height: 46px;">

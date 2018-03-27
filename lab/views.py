@@ -1341,7 +1341,7 @@ def home(request):
 
 @require_GET
 @login_required
-# @decorators.permission('overview')
+@decorators.permission('overview')
 def overview(request):
     context = {'tables': True,
                'content': 'overview',
@@ -1356,7 +1356,7 @@ def overview(request):
 
 @require_GET
 @login_required
-# permission missing
+@decorators.permission('ov_w')
 @decorators.require_ajax
 def overview_locate(request):
     box = models.Boxes.objects.box_by_type(type=request.GET.get('type'))
@@ -1462,7 +1462,7 @@ def home_boxing(request):
 
 @require_POST
 @login_required
-# @decorators.permission('re')
+@decorators.permission('ov_w')
 @decorators.require_ajax
 def overview_boxing(request):
     form = forms.OverviewBoxingForm(request.POST)
@@ -1477,9 +1477,13 @@ def overview_boxing(request):
 
 @require_GET
 @login_required
+@decorators.export_permission
 def export(request, dialog):
     if dialog == 'home':
         queryset = framework.GetView(table=models.RTD)
+        data = queryset.export
+    elif dialog == 'overview':
+        queryset = framework.GetView(table=models.Overview)
         data = queryset.export
     else:
         table = models.TABLES[dialog]
