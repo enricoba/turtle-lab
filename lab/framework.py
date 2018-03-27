@@ -983,7 +983,9 @@ def new_login_log(username, action, method='manual', active=None):
         active = models.Users.objects.get(username=username).is_active
     try:
         query = models.LoginLog.objects.filter(user=username).order_by('-id')[0]
-        if query.action == 'attempt':
+        if query.action == 'attempt' and active is True and query.active is False:
+            attempts = 1
+        elif query.action == 'attempt':
             attempts = query.attempts + 1
         else:
             attempts = 1
