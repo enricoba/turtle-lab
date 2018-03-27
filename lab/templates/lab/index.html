@@ -47,9 +47,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
             <div>
                 <ul class="sidebar-menu">
-                    {% if 'home' in perm %}
-                        <li><a href="/home/"><i class="fas fa-home"></i><span> Home</span></a></li>
-                    {% endif %}
                     {% if 'overview' in perm %}
                         <li><a href="/overview/"><i class="fas fa-home"></i><span> Overview</span></a></li>
                     {% endif %}
@@ -66,17 +63,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {% if 'bt_r' in perm or 'bt_w' in perm or 'bt_d' in perm %}
                             <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/box_types/"><span> Box Types</span></a></li>
                         {% endif %}
-                        {% if 'ac_r' in perm or 'ac_w' in perm or 'ac_d' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/freeze_thaw_accounts/"><span> Accounts</span></a></li>
-                        {% endif %}
-                        {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/samples/"><span> Samples</span></a></li>
+                        {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/boxes/"><span> Boxes</span></a></li>
                         {% endif %}
                         {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
                             <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/reagents/"><span> Reagents</span></a></li>
-                        {% endif %}
-                        {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/boxes/"><span> Boxes</span></a></li>
                         {% endif %}
                     {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm or 'log_bo' in perm %}
                         <li id="id_sidebar_menu_par_log"><a><i class="fas fa-history"></i><span> Logs</span></a></li>

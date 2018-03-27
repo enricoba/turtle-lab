@@ -52,7 +52,7 @@ def index(request):
                'session': None,
                'user': None}
     if request.user.is_authenticated:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect('/overview/')
     else:
         context['login'] = forms.LoginForm()
         context['modal_password'] = forms.PasswordForm()
@@ -924,7 +924,7 @@ def box_types_delete(request):
 # SAMPLES #
 ###########
 
-
+"""
 @require_GET
 @login_required
 @decorators.permission('sa_r', 'sa_w', 'sa_d', 'sa_l')
@@ -1034,6 +1034,7 @@ def samples_label(request):
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
+"""
 
 
 ############
@@ -1154,7 +1155,7 @@ def reagents_label(request):
 ############
 # ACCOUNTS #
 ############
-
+"""
 
 @require_GET
 @login_required
@@ -1261,6 +1262,7 @@ def freeze_thaw_accounts_delete(request):
                                             user=request.user.username)
     data = {'response': response}
     return JsonResponse(data)
+"""
 
 
 @require_GET
@@ -1325,22 +1327,6 @@ def boxing_log(request):
 
 @require_GET
 @login_required
-@decorators.permission('home')
-def home(request):
-    context = {'tables': True,
-               'content': 'home',
-               'session': True,
-               'user': request.user.username,
-               'perm': request.user.permissions,
-               'modal_movement': forms.MovementsForm(),
-               'modal_boxing': forms.BoxingForm(),
-               'header': framework.GetView(table=models.RTD).html_header,
-               'query': framework.GetView(table=models.RTD).get()}
-    return render(request, 'lab/index.html', context)
-
-
-@require_GET
-@login_required
 @decorators.permission('overview')
 def overview(request):
     context = {'tables': True,
@@ -1382,6 +1368,39 @@ def overview_locate(request):
             'box': box,
             'position': position}
     return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ov_w')
+@decorators.require_ajax
+def overview_boxing(request):
+    form = forms.OverviewBoxingForm(request.POST)
+    print(request.POST)
+    if form.is_valid():
+        print('sucess!')
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_overview_boxing',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+"""
+@require_GET
+@login_required
+@decorators.permission('home')
+def home(request):
+    context = {'tables': True,
+               'content': 'home',
+               'session': True,
+               'user': request.user.username,
+               'perm': request.user.permissions,
+               'modal_movement': forms.MovementsForm(),
+               'modal_boxing': forms.BoxingForm(),
+               'header': framework.GetView(table=models.RTD).html_header,
+               'query': framework.GetView(table=models.RTD).get()}
+    return render(request, 'lab/index.html', context)
 
 
 @require_GET
@@ -1458,21 +1477,7 @@ def home_boxing(request):
                 'form_id': 'id_form_boxing',
                 'errors': form.errors}
         return JsonResponse(data)
-
-
-@require_POST
-@login_required
-@decorators.permission('ov_w')
-@decorators.require_ajax
-def overview_boxing(request):
-    form = forms.OverviewBoxingForm(request.POST)
-    if form.is_valid():
-        pass
-    else:
-        data = {'response': False,
-                'form_id': 'id_form_overview_boxing',
-                'errors': form.errors}
-        return JsonResponse(data)
+"""
 
 
 @require_GET
