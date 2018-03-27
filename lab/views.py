@@ -1345,8 +1345,8 @@ def overview(request):
 @decorators.permission('ov_w')
 @decorators.require_ajax
 def overview_locate(request):
-    box = models.Boxes.objects.box_by_type(type=request.GET.get('type'))
-    if box is False:
+    box_count = models.Boxes.objects.count_box_by_type(type=request.GET.get('type'))
+    if box_count == 0:
         box = '---'
         location = '---'
         position = '---'
@@ -1355,19 +1355,24 @@ def overview_locate(request):
                 'box': box,
                 'position': position}
         return JsonResponse(data)
-    location = models.RTD.objects.location(unique=box[:7])
-    position = models.Boxing.objects.next_position(box=box[:7])
-    if position:
-        print('Location: ', location, type(location))
-        print('Box: ', box, type(box))
-        print('Position: ', position, type(position))
-    else:
-        print('Position not free')
-    data = {'response': True,
-            'location': location,
-            'box': box,
-            'position': position}
-    return JsonResponse(data)
+    for x in range(box_count):
+        box = models.Boxes.objects.box_by_type(type=request.GET.get('type'), count=x)
+        position = models.Boxing.objects.next_position(box=box[:7])
+        location = models.RTD.objects.location(unique=box[:7])
+        if position:
+            data = {'response': True,
+                    'location': location,
+                    'box': box,
+                    'position': position}
+            return JsonResponse(data)
+        else:
+            if x == box_count:
+                position = '---'
+                data = {'response': True,
+                        'location': location,
+                        'box': box,
+                        'position': position}
+                return JsonResponse(data)
 
 
 @require_POST
@@ -1375,10 +1380,10 @@ def overview_locate(request):
 @decorators.permission('ov_w')
 @decorators.require_ajax
 def overview_boxing(request):
-    form = forms.OverviewBoxingForm(request.POST)
-    print(request.POST)
+    form = forms.OverviewBoxingForm(request.POST, request=request)
     if form.is_valid():
-        print('sucess!')
+        data = {'response': True}
+        return JsonResponse(data)
     else:
         data = {'response': False,
                 'form_id': 'id_form_overview_boxing',

@@ -342,6 +342,12 @@ class BoxesManager(GlobalManager):
     def unique(self):
         return 'box'
 
+    def count_box_by_type(self, type):
+        try:
+            return self.filter(type=type).count()
+        except IndexError:
+            return 0
+
     def box_by_type(self, type, count=0):
         try:
             return self.filter(type=type).order_by('box')[count].__str__()

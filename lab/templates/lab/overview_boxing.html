@@ -85,21 +85,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     });
 
     function boxing() {
-        var new_box = $('#id_new_box').val();
-        var actual_box = $('#id_actual_box').val();
-        var item = $('#id_table').find('#id_unique').find("td:first").text();
+        var box = $('#id_box').val();
+        var target_box = $('#id_overview_boxing_p_box').text().substr(0, 7);
+        var target_position = $('#id_overview_boxing_p_position').text();
         $.ajax({
             method: "POST",
             url: "/" + "{{ content }}" + "/boxing/",
             data: {
-                'new_box': new_box,
-                'actual_box': actual_box,
-                'unique': item
+                'box': box,
+                'target_box': target_box,
+                'target_position': target_position
             },
             dataType: 'json',
             success: function (data) {
                 if (data.response) {
-                    $('#id_modal_movement').modal('hide');
+                    $('#id_modal_overview_boxing').modal('hide');
                     location.reload();
                 } else {
                     handleError(data.errors, data.form_id);
@@ -117,7 +117,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             boxing();
         }
     }).on('shown.bs.modal', function () {
-        $(this).find('#id_target_box').focus();
+        $(this).find('#id_box').focus();
     }).on('hidden.bs.modal', function () {
         $("br").remove();
         $("small").remove(".error");

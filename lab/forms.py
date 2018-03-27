@@ -448,6 +448,20 @@ class OverviewBoxingForm(forms.Form):
                           widget=forms.TextInput(attrs={'class': 'form-control',
                                                         'placeholder': 'scan target box'}))
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(OverviewBoxingForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(OverviewBoxingForm, self).clean()
+        if cleaned_data.get('box') is not None:
+            if self.request.POST.get('target_box') == '---':
+                raise ValidationError('No suitable box available.')
+            if self.request.POST.get('target_position') == '---':
+                raise ValidationError('No free position available.')
+            if cleaned_data.get('box') != self.request.POST.get('target_box'):
+                raise ValidationError('Scanned box must match target box.')
+
 
 class PasswordForm(forms.Form):
     user = forms.CharField(label='Username',
