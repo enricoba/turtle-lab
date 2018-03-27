@@ -20,6 +20,7 @@ gunicorn_config.py
 
 # static files
 static
+!custom.css
 
 # others
 others
