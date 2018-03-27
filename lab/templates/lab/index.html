@@ -29,140 +29,89 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% load static %}
     <!-- Stylesheet Bootstrap -->
     <link rel="stylesheet" href="{% static "bootstrap-3.3.7-dist/css/bootstrap.min.css" %}">
+    <!-- Custom -->
+    <link rel="stylesheet" href="{% static "custom.css" %}">
     <!-- JS Font Awesome -->
     <script defer src="{% static "fontawesome-free-5.0.6/svg-with-js/js/fontawesome-all.min.js" %}"></script>
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- COVER -->
     <div id="cover" style="position: fixed; height: 100%; width: 100%; top: 0; left: 0; z-index: 9999; background: white"></div>
-    <!-- NAVBAR -->
-    {% if content != 'index' %}
-    <div id="id_navbar" class="container-fluid" style="margin-bottom: 50px; background-color: #98ccff">
-        <nav class="navbar navbar-default navbar-fixed-top">
-            <div class="container-fluid">
-                <!-- NAVBAR HEADER -->
-                <!-- Home -->
-                {% if 'home' in perm %}
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle collapsed"
-                                data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
-                                aria-expanded="false">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="/home/">Home</a>
-                {% endif %}
-                </div>
 
-                <!-- NAVBAR MAIN -->
-                <!-- Master data -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li><a class="navbar-brand" href="/overview/">Overview</a></li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Master Data
-                            <span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <!-- Conditions -->
-                                {% if 'co_r' in perm or 'co_w' in perm or 'co_d' in perm %}
-                                    <li><a href="/conditions/">Conditions</a></li>
-                                {% endif %}
-                                <!-- Locations -->
-                                {% if 'lo_r' in perm or 'lo_w' in perm or 'lo_d' in perm or 'lo_l' in perm %}
-                                    <li><a href="/locations/">Locations</a></li>
-                                {% endif %}
-                                <!-- Types -->
-                                {% if 'ty_r' in perm or 'ty_w' in perm or 'ty_d' in perm %}
-                                    <li><a href="/types/">Types</a></li>
-                                {% endif %}
-                                <!-- Box Types -->
-                                {% if 'bt_r' in perm or 'bt_w' in perm or 'bt_d' in perm %}
-                                    <li><a href="/box_types/">Box Types</a></li>
-                                {% endif %}
-                                <!-- Accounts -->
-                                {% if 'ac_r' in perm or 'ac_w' in perm or 'ac_d' in perm %}
-                                    <li><a href="/freeze_thaw_accounts/">Accounts</a></li>
-                                {% endif %}
-                                <!-- Samples -->
-                                {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
-                                    <li><a href="/samples/">Samples</a></li>
-                                {% endif %}
-                                <!-- Reagents -->
-                                {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
-                                    <li><a href="/reagents/">Reagents</a></li>
-                                {% endif %}
-                                <!-- Boxes -->
-                                {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
-                                    <li><a href="/boxes/">Boxes</a></li>
-                                {% endif %}
-                            </ul>
-                        </li>
-                        <!-- Logs -->
-                        {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm or 'log_bo' in perm %}
-                            <li class="dropdown">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">Logs
-                                <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <!-- Movement Log -->
-                                    {% if 'log_mo' in perm %}
-                                        <li><a href="/movement_log/">Movement</a></li>
-                                    {% endif %}
-                                    <!-- Login Log -->
-                                    {% if 'log_lo' in perm %}
-                                        <li><a href="/login_log/">Login</a></li>
-                                    {% endif %}
-                                    <!-- Label Log -->
-                                    {% if 'log_la' in perm %}
-                                        <li><a href="/label_log/">Labels</a></li>
-                                    {% endif %}
-                                    <!-- Boxing Log -->
-                                    {% if 'log_bo' in perm %}
-                                        <li><a href="/boxing_log/">Boxing</a></li>
-                                    {% endif %}
-                                </ul>
-                            </li>
-                        {% endif %}
-                        <!-- Admin -->
-                        {% if 'ro_r' in perm or 'ro_w' in perm or 'ro_d' in perm or 'us_r' in perm or 'us_w' in perm or 'us_a' in perm or 'us_p' in perm %}
-                            <li class="dropdown">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">Administration
-                                <span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <!-- roles -->
-                                    {% if 'ro_r' in perm or 'ro_w' in perm or 'ro_d' in perm %}
-                                        <li><a href="/roles/">Roles</a></li>
-                                    {% endif %}
-                                    <!-- Users -->
-                                    {% if 'us_r' in perm or 'us_w' in perm or 'us_a' in perm or 'us_p' in perm %}
-                                        <li><a href="/users/">Users</a></li>
-                                    {% endif %}
-                                </ul>
-                            </li>
-                        {% endif %}
-                    </ul>
-                    <!-- NAVBAR RIGHT -->
-                    <ul class="nav navbar-nav navbar-right" style="padding-right: 10px;">
-                        {% if session %}
-                            <li><a href="#"><i class="fas fa-lock" style="color: green"></i> {{ user }}</a></li>
-                            <li><a href="/index/logout/"><i class="fas fa-sign-out-alt"></i></a></li>
-                        {% else %}
-                            <li><a href="#"><i class="fas fa-lock-open" style="color: red"></i></a></li>
-                        {% endif %}
-                    </ul>
-                </div>
+    <!-- SIDEBAR -->
+    {% if content != 'index' %}
+        <div class="sidebar" id="id_sidebar">
+            <div>
+
             </div>
-        </nav>
-    </div>
+
+            <div>
+                <ul class="sidebar-menu">
+                    <li><a href="/home/"><i class="fas fa-home"></i><span> Home</span></a></li>
+                    <li><a href="/overview/"><i class="fas fa-home"></i><span> Overview</span></a></li>
+                    <li id="id_sidebar_menu_par_md"><a><i class="fas fa-database"></i><span> Master Data</span></a></li>
+                        {% if 'co_r' in perm or 'co_w' in perm or 'co_d' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/conditions/"><span> Conditions</span></a></li>
+                        {% endif %}
+                        {% if 'lo_r' in perm or 'lo_w' in perm or 'lo_d' in perm or 'lo_l' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/locations/"><span> Locations</span></a></li>
+                        {% endif %}
+                        {% if 'ty_r' in perm or 'ty_w' in perm or 'ty_d' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/types/"><span> Types</span></a></li>
+                        {% endif %}
+                        {% if 'bt_r' in perm or 'bt_w' in perm or 'bt_d' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/box_types/"><span> Box Types</span></a></li>
+                        {% endif %}
+                        {% if 'ac_r' in perm or 'ac_w' in perm or 'ac_d' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/freeze_thaw_accounts/"><span> Accounts</span></a></li>
+                        {% endif %}
+                        {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/samples/"><span> Samples</span></a></li>
+                        {% endif %}
+                        {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/reagents/"><span> Reagents</span></a></li>
+                        {% endif %}
+                        {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/boxes/"><span> Boxes</span></a></li>
+                        {% endif %}
+                    {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm or 'log_bo' in perm %}
+                        <li id="id_sidebar_menu_par_log"><a><i class="fas fa-history"></i><span> Logs</span></a></li>
+                            {% if 'log_mo' in perm %}
+                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/movement_log/"><span> Movements</span></a></li>
+                            {% endif %}
+                            {% if 'log_lo' in perm %}
+                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/login_log/"><span> Login</span></a></li>
+                            {% endif %}
+                            {% if 'log_la' in perm %}
+                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/label_log/"><span> Labels</span></a></li>
+                            {% endif %}
+                            {% if 'log_bo' in perm %}
+                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/boxing_log/"><span> Boxing</span></a></li>
+                            {% endif %}
+                    {% endif %}
+                    {% if 'ro_r' in perm or 'ro_w' in perm or 'ro_d' in perm or 'us_r' in perm or 'us_w' in perm or 'us_a' in perm or 'us_p' in perm %}
+                        <li id="id_sidebar_menu_par_ad"><a><i class="fas fa-cogs"></i><span> Administration</span></a></li>
+                            {% if 'ro_r' in perm or 'ro_w' in perm or 'ro_d' in perm %}
+                                <li class="sidebar-sub sidebar-sub-ad sidebar-sub-vis"><a href="/roles/"><span> Roles</span></a></li>
+                            {% endif %}
+                            {% if 'us_r' in perm or 'us_w' in perm or 'us_a' in perm or 'us_p' in perm %}
+                                <li class="sidebar-sub sidebar-sub-ad sidebar-sub-vis"><a href="/users/"><span> Users</span></a></li>
+                            {% endif %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     {% endif %}
 
     <!-- CONTROLBAR -->
     {% if tables or log %}
-        <div id="id_controlbar" class="container-fluid" style="background: lightgrey; position: fixed; width:100%">
-             <div class="btn-group-lg" role="group">
-                 <!--<button id="id_nav_btn_duplicate" type="button" class="btn btn-info">
-                        <span class="glyphicon glyphicon-duplicate"></span></button>-->
+        <div id="id_controlbar" class="container-fluid top left">
+            <!-- NAV -->
+            <div class="btn-group-lg" role="group" style="float: left; margin-right: 40px">
+                <button id="id_nav_btn_sidebar" type="button" class="btn btn-default">
+                    <i class="fas fa-bars"></i></button>
+            </div>
+            <div class="btn-group-lg" role="group" style="float: left;">
                 <!-- Tables -->
                 {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'label_log' and content != 'boxing_log' and content != 'overview' %}
                     <!-- Conditions -->
@@ -344,21 +293,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                  <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
                      <i class="fas fa-filter"></i></button>
             </div>
+            <form style="float: left; padding-left: 5px;">
+                <div class="input-group" style="height: 46px;">
+                    <span class="input-group-addon" id="basic-addon1"><i class="fas fa-search"></i></span>
+                    <input style="height: 46px;" type="text" class="form-control" placeholder="Search" aria-describedby="basic-addon1">
+                </div>
+            </form>
+
+
+            {% if session %}
+            <div class="btn-group-lg" role="group" style="float: right;">
+                <button id="id_nav_btn_user" type="button" class="btn btn-default">
+                    <i class="fas fa-lock" style="color: green"></i><span style="font-size: 14px;"> {{ user }}</span></button>
+                <button id="id_nav_btn_logout" style="" type="button" class="btn btn-default">
+                        <i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            {% else %}
+            <div class="btn-group-lg" role="group" style="float: right;">
+                <button id="id_nav_btn_logout" type="button" class="btn btn-default">
+                    <i class="fas fa-lock-OPEN" style="color: RED"></i> {{ user }}</button>
+            </div>
+            {% endif %}
         </div>
     {% endif %}
 
-    <!-- CONTENT -->
-    <div id="id_content" class="container-fluid" style="margin-top:100px">
+    <!-- TABLE HEAD -->
+    <div id="id_table_head" class="container-fluid top2 left">
         {% if tables %}
-            <!-- Table -->
-            <table id="id_table" class="table table-hover" style="margin-bottom: 50px">
-                <thead id="id_thead">
+            <table class="table table-auto">
+                <thead>
                     <tr>
                         {% for head in header %}
                             <th>{{ head }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
+            </table>
+        {% endif %}
+    </div>
+    <!-- CONTENT -->
+    <div id="id_content" class="container-fluid content left">
+        {% if tables %}
+            <!-- Table -->
+            <table id="id_table" class="table table-hover table-auto">
                 <tbody id="id_tbody">
                     {% block row %}
                         {% for row in query %}
@@ -480,7 +457,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="container-fluid">
-                                <table class="table table-hover" id="id_table_audit_trail">
+                                <table class="table table-hover table-auto" id="id_table_audit_trail">
                                     <thead>
                                         <tr>
                                             <!-- SPECIFIC -->
@@ -765,24 +742,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </div>
 
 
-    <!-- FOOTER -->
-    <footer id="id_footer" class="navbar-fixed-bottom" style="background: lightgrey; height: 50px">
-
-    </footer>
-
-    <!-- jQuery CDN -->
-    <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js"
-            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-            crossorigin="anonymous"></script> -->
     <script type="text/javascript" src="{% static "jquery/jquery-3.2.1.min.js" %}"></script>
-
-    <!-- JA Bootstrap CDN -->
-    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-            crossorigin="anonymous"></script> -->
     <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
 
     {% include "lab/core.html" %}
+    {% include "lab/sidebar.html" %}
+    {% include "lab/logout.html" %}
     {% include "lab/export.html" %}
     {% include "lab/import.html" %}
 
