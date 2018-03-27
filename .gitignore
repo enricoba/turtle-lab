@@ -19,8 +19,8 @@ docker-entrypoint.sh
 gunicorn_config.py
 
 # static files
-static
-!custom.css
+static/*
+!static/custom.css
 
 # others
 others

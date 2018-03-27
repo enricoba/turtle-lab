@@ -1,0 +1,129 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+.left {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+    -webkit-transition: all 200ms ease-out;
+    -moz-transition: all 200ms ease-out;
+    -o-transition: all 200ms ease-out;
+    transition: all 200ms ease-out;
+}
+
+
+.left-reduced {
+    margin-left: 0;
+    width: 100%;
+    -webkit-transition: all 200ms ease-out;
+    -moz-transition: all 200ms ease-out;
+    -o-transition: all 200ms ease-out;
+    transition: all 200ms ease-out;
+}
+
+.sidebar {
+    z-index: 500;
+    top: 0;
+    width: 200px;
+    height: 100%;
+    position: fixed;
+    background: #173C45;
+    -webkit-transition: all 200ms ease-out;
+    -moz-transition: all 200ms ease-out;
+    -o-transition: all 200ms ease-out;
+    transition: all 200ms ease-out;
+}
+
+.top {
+    top: 0;
+    height: 60px;
+    background: lightgrey;
+    position: fixed;
+    padding: 5px 15px 5px 15px;
+}
+
+.top2 {
+    top: 60px;
+    height: 40px;
+    background: white;
+    position: fixed;
+}
+
+.content {
+    margin-top: 100px;
+}
+
+.reduced {
+    width: 0;
+    -webkit-transition: all 200ms ease-out;
+    -moz-transition: all 200ms ease-out;
+    -o-transition: all 200ms ease-out;
+    transition: all 200ms ease-out;
+}
+
+.table-auto {
+    table-layout: fixed;
+}
+
+.table-auto td {
+    word-break: break-all;
+}
+
+.btn-custom {
+    padding-right: 20px;
+}
+
+.modal-open {
+    overflow: scroll;
+}
+
+.table>thead>tr>th {
+    border-bottom: 0;
+}
+
+.sidebar-menu {
+    list-style: none;
+    visibility: visible;
+    opacity: 1;
+    transition: all 200ms linear 200ms;
+}
+
+.sidebar-menu-reduced {
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0ms linear;
+}
+
+.sidebar-menu li {
+    position: relative;
+    font-size: 14px;
+    padding: 5px 10px 5px 10px;
+    border-bottom: 1px solid rgba(69, 74, 84, 0.7);
+}
+
+.sidebar-menu li:hover {
+    background-color: #293133;
+}
+
+.sidebar-menu li a {
+    color: #aaabae;
+    display: block;
+}
+
+.sidebar-menu li a:hover {
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar-menu li.sidebar-sub {
+    padding: 5px 10px 5px 20px;
+}
+
+.sidebar-sub-vis {
+    display: none;
+}
