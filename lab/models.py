@@ -1249,5 +1249,5 @@ EXPORT_PERMISSIONS = {
     'label_log': 'log_la',
     'boxing_log': 'log_bo',
     'home': 'home',
-    'Overview': 'overview'
+    'overview': 'overview'
 }
