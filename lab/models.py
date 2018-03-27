@@ -276,7 +276,7 @@ class BoxTypesManager(GlobalManager):
     @property
     def default(self):
         dic = {'default': True}
-        return self.filter(**dic).exists()
+        return self.filter(**dic)
 
     def max(self, unique):
         dic = {self.unique: unique}

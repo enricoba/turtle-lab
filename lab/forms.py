@@ -70,11 +70,6 @@ def validate_password_length(value):
         raise ValidationError('Password must be longer than 8 characters.')
 
 
-def validate_box_types_default(value):
-    if value and models.BoxTypes.objects.default:
-        raise ValidationError('Only one box type can be default.')
-
-
 def validate_box_types_figures(value):
     try:
         _value = int(value)
@@ -319,9 +314,20 @@ class BoxTypesFormNew(forms.Form):
     columns = forms.CharField(label='columns', widget=forms.TextInput(attrs={'class': 'form-control'}),
                               help_text='Enter box columns in numbers of characters of the alphabet.',
                               validators=[validate_box_types_figures])
-    default = forms.BooleanField(label='active', required=False, help_text='Select the default status.',
+    default = forms.BooleanField(label='default', required=False, help_text='Select the default status.',
                                  widget=forms.CheckboxInput(attrs={'class': 'form-control', 'style': 'align: left'}),
-                                 validators=[validate_box_types_default])
+                                 )
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(BoxTypesFormNew, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(BoxTypesFormNew, self).clean()
+        default = models.BoxTypes.objects.default
+        if cleaned_data.get('default') and default.exists():
+            if cleaned_data.get('box_type') != default[0].box_type:
+                raise ValidationError('Only one box type can be default.')
 
 
 class BoxTypesFormEdit(BoxTypesFormNew):
@@ -430,7 +436,7 @@ class BoxingForm(forms.Form):
 
 
 class OverviewBoxingForm(forms.Form):
-    r_s = forms.ChoiceField(label='R / S', choices=(('R', 'Reagent'), ('S', 'Sample')),
+    r_s = forms.ChoiceField(label='R / S', choices=(('R', 'Reagent'), ('S', 'Sample')), required=False,
                             widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_r_s'}))
     type_r = forms.ModelChoiceField(label='Type R', queryset=models.Types.objects.reagents.all(), empty_label=None,
                                     widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_r'}),
@@ -440,8 +446,7 @@ class OverviewBoxingForm(forms.Form):
                                     required=False, validators=[validate_box_exist])
     box = forms.CharField(label='Box', max_length=UNIQUE_LENGTH,
                           widget=forms.TextInput(attrs={'class': 'form-control',
-                                                        'placeholder': 'scan target box',
-                                                        'id': 'id_target_box'}))
+                                                        'placeholder': 'scan target box'}))
 
 
 class PasswordForm(forms.Form):
