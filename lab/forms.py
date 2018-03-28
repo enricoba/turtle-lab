@@ -255,10 +255,12 @@ class TypesFormNew(forms.Form):
     def clean(self):
         cleaned_data = super(TypesFormNew, self).clean()
         affiliation = cleaned_data.get('affiliation')
-        usage_condition = cleaned_data.get('usage_condition')
+        # TODO temporarily disabled due to limited support of samples
+        # usage_condition = cleaned_data.get('usage_condition')
         if affiliation == 'Samples':
-            if usage_condition is None:
-                raise forms.ValidationError('Samples must have usage condition.')
+            raise forms.ValidationError('Samples not supported in this version.')
+            # if usage_condition is None:
+            # raise forms.ValidationError('Samples must have usage condition.')
 
 
 class TypesFormEdit(TypesFormNew):

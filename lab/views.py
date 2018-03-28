@@ -1382,8 +1382,24 @@ def overview_locate(request):
 def overview_boxing(request):
     form = forms.OverviewBoxingForm(request.POST, request=request)
     if form.is_valid():
-        data = {'response': True}
-        return JsonResponse(data)
+        # create reagent record
+        if models.Types.objects.get_affiliation(request.POST.get('type')) == 'Reagents':
+            manipulation = framework.TableManipulation(table=models.Reagents,
+                                                       table_audit_trail=models.ReagentsAuditTrail)
+            response, message = manipulation.new_identifier_at(user=request.user.username, prefix='R',
+                                                               reagent='R {}'.format(str(timezone.now())),
+                                                               name='',
+                                                               type=request.POST.get('type'))
+            data = {'response': response,
+                    'message': message}
+            return JsonResponse(data)
+        elif models.Types.objects.get_affiliation(request.POST.get('type')) == 'Samples':
+            # TODO temporarily not active due to limited support of samples
+            data = {'response': True}
+            return JsonResponse(data)
+        else:
+            data = {'response': True}
+            return JsonResponse(data)
     else:
         data = {'response': False,
                 'form_id': 'id_form_overview_boxing',

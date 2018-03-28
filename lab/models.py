@@ -213,6 +213,12 @@ class TypesManager(GlobalManager):
     def samples(self):
         return self.filter(affiliation='Samples')
 
+    def get_affiliation(self, type):
+        try:
+            return self.filter(type=type)[0].affiliation
+        except IndexError:
+            return False
+
 
 # table
 class Types(models.Model):

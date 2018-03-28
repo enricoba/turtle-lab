@@ -84,17 +84,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
        positioning('#id_r', 'first')
     });
 
+    function determine_type() {
+        var type;
+        if ($('#id_r_s').val() === "R") {
+            type = $('#id_r option:selected').text();
+        } else {
+            type = $('#id_s option:selected').text();
+        }
+        return type;
+    }
+
     function boxing() {
         var box = $('#id_box').val();
         var target_box = $('#id_overview_boxing_p_box').text().substr(0, 7);
         var target_position = $('#id_overview_boxing_p_position').text();
+        var type = determine_type();
+        console.log(type);
         $.ajax({
             method: "POST",
             url: "/" + "{{ content }}" + "/boxing/",
             data: {
                 'box': box,
                 'target_box': target_box,
-                'target_position': target_position
+                'target_position': target_position,
+                'type': type
             },
             dataType: 'json',
             success: function (data) {
