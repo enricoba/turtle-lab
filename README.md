@@ -22,7 +22,7 @@ In this project phase target devices are PCs and Laptops. Mobile device support 
 * [Django 1.11](https://www.djangoproject.com/)
 * [Bootstrap 3.3.7](https://getbootstrap.com/docs/3.3/)
 * [jQuery 3.2.1](https://jquery.com/)
-* [FontAwesome 5.0.6](https://fontawesome.com/)
+* [FontAwesome 5.0.9](https://fontawesome.com/)
 
 
 # Versioning

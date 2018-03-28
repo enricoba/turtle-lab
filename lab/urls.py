@@ -77,6 +77,7 @@ urlpatterns = [
     # url(r'^samples/label/$', views.samples_label, name='samples label'),
     # reagents
     url(r'^reagents/$', views.reagents, name='reagents'),
+    url(r'^reagents/(?P<reagent>\w+)/$', views.reagents_dynamic, name='reagents dynamic'),
     url(r'^reagents/new/$', views.reagents_new, name='reagents new'),
     url(r'^reagents/edit/$', views.reagents_edit, name='reagents edit'),
     url(r'^reagents/delete/$', views.reagents_delete, name='reagents delete'),

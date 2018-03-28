@@ -1001,4 +1001,6 @@ def html_and_data(context, get_standard, get_audit_trail, form_render_new, form_
     context['header_audit_trail'] = get_audit_trail.html_header
     # pass verified query
     context['query'] = get_standard.get()
+    context['reagents'] = models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True)
+    context['samples'] = models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)
     return context

@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <!-- Custom -->
     <link rel="stylesheet" href="{% static "custom.css" %}">
     <!-- JS Font Awesome -->
-    <script defer src="{% static "fontawesome-free-5.0.6/svg-with-js/js/fontawesome-all.min.js" %}"></script>
+    <script defer src="{% static "fontawesome-free-5.0.9/svg-with-js/js/fontawesome-all.min.js" %}"></script>
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- COVER -->
@@ -69,9 +69,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
                             <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/boxes/"><span> Boxes</span></a></li>
                         {% endif %}
-                        {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/reagents/"><span> Reagents</span></a></li>
-                        {% endif %}
+                        <!-- TODO can be removed later -->
+                        <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/reagents/"><span> Reagents</span></a></li>
+                    <!-- REAGENTS -->
+                    {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
+                        <li id="id_sidebar_menu_par_re"><a><i class="fas fa-vials"></i><span> Reagents</span></a></li>
+                        <!-- dynamic reagents -->
+                        {% for reagent in reagents %}
+                            <li class="sidebar-sub sidebar-sub-re sidebar-sub-vis"><a href="/reagents/{{ reagent }}"><span> {{ reagent }}</span></a></li>
+                        {% endfor %}
+                    {% endif %}
+                    <!-- SAMPLES -->
+                    {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
+                        <li id="id_sidebar_menu_par_sa"><a><i class="fas fa-flask"></i><span> Samples</span></a></li>
+                        <!-- dynamic samples -->
+                        {% for sample in samples %}
+                            <li class="sidebar-sub sidebar-sub-sa sidebar-sub-vis"><a href="/reagents/{{ sample }}"><span> {{ sample }}</span></a></li>
+                        {% endfor %}
+                    {% endif %}
                     {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm or 'log_bo' in perm %}
                         <li id="id_sidebar_menu_par_log"><a><i class="fas fa-history"></i><span> Logs</span></a></li>
                             {% if 'log_mo' in perm %}

@@ -1142,6 +1142,23 @@ def samples_label(request):
 @require_GET
 @login_required
 @decorators.permission('re_r', 're_w', 're_d', 're_l')
+def reagents_dynamic(request, reagent):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'reagents',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.Reagents),
+        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail),
+        form_render_new=forms.ReagentsFormNew(),
+        form_render_edit=forms.ReagentsFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('re_r', 're_w', 're_d', 're_l')
 def reagents(request):
     context = framework.html_and_data(
         context={'tables': True,
@@ -1373,7 +1390,9 @@ def movement_log(request):
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
-               'query': get_log.get()}
+               'query': get_log.get(),
+               'reagents': models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True),
+               'samples': models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)}
     return render(request, 'lab/index.html', context)
 
 
@@ -1388,7 +1407,9 @@ def login_log(request):
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
-               'query': get_log.get()}
+               'query': get_log.get(),
+               'reagents': models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True),
+               'samples': models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)}
     return render(request, 'lab/index.html', context)
 
 
@@ -1403,7 +1424,9 @@ def label_log(request):
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
-               'query': get_log.get()}
+               'query': get_log.get(),
+               'reagents': models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True),
+               'samples': models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)}
     return render(request, 'lab/index.html', context)
 
 
@@ -1418,7 +1441,9 @@ def boxing_log(request):
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
-               'query': get_log.get()}
+               'query': get_log.get(),
+               'reagents': models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True),
+               'samples': models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)}
     return render(request, 'lab/index.html', context)
 
 
@@ -1433,7 +1458,9 @@ def overview(request):
                'perm': request.user.permissions,
                'modal_overview_boxing': forms.OverviewBoxingForm(),
                'header': framework.GetView(table=models.Overview).html_header,
-               'query': framework.GetView(table=models.Overview).get()}
+               'query': framework.GetView(table=models.Overview).get(),
+               'reagents': models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True),
+               'samples': models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)}
     return render(request, 'lab/index.html', context)
 
 

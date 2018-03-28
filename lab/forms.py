@@ -55,6 +55,11 @@ def validate_unique_type(value):
         raise ValidationError('Record already exists.')
 
 
+def validation_no_space_type(value):
+    if ' ' in value:
+        raise ValidationError('Type shall not contain white spaces.')
+
+
 def validate_unique_roles(value):
     if models.Roles.objects.exist(value):
         raise ValidationError('Record already exists.')
@@ -242,7 +247,8 @@ class TypesFormNew(forms.Form):
     type = forms.CharField(label='type', max_length=UNIQUE_LENGTH,
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
                            help_text='Enter a type.',
-                           validators=[validate_unique_type])
+                           validators=[validate_unique_type,
+                                       validation_no_space_type])
     affiliation = forms.CharField(label='affiliation', max_length=UNIQUE_LENGTH, help_text='Select an affiliation.',
                                   widget=forms.Select(choices=models.AFFILIATIONS,
                                                       attrs={'class': 'form-control manual'}))
@@ -260,12 +266,10 @@ class TypesFormNew(forms.Form):
     def clean(self):
         cleaned_data = super(TypesFormNew, self).clean()
         affiliation = cleaned_data.get('affiliation')
-        # TODO temporarily disabled due to limited support of samples
-        # usage_condition = cleaned_data.get('usage_condition')
+        usage_condition = cleaned_data.get('usage_condition')
         if affiliation == 'Samples':
-            raise forms.ValidationError('Samples not supported in this version.')
-            # if usage_condition is None:
-            # raise forms.ValidationError('Samples must have usage condition.')
+            if usage_condition is None:
+                raise forms.ValidationError('Samples must have usage condition.')
 
 
 class TypesFormEdit(TypesFormNew):
