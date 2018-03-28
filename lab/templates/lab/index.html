@@ -347,8 +347,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% endif %}
 
     <!-- TABLE HEAD -->
-    <div id="id_table_head" class="container-fluid top2 left">
-        {% if tables %}
+    {% if tables %}
+        <div id="id_table_head" class="container-fluid top2 left">
             <table class="table table-auto">
                 <thead>
                     <tr>
@@ -358,10 +358,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </tr>
                 </thead>
             </table>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
     <!-- CONTENT -->
-    <div id="id_content" class="container-fluid content left">
+    <div id="id_content" class="container-fluid content {% if content != 'index' %}left{% endif %}">
         {% if tables %}
             <!-- Table -->
             <table id="id_table" class="table table-hover table-auto">
