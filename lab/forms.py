@@ -321,6 +321,8 @@ class TypeAttributesFormNew(forms.Form):
     default_value = forms.CharField(label='default value', max_length=DEFAULT, required=False,
                                     help_text='Enter a default value.',
                                     widget=forms.TextInput(attrs={'class': 'form-control'}))
+    mandatory = forms.BooleanField(label='mandatory', required=False, help_text='Define if field is mandatory.',
+                                   widget=forms.CheckboxInput(attrs={'class': 'form-control', 'style': 'align: left'}))
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)

@@ -870,7 +870,8 @@ def type_attributes_new(request):
                                                     column=form.cleaned_data['column'],
                                                     type=form.cleaned_data['type'],
                                                     list_values=form.cleaned_data['list_values'],
-                                                    default_value=form.cleaned_data['default_value'])
+                                                    default_value=form.cleaned_data['default_value'],
+                                                    mandatory=form.cleaned_data['mandatory'])
         data = {'response': response,
                 'message': created_box}
         return JsonResponse(data)
@@ -894,7 +895,8 @@ def type_attributes_edit(request):
                                                  column=form.cleaned_data['column'],
                                                  type=form.cleaned_data['type'],
                                                  list_values=form.cleaned_data['list_values'],
-                                                 default_value=form.cleaned_data['default_value'])
+                                                 default_value=form.cleaned_data['default_value'],
+                                                 mandatory=form.cleaned_data['mandatory'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)

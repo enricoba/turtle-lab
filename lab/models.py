@@ -285,6 +285,7 @@ class TypeAttributes(models.Model):
     type = models.CharField(max_length=UNIQUE_LENGTH)
     list_values = models.CharField(max_length=DEFAULT)
     default_value = models.CharField(max_length=DEFAULT)
+    mandatory = models.BooleanField()
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -310,6 +311,7 @@ class TypeAttributesAuditTrail(models.Model):
     type = models.CharField(max_length=UNIQUE_LENGTH)
     list_values = models.CharField(max_length=DEFAULT)
     default_value = models.CharField(max_length=DEFAULT)
+    mandatory = models.BooleanField()
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)

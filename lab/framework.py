@@ -324,7 +324,7 @@ class GetStandard(Master):
         for item in self.js_header:
             if item == 'permissions':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val().toString();'.format(item))
-            elif item == 'is_active' or item == 'default':
+            elif item == 'is_active' or item == 'default' or item == 'mandatory':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").is(":checked");'.format(item))
             else:
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val();'.format(item))
@@ -405,7 +405,8 @@ class GetStandard(Master):
                     tmp += '<td class="version">{}</td>'.format(row[field])
                 elif field == 'password':
                     tmp += '<td>*****</td>'
-                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default' \
+                        or field == 'mandatory':
                     if row[field]:
                         tmp += '<td class="gui"><p style="display: none">True</p>' \
                                '<i class="fas fa-check-circle" style="color: green"></td>'
@@ -470,7 +471,8 @@ class GetAuditTrail(GetStandard):
                 # formatting duration fields
                 elif field == 'thaw_time':
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['thaw_uom'], dt=row[field]))
-                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default' \
+                        or field == 'mandatory':
                     if row[field]:
                         tmp += '<td><p style="display: none">True</p>' \
                                '<i class="fas fa-check-circle" style="color: green"></td>'
