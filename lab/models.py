@@ -26,9 +26,10 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-# custom imports
-from lab.custom import generate_checksum, UserName
+# app imports
+import lab.custom as custom
 
 # secret key
 SECRET = settings.SECRET
@@ -149,6 +150,7 @@ class Locations(models.Model):
     location = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     condition = models.CharField(max_length=UNIQUE_LENGTH)
+    max_boxes = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -156,7 +158,11 @@ class Locations(models.Model):
     objects = LocationsManager()
 
     def __str__(self):
-        return '{} ({})'.format(self.location, self.condition)
+        if self.name == '':
+            _return = '{} ({})'.format(self.location, self.condition)
+        else:
+            _return = '{} ({}) ({})'.format(self.location, self.name, self.condition)
+        return _return
 
 
 # audit trail manager
@@ -173,6 +179,7 @@ class LocationsAuditTrail(models.Model):
     location = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     condition = models.CharField(max_length=UNIQUE_LENGTH)
+    max_boxes = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -184,20 +191,155 @@ class LocationsAuditTrail(models.Model):
 
 
 #########
-# BOXES #
+# TYPES #
 #########
+
+
+AFFILIATIONS = (('Reagents', 'Reagents'),
+                ('Samples', 'Samples'))
+
+
+# manager
+class TypesManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'type'
+
+    @property
+    def reagents(self):
+        return self.filter(affiliation='Reagents')
+
+    @property
+    def samples(self):
+        return self.filter(affiliation='Samples')
+
+    def get_affiliation(self, type):
+        try:
+            return self.filter(type=type)[0].affiliation
+        except IndexError:
+            return False
+
+
+# table
+class Types(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    type = models.CharField(max_length=GENERATED_LENGTH, unique=True)
+    affiliation = models.CharField(max_length=UNIQUE_LENGTH, choices=AFFILIATIONS)
+    storage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    usage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypesManager()
+
+    def __str__(self):
+        return self.type
+
+
+# audit trail manager
+class TypesAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class TypesAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    type = models.CharField(max_length=GENERATED_LENGTH)
+    affiliation = models.CharField(max_length=UNIQUE_LENGTH)
+    storage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    usage_condition = models.CharField(max_length=UNIQUE_LENGTH)
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypesAuditTrailManager()
+
+
+#############
+# BOX TYPES #
+#############
+
 
 BOX_ALIGNMENT = (('Horizontal', 'Horizontal'),
                  ('Vertical', 'Vertical'))
 
-BOX_TYPES = (('Numeric', 'Numeric'),
-             ('Alphabetic', 'Alphabetic'),
-             ('None', 'None'))
 
-BOX_ORIGIN= (('top-left', 'top-left'),
-             ('top-right', 'top-right'),
-             ('bottom-left', 'bottom-left'),
-             ('bottom-right', 'bottom-right'))
+# manager
+class BoxTypesManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'box_type'
+
+    @property
+    def default(self):
+        dic = {'default': True}
+        return self.filter(**dic)
+
+    def max(self, unique):
+        dic = {self.unique: unique}
+        rows = custom.transform_box_type_figures(self.filter(**dic)[0].rows)
+        columns = custom.transform_box_type_figures(self.filter(**dic)[0].columns)
+        return rows * columns
+
+
+# table
+class BoxTypes(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    box_type = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
+    rows = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.CharField(max_length=UNIQUE_LENGTH)
+    default = models.BooleanField()
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxTypesManager()
+
+    def __str__(self):
+        return self.box_type
+
+
+# audit trail manager
+class BoxTypesAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class BoxTypesAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    box_type = models.CharField(max_length=UNIQUE_LENGTH)
+    alignment = models.CharField(max_length=UNIQUE_LENGTH)
+    rows = models.CharField(max_length=UNIQUE_LENGTH)
+    columns = models.CharField(max_length=UNIQUE_LENGTH)
+    default = models.BooleanField()
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxTypesAuditTrailManager()
+
+
+#########
+# BOXES #
+#########
 
 
 # manager
@@ -205,6 +347,18 @@ class BoxesManager(GlobalManager):
     @property
     def unique(self):
         return 'box'
+
+    def count_box_by_type(self, type):
+        try:
+            return self.filter(type=type).count()
+        except IndexError:
+            return 0
+
+    def box_by_type(self, type, count=0):
+        try:
+            return self.filter(type=type).order_by('box')[count].__str__()
+        except IndexError:
+            return False
 
 
 # table
@@ -214,12 +368,8 @@ class Boxes(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    alignment = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ALIGNMENT)
-    row_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
-    rows = models.PositiveIntegerField()
-    column_type = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_TYPES)
-    columns = models.PositiveIntegerField()
-    origin = models.CharField(max_length=UNIQUE_LENGTH, choices=BOX_ORIGIN)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    box_type = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -247,12 +397,8 @@ class BoxesAuditTrail(models.Model):
     # custom fields
     box = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
-    alignment = models.CharField(max_length=UNIQUE_LENGTH)
-    row_type = models.CharField(max_length=UNIQUE_LENGTH)
-    rows = models.PositiveIntegerField()
-    column_type = models.CharField(max_length=UNIQUE_LENGTH)
-    columns = models.PositiveIntegerField()
-    origin = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    box_type = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -266,18 +412,6 @@ class BoxesAuditTrail(models.Model):
 ###########
 # SAMPLES #
 ###########
-
-
-# types
-ORIGIN = (('P', 'Parent'),
-          ('A', 'Aliquot'))
-
-VOLUMES = (('', ''),
-           ('l', 'l - litre'),
-           ('dl', 'dl - decilitre'),
-           ('cl', 'cl - centilitre'),
-           ('ml', 'ml - millilitre'),
-           ('μl', 'μl - microlitre'))
 
 
 # manager
@@ -305,9 +439,6 @@ class Samples(models.Model):
     sample = models.CharField(max_length=GENERATED_LENGTH, unique=True)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     account = models.CharField(max_length=UNIQUE_LENGTH)
-    type = models.CharField(max_length=GENERATED_LENGTH, choices=ORIGIN)
-    volume = models.CharField(max_length=UNIQUE_LENGTH)
-    uom = models.CharField(max_length=GENERATED_LENGTH, choices=VOLUMES)
 
     # system fields
     version = models.IntegerField()
@@ -333,9 +464,6 @@ class SamplesAuditTrail(models.Model):
     sample = models.CharField(max_length=GENERATED_LENGTH)
     name = models.CharField(max_length=UNIQUE_LENGTH)
     account = models.CharField(max_length=UNIQUE_LENGTH)
-    type = models.CharField(max_length=GENERATED_LENGTH)
-    volume = models.CharField(max_length=UNIQUE_LENGTH)
-    uom = models.CharField(max_length=GENERATED_LENGTH)
 
     # system fields
     version = models.IntegerField()
@@ -345,6 +473,62 @@ class SamplesAuditTrail(models.Model):
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
     # manager
     objects = SamplesAuditTrailManager()
+
+
+############
+# REAGENTS #
+############
+
+
+# manager
+class ReagentsManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'reagent'
+
+
+# table
+class Reagents(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    reagent = models.CharField(max_length=GENERATED_LENGTH, unique=True)
+    name = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = ReagentsManager()
+
+    def __str__(self):
+        return self.reagent
+
+
+# audit trail manager
+class ReagentsAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class ReagentsAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    reagent = models.CharField(max_length=GENERATED_LENGTH)
+    name = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = ReagentsAuditTrailManager()
 
 
 ############
@@ -464,7 +648,10 @@ class RTDManager(GlobalManager):
         return 'object'
 
     def location(self, unique):
-        return self.filter(object=unique)[0].location
+        try:
+            return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+        except IndexError:
+            return '---'
 
     def method(self, unique):
         return self.filter(object=unique)[0].type
@@ -493,6 +680,47 @@ class RTD(models.Model):
     class Meta:
         managed = False
         db_table = 'rtd'
+
+    def __str__(self):
+        return self.object
+
+
+############
+# Overview #
+############
+
+
+# manager
+class OverviewManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'object'
+
+    def location(self, unique):
+        return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+
+    def method(self, unique):
+        return self.filter(object=unique)[0].type
+
+    def box(self, unique):
+        return self.filter(object=unique)[0].box
+
+
+# table
+class Overview(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    object = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    location = models.CharField(max_length=UNIQUE_LENGTH)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
+    position = models.CharField(max_length=UNIQUE_LENGTH)
+
+    # manager
+    objects = OverviewManager()
+
+    class Meta:
+        managed = False
+        db_table = 'overview'
 
     def __str__(self):
         return self.object
@@ -538,54 +766,93 @@ class Times(models.Model):
     def __str__(self):
         return self.item
 
+
 ##########
-# GROUPS #
+# BOXING #
 ##########
+
+
+# manager
+class BoxingManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'object'
+
+    def next_position(self, box):
+        try:
+            return self.filter(object='', box=box).order_by('id')[0].position
+        except IndexError:
+            return False
+
+
+# table
+class Boxing(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    object = models.CharField(max_length=UNIQUE_LENGTH, blank=True)
+    box = models.CharField(max_length=UNIQUE_LENGTH)
+    position = models.CharField(max_length=UNIQUE_LENGTH, blank=True)
+    # system fields
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = BoxingManager()
+
+    def __str__(self):
+        return self.object
+
+
+#########
+# ROLES #
+#########
 
 
 PERMISSIONS = (
-    ('Accounts', (
-        ('ac_r', 'read'),
-        ('ac_w', 'write'),
-        ('ac_d', 'delete'))),
-    ('Boxes', (
-        ('bo_r', 'read'),
-        ('bo_w', 'write'),
-        ('bo_d', 'delete'),
-        ('bo_l', 'labels'))),
-    ('Conditions', (
-        ('co_r', 'read'),
-        ('co_w', 'write'),
-        ('co_d', 'delete'))),
-    ('Locations', (
-        ('lo_r', 'read'),
-        ('lo_w', 'write'),
-        ('lo_d', 'delete'),
-        ('lo_l', 'labels'))),
-    ('Home', (
-        ('home', 'home'),
-        ('bo', 'boxing'),
-        ('mo', 'movements'))),
-    ('Samples', (
-        ('sa_r', 'read'),
-        ('sa_w', 'write'),
-        ('sa_d', 'delete'),
-        ('sa_l', 'labels'))),
-    ('Logs', (
-        ('log_mo', 'movement'),
-        ('log_lo', 'login'),
-        ('log_la', 'labels'),
-        ('log_bo', 'boxing'))),
-    # ('log_la', 'log label'),
-    ('Roles', (
-        ('ro_r', 'read'),
-        ('ro_w', 'write'),
-        ('ro_d', 'delete'))),
-    ('Users', (
-        ('us_r', 'read'),
-        ('us_w', 'write'),
-        ('us_a', 'activate'),
-        ('us_p', 'password'))))
+    # ('ac_r', 'Accounts read'),
+    # ('ac_w', 'Accounts write'),
+    # ('ac_d', 'Accounts delete'),
+    ('bo_r', 'Boxes read'),
+    ('bo_w', 'Boxes write'),
+    ('bo_d', 'Boxes delete'),
+    ('bo_l', 'Boxes labels'),
+    ('bt_r', 'Box Types read'),
+    ('bt_w', 'Box Types write'),
+    ('bt_d', 'Box Types delete'),
+    ('co_r', 'Conditions read'),
+    ('co_w', 'Conditions write'),
+    ('co_d', 'Conditions delete'),
+    ('lo_r', 'Locations read'),
+    ('lo_w', 'Locations write'),
+    ('lo_d', 'Locations delete'),
+    ('lo_l', 'Locations labels'),
+    ('ty_r', 'Types read'),
+    ('ty_w', 'Types write'),
+    ('ty_d', 'Types delete'),
+    ('overview', 'Overview'),
+    ('ov_w', 'Overview write'),
+    # ('home', 'Home'),
+    # ('bo', 'Home boxing'),
+    # ('mo', 'Home movements'),
+    # ('sa_r', 'Samples read'),
+    # ('sa_w', 'Samples write'),
+    # ('sa_d', 'Samples delete'),
+    # ('sa_l', 'Samples labels'),
+    ('re_r', 'Reagents read'),
+    ('re_w', 'Reagents write'),
+    ('re_d', 'Reagents delete'),
+    ('re_l', 'Reagents labels'),
+    ('log_mo', 'Logs movement'),
+    ('log_lo', 'Logs login'),
+    ('log_la', 'Logs labels'),
+    ('log_bo', 'Logs boxing'),
+    ('ro_r', 'Roles read'),
+    ('ro_w', 'Roles write'),
+    ('ro_d', 'Roles delete'),
+    ('us_r', 'Users read'),
+    ('us_w', 'Users write'),
+    ('us_a', 'Users activate'),
+    ('us_p', 'Users password'),
+)
 
 
 # manager
@@ -610,7 +877,7 @@ class Roles(models.Model):
     id = models.AutoField(primary_key=True)
     # custom fields
     role = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
-    permissions = models.CharField(max_length=CHECKSUM_LENGTH)
+    permissions = models.CharField(max_length=255)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -633,7 +900,7 @@ class RolesAuditTrail(models.Model):
     id_ref = models.IntegerField()
     # custom fields
     role = models.CharField(max_length=UNIQUE_LENGTH)
-    permissions = models.CharField(max_length=CHECKSUM_LENGTH)
+    permissions = models.CharField(max_length=255)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -662,8 +929,8 @@ class UsersManager(BaseUserManager, GlobalManager):
 
     def _create_user(self, password, first_name, last_name, role, is_active, username=None):
         if username is None:
-            username = UserName(first_name=first_name, last_name=last_name,
-                                existing_users=self.existing_users).algorithm
+            username = custom.UserName(first_name=first_name, last_name=last_name,
+                                       existing_users=self.existing_users).algorithm
         try:
             user = self.model(username=username, first_name=first_name, last_name=last_name, version=1, role=role,
                               is_active=is_active, initial_password=True)
@@ -671,7 +938,7 @@ class UsersManager(BaseUserManager, GlobalManager):
             to_hash = 'username:{};first_name:{};last_name:{};role:{};is_active:{};' \
                       'initial_password:{};password:{};version:{};{}'\
                 .format(username, first_name, last_name, role, is_active, True, user.password, 1, SECRET)
-            user.checksum = generate_checksum(to_hash)
+            user.checksum = custom.generate_checksum(to_hash)
             user.save(using=self._db)
             # success message + log entry
             message = 'Record "{}" has been created.'.format(username)
@@ -711,7 +978,7 @@ class UsersManager(BaseUserManager, GlobalManager):
                       'initial_password:{};password:{};version:{};{}'\
                 .format(username, first_name, last_name, role, is_active,
                         initial_password, user.password, version, SECRET)
-            user.checksum = generate_checksum(to_hash)
+            user.checksum = custom.generate_checksum(to_hash)
             user.save(using=self._db)
             # success message + log entry
             message = 'Record "{}" has been updated.'.format(username)
@@ -818,7 +1085,7 @@ class UserAuditTrailManager(GlobalAuditTrailManager):
                   'initial_password:{};version:{};action:{};user:{};timestamp:{};{}'.format(
                    username, first_name, last_name, role, is_active, initial_password, version, action, user,
                    timestamp, SECRET)
-        checksum = generate_checksum(to_hash)
+        checksum = custom.generate_checksum(to_hash)
         try:
             record = self.model(
                 id_ref=id_ref,
@@ -961,8 +1228,11 @@ class BoxingLog(models.Model):
 # tables for export/import
 TABLES = {
     'samples': Samples,
+    'reagents': Reagents,
     'boxes': Boxes,
+    'box_types': BoxTypes,
     'conditions': Conditions,
+    'types': Types,
     'locations': Locations,
     'roles': Roles,
     'users': Users,
@@ -971,5 +1241,25 @@ TABLES = {
     'login_log': LoginLog,
     'label_log': LabelLog,
     'boxing_log': BoxingLog,
-    'home': RTD
+    'home': RTD,
+    'Overview': Overview
+}
+
+EXPORT_PERMISSIONS = {
+    'samples': 'sa_r',
+    'reagents': 're_r',
+    'boxes': 'bo_r',
+    'box_types': 'bt_r',
+    'conditions': 'co_r',
+    'types': 'ty_r',
+    'locations': 'lo_r',
+    'roles': 'ro_r',
+    'users': 'us_r',
+    'freeze_thaw_accounts': 'ac_r',
+    'movement_log': 'log_mo',
+    'login_log': 'log_lo',
+    'label_log': 'log_la',
+    'boxing_log': 'log_bo',
+    'home': 'home',
+    'overview': 'overview'
 }

@@ -22,11 +22,57 @@ import datetime
 from passlib.hash import argon2
 
 
+ALPHABET = {
+    'A': 1,
+    'B': 2,
+    'C': 3,
+    'D': 4,
+    'E': 5,
+    'F': 6,
+    'G': 7,
+    'H': 8,
+    'I': 9,
+    'J': 10,
+    'K': 11,
+    'L': 12,
+    'M': 13,
+    'N': 14,
+    'O': 15,
+    'P': 16,
+    'Q': 17,
+    'R': 18,
+    'S': 19,
+    'T': 20,
+    'U': 21,
+    'V': 22,
+    'W': 23,
+    'X': 24,
+    'Y': 25,
+    'Z': 26,
+}
+
+ALPHABET_INV = {v: k for k, v in ALPHABET.items()}
+
+
 class Echo:
     """An object that implements just the write method of the file-like interface."""
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
+
+
+def check_equal(iterator):
+    """Function to check, if all items of a list are equal.
+
+    :param iterator: list of values to check equality
+    :type iterator: list
+
+    :return: equal or not
+    :rtype: bool
+    """
+    if not isinstance(iterator, list):
+        raise TypeError('Argument of type list expected.')
+    return len(set(iterator)) <= 1
 
 
 def capitalize(header):
@@ -187,3 +233,92 @@ class UserName(object):
                 self.tmp_first_name = first_name
             else:
                 return username
+
+
+def transform_box_type_figures(value):
+    """Transforms strings to integers if integer content or alphabet characters to integers if possible.
+
+    :param value: string containing integers or alphabet characters
+    :type value: str
+
+    :return: transformed integer
+    :rtype: int
+    """
+    if not isinstance(value, str):
+        raise TypeError('Argument of type string expected.')
+    try:
+        _value = int(value)
+        if isinstance(_value, int):
+            return _value
+    except ValueError:
+        return ALPHABET[value.capitalize()]
+
+
+def determine_box_type_figures_type(value):
+    """Determine if a box type row/column is a character or a integer.
+
+    :param value: string containing integers or alphabet characters
+    :type value: str
+
+    :return: integer ir string depending on type
+    :rtype: int/str
+    """
+    if not isinstance(value, str):
+        raise TypeError('Argument of type string expected.')
+    try:
+        _value = int(value)
+        if isinstance(_value, int):
+            return int
+    except ValueError:
+        return str
+
+
+def determine_box_position(alignment, x, y, value):
+    """This function determines the box target position by coordinates using alignment, max row and max column.
+
+    :param alignment: box alignment
+    :type alignment: str
+    :param x: max column
+    :type x: str
+    :param y: max row
+    :type y: str
+    :param value: target position
+    :type value: int
+
+    :return: box position as string
+    :rtype: str
+    """
+    if not isinstance(alignment, str):
+        raise TypeError('Argument of type string expected.')
+    if not isinstance(x, str):
+        raise TypeError('Argument of type string expected.')
+    if not isinstance(y, str):
+        raise TypeError('Argument of type string expected.')
+    if not isinstance(value, int):
+        raise TypeError('Argument of type integer expected.')
+    i = 0.999
+    x_max = transform_box_type_figures(x)
+    y_max = transform_box_type_figures(y)
+    if alignment == 'Horizontal':
+        _second = int(value / x_max + i)
+        _first = value - y_max * (_second - 1)
+        if determine_box_type_figures_type(x) is int:
+            first = _first
+        else:
+            first = ALPHABET_INV[_first]
+        if determine_box_type_figures_type(y) is int:
+            second = _second
+        else:
+            second = ALPHABET_INV[_second]
+    else:
+        _second = int(value / y_max + i)
+        _first = value - y_max * (_second - 1)
+        if determine_box_type_figures_type(x) is int:
+            second = _second
+        else:
+            second = ALPHABET_INV[_second]
+        if determine_box_type_figures_type(y) is int:
+            first = _first
+        else:
+            first = ALPHABET_INV[_first]
+    return '{}{}'.format(first, second)

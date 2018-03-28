@@ -19,7 +19,8 @@ docker-entrypoint.sh
 gunicorn_config.py
 
 # static files
-static
+static/*
+!static/custom.css
 
 # others
-*.pdf
+others

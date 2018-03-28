@@ -316,7 +316,6 @@ class GetStandard(Master):
     @property
     def html_header(self):
         _header = self.header
-        _header.append('integrity')
         return custom.capitalize(_header)
 
     @property
@@ -325,7 +324,7 @@ class GetStandard(Master):
         for item in self.js_header:
             if item == 'permissions':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val().toString();'.format(item))
-            elif item == 'is_active':
+            elif item == 'is_active' or item == 'default':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").is(":checked");'.format(item))
             else:
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val();'.format(item))
@@ -342,9 +341,11 @@ class GetStandard(Master):
     def order_by(self):
         return '-id'
 
-    @property
-    def table_row_head(self):
-        return '<tr>'
+    def table_row_head(self, row=None):
+        if row is None or self.verify_checksum(row=row):
+            return '<tr>'
+        else:
+            return '<tr style="color: red">'
 
     def verify_checksum(self, row):
         """Function to get standard table entries. 
@@ -370,13 +371,6 @@ class GetStandard(Master):
             log.warning(message)
             return False
 
-    def generate_integrity_column(self, row=None):
-        if self.verify_checksum(row=row):
-            _tmp = '<td><i class="fas fa-check-circle" style="color: green"></td>'
-        else:
-            _tmp = '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
-        return _tmp
-
     def get(self, **dic):
         """Function to get standard table entries. 
 
@@ -390,7 +384,7 @@ class GetStandard(Master):
         _list = list()
         for row in _query:
             # open table
-            tmp = self.table_row_head
+            tmp = self.table_row_head(row=row)
             for field in self.header:
                 # tagging the unique field
                 if field == self.unique:
@@ -411,17 +405,17 @@ class GetStandard(Master):
                     tmp += '<td class="version">{}</td>'.format(row[field])
                 elif field == 'password':
                     tmp += '<td>*****</td>'
-                elif field == 'is_active' or field == 'initial_password' or field == 'active':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
                     if row[field]:
-                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
+                        tmp += '<td class="gui"><p style="display: none">True</p>' \
+                               '<i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td class="gui"><p style="display: none">False</p>' \
+                               '<i class="fas fa-minus-circle" style="color: red"></i></td>'
                 elif field != self.unique and field != 'version':
                     tmp += '<td class="gui">{}</td>'.format(row[field])
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
-            # add verify column
-            tmp += self.generate_integrity_column(row=row)
             # close table
             tmp += '</tr>'
             # append table row
@@ -446,9 +440,11 @@ class GetAuditTrail(GetStandard):
         _header.remove('id_ref')
         return _header
 
-    @property
-    def _table_row_head(self):
-        return '<tr class="tmp_audit_trail">'
+    def table_row_head(self, row=None):
+        if self.verify_checksum(row=row):
+            return '<tr class="tmp_audit_trail">'
+        else:
+            return '<tr class="tmp_audit_trail" style="color: red">'
 
     def get(self, **dic):
         """Function to get audit trail table entries. 
@@ -463,7 +459,7 @@ class GetAuditTrail(GetStandard):
         _list = list()
         for row in _query:
             # open table
-            tmp = self._table_row_head
+            tmp = self.table_row_head(row=row)
             for field in self.header:
                 # formatting the timestamp
                 if field == 'timestamp':
@@ -474,15 +470,15 @@ class GetAuditTrail(GetStandard):
                 # formatting duration fields
                 elif field == 'thaw_time':
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['thaw_uom'], dt=row[field]))
-                elif field == 'is_active' or field == 'initial_password':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
                     if row[field]:
-                        tmp += '<td><i class="fas fa-check-circle" style="color: green"></td>'
+                        tmp += '<td><p style="display: none">True</p>' \
+                               '<i class="fas fa-check-circle" style="color: green"></td>'
                     else:
-                        tmp += '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
+                        tmp += '<td><p style="display: none">False</p>' \
+                               '<i class="fas fa-minus-circle" style="color: red"></td>'
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
-            # add verify column
-            tmp += self.generate_integrity_column(row=row)
             # close table
             tmp += '</tr>'
             # append table row
@@ -519,7 +515,7 @@ class GetView(GetStandard):
         _list = list()
         for row in _query:
             # open table
-            tmp = self.table_row_head
+            tmp = self.table_row_head()
             for field in self.header:
                 # locations and box can be empty
                 if field == 'location' or field == 'box':
@@ -722,6 +718,9 @@ class TableManipulation(Master):
     def new_times(self, **kwargs):
         return self.new_log(text='times', unique='item', **kwargs)
 
+    def new_boxing(self, **kwargs):
+        return self.new_log(text='boxing', unique='box', **kwargs)
+
     def edit(self, user, **kwargs):
         """Function to update existing standard table records. 
 
@@ -773,7 +772,7 @@ class TableManipulation(Master):
         if result:
             # generate identifier for new table entry
             _identifier = custom.identifier(prefix=prefix, table_id=self.id)
-            if prefix == 'S' or prefix == 'B' or prefix == 'L':
+            if prefix == 'S' or prefix == 'B' or prefix == 'L' or prefix == 'R':
                 # generate new json string with new unique value generated by identifier
                 self.json = '{}:{};{}'.format(self.unique, _identifier, self.json.split(';', 1)[1])
                 self.dict[self.unique] = _identifier
@@ -800,7 +799,7 @@ class TableManipulation(Master):
                 message = 'Could not automatically update entry for "{}".'.format(self.unique_value)
                 raise NameError(message)
             if self.audit_trail(action='Create'):
-                return True, 'Success!'
+                return True, self.unique_value
         else:
             return result, message
 
@@ -976,7 +975,9 @@ def new_login_log(username, action, method='manual', active=None):
         active = models.Users.objects.get(username=username).is_active
     try:
         query = models.LoginLog.objects.filter(user=username).order_by('-id')[0]
-        if query.action == 'attempt':
+        if query.action == 'attempt' and active is True and query.active is False:
+            attempts = 1
+        elif query.action == 'attempt':
             attempts = query.attempts + 1
         else:
             attempts = 1

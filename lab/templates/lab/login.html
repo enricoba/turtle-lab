@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <script>
+    $('#id_user').focus();
     function login() {
         var myDomElement = document.getElementById("id_form_login");
         var v_user = $(myDomElement).find("#id_user").val();
@@ -72,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             submitPassword(v_user);
         }
     }).on('shown.bs.modal', function () {
-        $(this).find('#id_password').first().focus();
+        $('#id_password_change').focus();
     }).on('hidden.bs.modal', function () {
         $("br").remove();
         $("small").remove(".error");

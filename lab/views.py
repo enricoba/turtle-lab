@@ -52,7 +52,7 @@ def index(request):
                'session': None,
                'user': None}
     if request.user.is_authenticated:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect('/overview/')
     else:
         context['login'] = forms.LoginForm()
         context['modal_password'] = forms.PasswordForm()
@@ -532,7 +532,8 @@ def locations_new(request):
         response, message = manipulation.new_identifier_at(user=request.user.username, prefix='L',
                                                            location='L {}'.format(str(timezone.now())),
                                                            name=form.cleaned_data['name'],
-                                                           condition=form.cleaned_data['condition'])
+                                                           condition=form.cleaned_data['condition'],
+                                                           max_boxes=form.cleaned_data['max_boxes'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -555,7 +556,8 @@ def locations_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  location=form.cleaned_data['location'],
                                                  name=form.cleaned_data['name'],
-                                                 condition=form.cleaned_data['condition'])
+                                                 condition=form.cleaned_data['condition'],
+                                                 max_boxes=form.cleaned_data['max_boxes'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -602,6 +604,102 @@ def locations_label(request):
 
 @require_GET
 @login_required
+@decorators.permission('ty_r', 'ty_w', 'ty_d')
+def types(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'types',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.Types),
+        get_audit_trail=framework.GetAuditTrail(table=models.TypesAuditTrail),
+        form_render_new=forms.TypesFormNew(),
+        form_render_edit=forms.TypesFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('ty_r', 'ty_w', 'ty_d')
+@decorators.require_ajax
+def types_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.TypesAuditTrail).get(
+        id_ref=models.Types.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ty_w')
+@decorators.require_ajax
+def types_new(request):
+    form = forms.TypesFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Types,
+                                                   table_audit_trail=models.TypesAuditTrail)
+        response, message = manipulation.new_at(user=request.user.username,
+                                                type=form.cleaned_data['type'],
+                                                affiliation=form.cleaned_data['affiliation'],
+                                                storage_condition=form.cleaned_data['storage_condition'],
+                                                usage_condition=form.cleaned_data['usage_condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ty_w')
+@decorators.require_ajax
+def types_edit(request):
+    form = forms.TypesFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Types,
+                                                   table_audit_trail=models.TypesAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 type=form.cleaned_data['type'],
+                                                 affiliation=form.cleaned_data['affiliation'],
+                                                 storage_condition=form.cleaned_data['storage_condition'],
+                                                 usage_condition=form.cleaned_data['usage_condition'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ty_d')
+@decorators.require_ajax
+def types_delete(request):
+    manipulation = framework.TableManipulation(table=models.Types,
+                                               table_audit_trail=models.TypesAuditTrail)
+    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                            user=request.user.username)
+    data = {'response': response}
+    return JsonResponse(data)
+
+
+#########
+# BOXES #
+#########
+
+
+@require_GET
+@login_required
 @decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
 def boxes(request):
     context = framework.html_and_data(
@@ -639,17 +737,25 @@ def boxes_new(request):
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.Boxes,
                                                    table_audit_trail=models.BoxesAuditTrail)
-        response, message = manipulation.new_identifier_at(user=request.user.username, prefix='B',
-                                                           box='B {}'.format(str(timezone.now())),
-                                                           name=form.cleaned_data['name'],
-                                                           alignment=form.cleaned_data['alignment'],
-                                                           row_type=form.cleaned_data['row_type'],
-                                                           rows=form.cleaned_data['rows'],
-                                                           column_type=form.cleaned_data['column_type'],
-                                                           columns=form.cleaned_data['columns'],
-                                                           origin=form.cleaned_data['origin'])
+        response, created_box = manipulation.new_identifier_at(user=request.user.username, prefix='B',
+                                                               box='B {}'.format(str(timezone.now())),
+                                                               name=form.cleaned_data['name'],
+                                                               box_type=form.cleaned_data['box_type'],
+                                                               type=form.cleaned_data['type'])
+        if response:
+            query = models.BoxTypes.objects.filter(box_type=form.cleaned_data['box_type'])[0]
+            _max = models.BoxTypes.objects.max(form.cleaned_data['box_type'])
+            manipulation_boxing = framework.TableManipulation(table=models.Boxing)
+            _success_list = list()
+            for x in range(_max):
+                _position = custom.determine_box_position(alignment=query.alignment, x=query.columns, y=query.rows,
+                                                          value=x + 1)
+                _success = manipulation_boxing.new_boxing(object='', box=created_box, position=_position)
+                _success_list.append(_success)
+            response = custom.check_equal(_success_list)
+
         data = {'response': response,
-                'message': message}
+                'message': created_box}
         return JsonResponse(data)
     else:
         data = {'response': False,
@@ -670,12 +776,8 @@ def boxes_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  box=form.cleaned_data['box'],
                                                  name=form.cleaned_data['name'],
-                                                 alignment=form.cleaned_data['alignment'],
-                                                 row_type=form.cleaned_data['row_type'],
-                                                 rows=form.cleaned_data['rows'],
-                                                 column_type=form.cleaned_data['column_type'],
-                                                 columns=form.cleaned_data['columns'],
-                                                 origin=form.cleaned_data['origin'])
+                                                 box_type=form.cleaned_data['box_type'],
+                                                 type=form.cleaned_data['type'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -720,6 +822,109 @@ def boxes_label(request):
     return JsonResponse(data)
 
 
+#############
+# BOX TYPES #
+#############
+
+
+@require_GET
+@login_required
+@decorators.permission('bt_r', 'bt_w', 'bt_d')
+def box_types(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'box_types',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.BoxTypes),
+        get_audit_trail=framework.GetAuditTrail(table=models.BoxTypesAuditTrail),
+        form_render_new=forms.BoxTypesFormNew(),
+        form_render_edit=forms.BoxTypesFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('bt_r', 'bt_w', 'bt_d')
+@decorators.require_ajax
+def box_types_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.BoxTypesAuditTrail).get(
+        id_ref=models.BoxTypes.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bt_w')
+@decorators.require_ajax
+def box_types_new(request):
+    form = forms.BoxTypesFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.BoxTypes,
+                                                   table_audit_trail=models.BoxTypesAuditTrail)
+        response, message = manipulation.new_at(user=request.user.username,
+                                                box_type=form.cleaned_data['box_type'],
+                                                alignment=form.cleaned_data['alignment'],
+                                                rows=form.cleaned_data['rows'].capitalize(),
+                                                columns=form.cleaned_data['columns'].capitalize(),
+                                                default=form.cleaned_data['default'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bt_w')
+@decorators.require_ajax
+def box_types_edit(request):
+    form = forms.BoxTypesFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.BoxTypes,
+                                                   table_audit_trail=models.BoxTypesAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 box_type=form.cleaned_data['box_type'],
+                                                 alignment=form.cleaned_data['alignment'],
+                                                 rows=form.cleaned_data['rows'],
+                                                 columns=form.cleaned_data['columns'],
+                                                 default=form.cleaned_data['default'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('bt_d')
+@decorators.require_ajax
+def box_types_delete(request):
+    manipulation = framework.TableManipulation(table=models.BoxTypes,
+                                               table_audit_trail=models.BoxTypesAuditTrail)
+    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                            user=request.user.username)
+    data = {'response': response}
+    return JsonResponse(data)
+
+
+###########
+# SAMPLES #
+###########
+
+"""
 @require_GET
 @login_required
 @decorators.permission('sa_r', 'sa_w', 'sa_d', 'sa_l')
@@ -763,10 +968,7 @@ def samples_new(request):
             response, message = manipulation.new_identifier_at(user=request.user.username, prefix='S',
                                                                sample='S {}'.format(str(timezone.now())),
                                                                name=form.cleaned_data['name'],
-                                                               type=form.cleaned_data['type'],
-                                                               account=form.cleaned_data['account'],
-                                                               volume=form.cleaned_data['volume'],
-                                                               uom=form.cleaned_data['uom'])
+                                                               account=form.cleaned_data['account'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -789,10 +991,7 @@ def samples_edit(request):
         response, message = manipulation.edit_at(user=request.user.username,
                                                  sample=form.cleaned_data['sample'],
                                                  name=form.cleaned_data['name'],
-                                                 type=form.cleaned_data['type'],
-                                                 account=form.cleaned_data['account'],
-                                                 volume=form.cleaned_data['volume'],
-                                                 uom=form.cleaned_data['uom'])
+                                                 account=form.cleaned_data['account'])
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -835,7 +1034,128 @@ def samples_label(request):
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
+"""
 
+
+############
+# REAGENTS #
+############
+
+
+@require_GET
+@login_required
+@decorators.permission('re_r', 're_w', 're_d', 're_l')
+def reagents(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'reagents',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.Reagents),
+        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail),
+        form_render_new=forms.ReagentsFormNew(),
+        form_render_edit=forms.ReagentsFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('re_r', 're_w', 're_d', 're_l')
+@decorators.require_ajax
+def reagents_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.ReagentsAuditTrail).get(
+        id_ref=models.Reagents.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_w')
+@decorators.require_ajax
+def reagents_new(request):
+    form = forms.ReagentsFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Reagents,
+                                                   table_audit_trail=models.ReagentsAuditTrail)
+        response, message = manipulation.new_identifier_at(user=request.user.username, prefix='R',
+                                                           reagent='R {}'.format(str(timezone.now())),
+                                                           name=form.cleaned_data['name'],
+                                                           type=form.cleaned_data['type'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_w')
+@decorators.require_ajax
+def reagents_edit(request):
+    form = forms.ReagentsFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.Reagents,
+                                                   table_audit_trail=models.ReagentsAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 reagent=form.cleaned_data['reagent'],
+                                                 name=form.cleaned_data['name'],
+                                                 type=form.cleaned_data['type'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_d')
+@decorators.require_ajax
+def reagents_delete(request):
+        manipulation = framework.TableManipulation(table=models.Reagents,
+                                                   table_audit_trail=models.ReagentsAuditTrail)
+        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                user=request.user.username)
+        data = {'response': response}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('re_l')
+@decorators.require_ajax
+def reagents_label(request):
+    label = framework.Labels()
+    # barcode printing
+    response, filename = label.location(unique=request.POST.get('unique'),
+                                        version=request.POST.get('version'))
+    if response:
+        log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
+                                                                           request.POST.get('version')))
+        # log record
+        manipulation = framework.TableManipulation(table=models.LabelLog)
+        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username, action='print',
+                             timestamp=timezone.now())
+    data = {'response': response,
+            'pdf': filename}
+    return JsonResponse(data)
+
+
+############
+# ACCOUNTS #
+############
+"""
 
 @require_GET
 @login_required
@@ -942,6 +1262,7 @@ def freeze_thaw_accounts_delete(request):
                                             user=request.user.username)
     data = {'response': response}
     return JsonResponse(data)
+"""
 
 
 @require_GET
@@ -1004,6 +1325,89 @@ def boxing_log(request):
     return render(request, 'lab/index.html', context)
 
 
+@require_GET
+@login_required
+@decorators.permission('overview')
+def overview(request):
+    context = {'tables': True,
+               'content': 'overview',
+               'session': True,
+               'user': request.user.username,
+               'perm': request.user.permissions,
+               'modal_overview_boxing': forms.OverviewBoxingForm(),
+               'header': framework.GetView(table=models.Overview).html_header,
+               'query': framework.GetView(table=models.Overview).get()}
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('ov_w')
+@decorators.require_ajax
+def overview_locate(request):
+    box_count = models.Boxes.objects.count_box_by_type(type=request.GET.get('type'))
+    if box_count == 0:
+        box = '---'
+        location = '---'
+        position = '---'
+        data = {'response': True,
+                'location': location,
+                'box': box,
+                'position': position}
+        return JsonResponse(data)
+    for x in range(box_count):
+        box = models.Boxes.objects.box_by_type(type=request.GET.get('type'), count=x)
+        position = models.Boxing.objects.next_position(box=box[:7])
+        location = models.RTD.objects.location(unique=box[:7])
+        if position:
+            data = {'response': True,
+                    'location': location,
+                    'box': box,
+                    'position': position}
+            return JsonResponse(data)
+        else:
+            if x == box_count:
+                position = '---'
+                data = {'response': True,
+                        'location': location,
+                        'box': box,
+                        'position': position}
+                return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ov_w')
+@decorators.require_ajax
+def overview_boxing(request):
+    form = forms.OverviewBoxingForm(request.POST, request=request)
+    if form.is_valid():
+        # create reagent record
+        if models.Types.objects.get_affiliation(request.POST.get('type')) == 'Reagents':
+            manipulation = framework.TableManipulation(table=models.Reagents,
+                                                       table_audit_trail=models.ReagentsAuditTrail)
+            response, message = manipulation.new_identifier_at(user=request.user.username, prefix='R',
+                                                               reagent='R {}'.format(str(timezone.now())),
+                                                               name='',
+                                                               type=request.POST.get('type'))
+            data = {'response': response,
+                    'message': message}
+            return JsonResponse(data)
+        elif models.Types.objects.get_affiliation(request.POST.get('type')) == 'Samples':
+            # TODO temporarily not active due to limited support of samples
+            data = {'response': True}
+            return JsonResponse(data)
+        else:
+            data = {'response': True}
+            return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_overview_boxing',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+"""
 @require_GET
 @login_required
 @decorators.permission('home')
@@ -1094,13 +1498,18 @@ def home_boxing(request):
                 'form_id': 'id_form_boxing',
                 'errors': form.errors}
         return JsonResponse(data)
+"""
 
 
 @require_GET
 @login_required
+@decorators.export_permission
 def export(request, dialog):
     if dialog == 'home':
         queryset = framework.GetView(table=models.RTD)
+        data = queryset.export
+    elif dialog == 'overview':
+        queryset = framework.GetView(table=models.Overview)
         data = queryset.export
     else:
         table = models.TABLES[dialog]
@@ -1108,8 +1517,14 @@ def export(request, dialog):
         data = queryset.export
     # write pseudo buffer for streaming
     pseudo_buffer = custom.Echo()
-    writer = csv.writer(pseudo_buffer)
+    writer = csv.writer(pseudo_buffer, delimiter=';')
     # response
     response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dialog)
     return response
+
+
+@require_POST
+@login_required
+def import_data(request, dialog):
+    pass
