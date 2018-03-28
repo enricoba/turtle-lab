@@ -26,7 +26,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, TIMES, \
     Conditions, Locations, FreezeThawAccounts, PERMISSIONS, Roles, \
-    Types, BoxTypes
+    Types, BoxTypes, DEFAULT
 
 # app imports
 import lab.models as models
@@ -62,6 +62,11 @@ def validate_unique_roles(value):
 
 def validate_unique_freeze_thaw_accounts(value):
     if models.FreezeThawAccounts.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_type_attributes(value):
+    if models.TypeAttributes.objects.exist(value):
         raise ValidationError('Record already exists.')
 
 
@@ -276,8 +281,8 @@ class TypesFormEdit(TypesFormNew):
 class BoxesFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.order_by('-default', 'id'), empty_label=None,
-                                      widget=forms.Select(attrs={'class': 'form-control'}),
+    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.order_by('-default', 'id'),
+                                      empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}),
                                       help_text='Select a box type.')
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
                                   widget=forms.Select(attrs={'class': 'form-control'}), required=False,
@@ -296,6 +301,43 @@ class BoxesFormEdit(forms.Form):
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
                                   widget=forms.Select(attrs={'class': 'form-control'}), required=False,
                                   help_text='Select a type. This field is optional.')
+
+
+###################
+# TYPE ATTRIBUTES #
+###################
+
+
+class TypeAttributesFormNew(forms.Form):
+    column = forms.CharField(label='column', max_length=UNIQUE_LENGTH, help_text='Enter a column name.',
+                             widget=forms.TextInput(attrs={'class': 'form-control'}),
+                             validators=[validate_unique_type_attributes])
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
+                                  widget=forms.Select(attrs={'class': 'form-control'}),
+                                  help_text='Select a type.')
+    list_values = forms.CharField(label='list values', max_length=DEFAULT, required=False,
+                                  help_text='Enter list values via comma separated list.',
+                                  widget=forms.TextInput(attrs={'class': 'form-control'}))
+    default = forms.CharField(label='default', max_length=DEFAULT, required=False,
+                              help_text='Enter a default value.',
+                              widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(TypeAttributesFormNew, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(TypeAttributesFormNew, self).clean()
+        if cleaned_data.get('list_values') and cleaned_data.get('default'):
+            if cleaned_data.get('default') not in cleaned_data.get('list_values').split(','):
+                raise ValidationError('Default value must be list option.')
+
+
+class TypeAttributesFormEdit(TypeAttributesFormNew):
+    column = forms.CharField(label='column', max_length=UNIQUE_LENGTH,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
+                                  widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}))
 
 
 #############
