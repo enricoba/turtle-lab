@@ -316,7 +316,6 @@ class GetStandard(Master):
     @property
     def html_header(self):
         _header = self.header
-        _header.append('integrity')
         return custom.capitalize(_header)
 
     @property
@@ -342,9 +341,11 @@ class GetStandard(Master):
     def order_by(self):
         return '-id'
 
-    @property
-    def table_row_head(self):
-        return '<tr>'
+    def table_row_head(self, row=None):
+        if row is None or self.verify_checksum(row=row):
+            return '<tr>'
+        else:
+            return '<tr style="color: red">'
 
     def verify_checksum(self, row):
         """Function to get standard table entries. 
@@ -370,13 +371,6 @@ class GetStandard(Master):
             log.warning(message)
             return False
 
-    def generate_integrity_column(self, row=None):
-        if self.verify_checksum(row=row):
-            _tmp = '<td><i class="fas fa-check-circle" style="color: green"></td>'
-        else:
-            _tmp = '<td><i class="fas fa-minus-circle" style="color: red"></i></td>'
-        return _tmp
-
     def get(self, **dic):
         """Function to get standard table entries. 
 
@@ -390,7 +384,7 @@ class GetStandard(Master):
         _list = list()
         for row in _query:
             # open table
-            tmp = self.table_row_head
+            tmp = self.table_row_head(row=row)
             for field in self.header:
                 # tagging the unique field
                 if field == self.unique:
@@ -422,8 +416,6 @@ class GetStandard(Master):
                     tmp += '<td class="gui">{}</td>'.format(row[field])
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
-            # add verify column
-            tmp += self.generate_integrity_column(row=row)
             # close table
             tmp += '</tr>'
             # append table row
@@ -448,9 +440,11 @@ class GetAuditTrail(GetStandard):
         _header.remove('id_ref')
         return _header
 
-    @property
-    def _table_row_head(self):
-        return '<tr class="tmp_audit_trail">'
+    def table_row_head(self, row=None):
+        if self.verify_checksum(row=row):
+            return '<tr class="tmp_audit_trail">'
+        else:
+            return '<tr class="tmp_audit_trail" style="color: red">'
 
     def get(self, **dic):
         """Function to get audit trail table entries. 
@@ -465,7 +459,7 @@ class GetAuditTrail(GetStandard):
         _list = list()
         for row in _query:
             # open table
-            tmp = self._table_row_head
+            tmp = self.table_row_head(row=row)
             for field in self.header:
                 # formatting the timestamp
                 if field == 'timestamp':
@@ -485,8 +479,6 @@ class GetAuditTrail(GetStandard):
                                '<i class="fas fa-minus-circle" style="color: red"></td>'
                 else:
                     tmp += '<td>{}</td>'.format(row[field])
-            # add verify column
-            tmp += self.generate_integrity_column(row=row)
             # close table
             tmp += '</tr>'
             # append table row
@@ -523,7 +515,7 @@ class GetView(GetStandard):
         _list = list()
         for row in _query:
             # open table
-            tmp = self.table_row_head
+            tmp = self.table_row_head()
             for field in self.header:
                 # locations and box can be empty
                 if field == 'location' or field == 'box':
