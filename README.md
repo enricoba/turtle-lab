@@ -13,7 +13,7 @@ Turtle-lab is designed as a web service to be used independent of operating syst
 In this project phase target devices are PCs and Laptops. Mobile device support is planned for a later phase. 
 
 # Prerequisites
-test
+.. tbd
 
 # Installing
 ... tbd
