@@ -49,6 +49,7 @@ ACTION_LENGTH = 6
 GENERATED_LENGTH = 40
 LABEL_LENGTH = 50
 PASSWORD_LENGTH = 128
+DEFAULT = 255
 
 
 class GlobalManager(models.Manager):
@@ -262,6 +263,61 @@ class TypesAuditTrail(models.Model):
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
     # manager
     objects = TypesAuditTrailManager()
+
+
+###################
+# TYPE ATTRIBUTES #
+###################
+
+# manager
+class TypeAttributesManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'column'
+
+
+# table
+class TypeAttributes(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    column = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    list_values = models.CharField(max_length=DEFAULT)
+    default = models.CharField(max_length=DEFAULT)
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypeAttributesManager()
+
+    def __str__(self):
+        return '{} ({})'.format(self.column, self.type)
+
+
+# audit trail manager
+class TypeAttributesAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class TypeAttributesAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    column = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    list_values = models.CharField(max_length=DEFAULT)
+    default = models.CharField(max_length=DEFAULT)
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypeAttributesAuditTrailManager()
 
 
 #############
