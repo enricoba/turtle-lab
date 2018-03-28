@@ -559,6 +559,29 @@ class GetLog(GetStandard):
     pass
 
 
+class GetDynamic(GetStandard):
+    def __init__(self, table, type):
+        super().__init__(table)
+        self.type = type
+        self.affiliation = models.Types.objects.get_affiliation(type=type)
+
+    @property
+    def html_header(self):
+        _header = self._table_header
+        _columns = models.TypeAttributes.objects.columns_as_list(type=self.type)
+        _header.remove('id')
+        if self.affiliation == 'Reagent':
+            _header.remove('type')
+        else:
+            # TODO remove new column "type" of samples header
+            pass
+        _header.remove('checksum')
+        _header.remove('version')
+        _header = _header + _columns
+        _header.append('version')
+        return _header
+
+
 class TableManipulation(Master):
     def __init__(self, table, table_audit_trail=None):
         super().__init__(table)

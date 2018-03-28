@@ -1149,7 +1149,7 @@ def reagents_dynamic(request, reagent):
                  'session': True,
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Reagents),
+        get_standard=framework.GetDynamic(table=models.Reagents, type=reagent),
         get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail),
         form_render_new=forms.ReagentsFormNew(),
         form_render_edit=forms.ReagentsFormEdit())

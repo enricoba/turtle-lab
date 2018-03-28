@@ -275,6 +275,12 @@ class TypeAttributesManager(GlobalManager):
     def unique(self):
         return 'column'
 
+    def columns_as_list(self, type):
+        try:
+            return list(self.filter(type=type).values_list('column', flat=True))
+        except IndexError:
+            return list()
+
 
 # table
 class TypeAttributes(models.Model):
