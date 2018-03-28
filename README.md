@@ -8,6 +8,10 @@ non-commercial interested research organisations,
 universities and others that focus on a science and 
 innovation focused research. 
 
+# Technology
+Turtle-lab is designed as a web service to be used independent of operating system and web browser. 
+In this project phase target devices are PCs and Laptops. Mobile device support is planned for a later phase. 
+
 # Prerequisites
 ... tbd
 
@@ -27,9 +31,9 @@ For published versions check the [release section](https://github.com/enricoba/t
 
 # Contributing 
 If you want to contribute to his project, 
-contact me via [mail](h.baran@posteo.eu).
+contact me via [mail](mailto:h.baran@posteo.eu).
 
 # License 
 This project is licensed under GPL-3.0 license,
- see [LICENSE](LICENSE)for more details.
+ see [LICENSE](LICENSE) for more details.
 
