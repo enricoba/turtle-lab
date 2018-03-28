@@ -322,6 +322,53 @@ class TypeAttributesAuditTrail(models.Model):
     objects = TypeAttributesAuditTrailManager()
 
 
+####################
+# DYNAMIC REAGENTS #
+####################
+
+# manager
+class DynamicReagentsManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'id'
+
+
+# table
+class DynamicReagents(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    type_attribute = models.CharField(max_length=UNIQUE_LENGTH)
+    value = models.CharField(max_length=DEFAULT)
+    # system fields
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = DynamicReagentsManager()
+
+
+# audit trail manager
+class DynamicReagentsAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class DynamicReagentsAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    type_attribute = models.CharField(max_length=UNIQUE_LENGTH)
+    value = models.CharField(max_length=DEFAULT)
+    # system fields
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = DynamicReagentsAuditTrailManager()
+
+
 #############
 # BOX TYPES #
 #############
