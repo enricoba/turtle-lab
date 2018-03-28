@@ -312,15 +312,15 @@ class TypeAttributesFormNew(forms.Form):
     column = forms.CharField(label='column', max_length=UNIQUE_LENGTH, help_text='Enter a column name.',
                              widget=forms.TextInput(attrs={'class': 'form-control'}),
                              validators=[validate_unique_type_attributes])
-    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label=None,
                                   widget=forms.Select(attrs={'class': 'form-control'}),
                                   help_text='Select a type.')
     list_values = forms.CharField(label='list values', max_length=DEFAULT, required=False,
-                                  help_text='Enter list values via comma separated list.',
+                                  help_text='Enter values via comma separated list.',
                                   widget=forms.TextInput(attrs={'class': 'form-control'}))
-    default = forms.CharField(label='default', max_length=DEFAULT, required=False,
-                              help_text='Enter a default value.',
-                              widget=forms.TextInput(attrs={'class': 'form-control'}))
+    default_value = forms.CharField(label='default value', max_length=DEFAULT, required=False,
+                                    help_text='Enter a default value.',
+                                    widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
@@ -328,15 +328,15 @@ class TypeAttributesFormNew(forms.Form):
 
     def clean(self):
         cleaned_data = super(TypeAttributesFormNew, self).clean()
-        if cleaned_data.get('list_values') and cleaned_data.get('default'):
-            if cleaned_data.get('default') not in cleaned_data.get('list_values').split(','):
+        if cleaned_data.get('list_values') and cleaned_data.get('default_value'):
+            if cleaned_data.get('default_value') not in cleaned_data.get('list_values').split(','):
                 raise ValidationError('Default value must be list option.')
 
 
 class TypeAttributesFormEdit(TypeAttributesFormNew):
     column = forms.CharField(label='column', max_length=UNIQUE_LENGTH,
                              widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
-    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label=None,
                                   widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}))
 
 

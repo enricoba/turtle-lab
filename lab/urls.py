@@ -42,6 +42,12 @@ urlpatterns = [
     url(r'^types/edit/$', views.types_edit, name='types edit'),
     url(r'^types/delete/$', views.types_delete, name='types delete'),
     url(r'^types/audit_trail/$', views.types_audit_trail, name='types audit trail'),
+    # type attributes
+    url(r'^type_attributes/$', views.type_attributes, name='type attributes'),
+    url(r'^type_attributes/new/$', views.type_attributes_new, name='type attributes new'),
+    url(r'^type_attributes/edit/$', views.type_attributes_edit, name='type attributes edit'),
+    url(r'^type_attributes/delete/$', views.type_attributes_delete, name='type attributes delete'),
+    url(r'^type_attributes/audit_trail/$', views.type_attributes_audit_trail, name='type attributes audit trail'),
     # locations
     url(r'^locations/$', views.locations, name='locations'),
     url(r'^locations/new/$', views.locations_new, name='locations new'),

@@ -60,6 +60,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {% if 'ty_r' in perm or 'ty_w' in perm or 'ty_d' in perm %}
                             <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/types/"><span> Types</span></a></li>
                         {% endif %}
+                        {% if 'ta_r' in perm or 'ta_w' in perm or 'ta_d' in perm %}
+                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/type_attributes/"><span> Type Attributes</span></a></li>
+                        {% endif %}
                         {% if 'bt_r' in perm or 'bt_w' in perm or 'bt_d' in perm %}
                             <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/box_types/"><span> Box Types</span></a></li>
                         {% endif %}
@@ -151,6 +154,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-upload"></i></button>
                     {% endif %}
                     {% if content == 'types' and 'ty_d' in perm %}
+                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-trash-alt"></i></button>
+                    {% endif %}
+                    <!-- Type attributes -->
+                    {% if content == 'type_attributes' and 'ta_w' in perm %}
+                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
+                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-edit"></i></button>
+                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>
+                    {% endif %}
+                    {% if content == 'type_attributes' and 'ta_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}

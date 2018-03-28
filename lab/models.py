@@ -284,7 +284,7 @@ class TypeAttributes(models.Model):
     column = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
     type = models.CharField(max_length=UNIQUE_LENGTH)
     list_values = models.CharField(max_length=DEFAULT)
-    default = models.CharField(max_length=DEFAULT)
+    default_value = models.CharField(max_length=DEFAULT)
     # system fields
     version = models.IntegerField()
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
@@ -306,10 +306,10 @@ class TypeAttributesAuditTrail(models.Model):
     id = models.AutoField(primary_key=True)
     id_ref = models.IntegerField()
     # custom fields
-    column = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    column = models.CharField(max_length=UNIQUE_LENGTH)
     type = models.CharField(max_length=UNIQUE_LENGTH)
     list_values = models.CharField(max_length=DEFAULT)
-    default = models.CharField(max_length=DEFAULT)
+    default_value = models.CharField(max_length=DEFAULT)
     # system fields
     version = models.IntegerField()
     action = models.CharField(max_length=ACTION_LENGTH)
@@ -884,6 +884,9 @@ PERMISSIONS = (
     ('ty_r', 'Types read'),
     ('ty_w', 'Types write'),
     ('ty_d', 'Types delete'),
+    ('ta_r', 'Type attributes read'),
+    ('ta_w', 'Type attributes write'),
+    ('ta_d', 'Type attributes delete'),
     ('overview', 'Overview'),
     ('ov_w', 'Overview write'),
     # ('home', 'Home'),
@@ -1298,7 +1301,8 @@ TABLES = {
     'label_log': LabelLog,
     'boxing_log': BoxingLog,
     'home': RTD,
-    'Overview': Overview
+    'Overview': Overview,
+    'type_attributes': TypeAttributes
 }
 
 EXPORT_PERMISSIONS = {
@@ -1317,5 +1321,6 @@ EXPORT_PERMISSIONS = {
     'label_log': 'log_la',
     'boxing_log': 'log_bo',
     'home': 'home',
-    'overview': 'overview'
+    'overview': 'overview',
+    'type_attributes': 'ta_r'
 }

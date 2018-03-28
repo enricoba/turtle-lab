@@ -822,6 +822,101 @@ def boxes_label(request):
     return JsonResponse(data)
 
 
+###################
+# TYPE ATTRIBUTES #
+###################
+
+
+@require_GET
+@login_required
+@decorators.permission('ta_r', 'ta_w', 'ta_d')
+def type_attributes(request):
+    context = framework.html_and_data(
+        context={'tables': True,
+                 'content': 'type_attributes',
+                 'session': True,
+                 'user': request.user.username,
+                 'perm': request.user.permissions},
+        get_standard=framework.GetStandard(table=models.TypeAttributes),
+        get_audit_trail=framework.GetAuditTrail(table=models.TypeAttributesAuditTrail),
+        form_render_new=forms.TypeAttributesFormNew(),
+        form_render_edit=forms.TypeAttributesFormEdit())
+    return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('ta_r', 'ta_w', 'ta_d')
+@decorators.require_ajax
+def type_attributes_audit_trail(request):
+    response, data = framework.GetAuditTrail(
+        table=models.TypeAttributesAuditTrail).get(
+        id_ref=models.TypeAttributes.objects.id(request.GET.get('unique')))
+    data = {'response': response,
+            'data': data}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ta_w')
+@decorators.require_ajax
+def type_attributes_new(request):
+    form = forms.TypeAttributesFormNew(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.TypeAttributes,
+                                                   table_audit_trail=models.TypeAttributesAuditTrail)
+        response, created_box = manipulation.new_at(user=request.user.username,
+                                                    column=form.cleaned_data['column'],
+                                                    type=form.cleaned_data['type'],
+                                                    list_values=form.cleaned_data['list_values'],
+                                                    default_value=form.cleaned_data['default_value'])
+        data = {'response': response,
+                'message': created_box}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_new',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ta_w')
+@decorators.require_ajax
+def type_attributes_edit(request):
+    form = forms.TypeAttributesFormEdit(request.POST)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.TypeAttributes,
+                                                   table_audit_trail=models.TypeAttributesAuditTrail)
+        response, message = manipulation.edit_at(user=request.user.username,
+                                                 column=form.cleaned_data['column'],
+                                                 type=form.cleaned_data['type'],
+                                                 list_values=form.cleaned_data['list_values'],
+                                                 default_value=form.cleaned_data['default_value'])
+        data = {'response': response,
+                'message': message}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_edit',
+                'errors': form.errors}
+        return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('ta_d')
+@decorators.require_ajax
+def type_attributes_delete(request):
+    manipulation = framework.TableManipulation(table=models.TypeAttributes,
+                                               table_audit_trail=models.TypeAttributesAuditTrail)
+    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                            user=request.user.username)
+    data = {'response': response}
+    return JsonResponse(data)
+
 #############
 # BOX TYPES #
 #############
