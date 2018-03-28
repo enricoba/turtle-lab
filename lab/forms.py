@@ -276,7 +276,7 @@ class TypesFormEdit(TypesFormNew):
 class BoxesFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.all(), empty_label=None,
+    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.order_by('-default', 'id'), empty_label=None,
                                       widget=forms.Select(attrs={'class': 'form-control'}),
                                       help_text='Select a box type.')
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
