@@ -573,7 +573,7 @@ class GetDynamic(GetStandard):
     def _table_header_dynamic(self):
         return [head.name for head in self.dynamic_table._meta.get_fields()]
 
-    def query_dynamic(self, id_ref):
+    def query_dynamic(self, id_main):
         """Query dynamic table for main record id.
 
             :param id_ref: main record identifier id
@@ -582,7 +582,7 @@ class GetDynamic(GetStandard):
             :return: records for id_ref
             :rtype: django.db.models.query.QuerySet
         """
-        return self.dynamic_table.objects.filter(id_ref=id_ref).values()
+        return self.dynamic_table.objects.filter(id_main=id_main).values()
 
     @property
     def header_dynamic(self):
@@ -653,7 +653,7 @@ class GetDynamic(GetStandard):
                     tmp += '<td class="gui">{}</td>'.format(row[field])
             # adding all tds for builder_header_dynamic
             for field in self.type_attributes:
-                if field not in self.dynamic_table.objects.list_of_type_attributes(id_ref=row['id']):
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
                     tmp += '<td class="gui"></td>'
                 else:
                     for row_dynamic in _query_dynamic:
@@ -829,6 +829,38 @@ class TableManipulation(Master):
     def new_times(self, **kwargs):
         return self.new_log(text='times', unique='item', **kwargs)
 
+    def new_dynamic(self, user, identifier, timestamp=None, **kwargs):
+        """Function to create new dynamic table records.
+
+            :param user: user id/name
+            :type user: str
+            :param kwargs: custom table fields
+            :type kwargs: str/int/float
+            :param identifier: identifier of main object
+            :rtype identifier: str
+            :param timestamp: timestamp from external
+            :rtype timestamp: datetime object
+
+            :returns: flag + message
+            :rtype: bool, str
+        """
+        self.user = user
+        self.unique_value = '{} - {}'.format(identifier, kwargs['type_attribute'])
+        checksum = self.parsing(**kwargs)
+        try:
+            entry = self.table.objects.create(**self.dict, checksum=checksum)
+            self.timestamp = timestamp
+            self.id = entry.id
+            # success message + log entry
+            message = 'Record "{}" has been created.'.format(self.unique_value)
+            log.info(message)
+        except:
+            # raise error
+            message = 'Could not create record "{}".'.format(self.unique_value)
+            raise NameError(message)
+        else:
+            return True, message
+
     def new_boxing(self, **kwargs):
         return self.new_log(text='boxing', unique='box', **kwargs)
 
@@ -872,6 +904,14 @@ class TableManipulation(Master):
 
     def new_at(self, user, **kwargs):
         result, message = self.new(user=user, **kwargs)
+        if result:
+            if self.audit_trail(action='Create'):
+                return True, 'Success!'
+        else:
+            return result, message
+
+    def new_dynamic_at(self, user, identifier, timestamp=None, **kwargs):
+        result, message = self.new_dynamic(user=user, identifier=identifier, timestamp=timestamp, **kwargs)
         if result:
             if self.audit_trail(action='Create'):
                 return True, 'Success!'

@@ -338,9 +338,9 @@ class DynamicReagentsManager(GlobalManager):
     def unique(self):
         return 'id'
 
-    def list_of_type_attributes(self, id_ref):
+    def list_of_type_attributes(self, id_main):
         try:
-            return list(self.filter(id_ref=id_ref).order_by('id').values_list('type_attribute', flat=True))
+            return list(self.filter(id_main=id_main).order_by('id').values_list('type_attribute', flat=True))
         except IndexError:
             return list()
 
@@ -349,7 +349,7 @@ class DynamicReagentsManager(GlobalManager):
 class DynamicReagents(models.Model):
     # id
     id = models.AutoField(primary_key=True)
-    id_ref = models.IntegerField()
+    id_main = models.IntegerField()
     # custom fields
     type_attribute = models.CharField(max_length=UNIQUE_LENGTH)
     value = models.CharField(max_length=DEFAULT)
@@ -370,6 +370,7 @@ class DynamicReagentsAuditTrail(models.Model):
     id = models.AutoField(primary_key=True)
     id_ref = models.IntegerField()
     # custom fields
+    id_main = models.IntegerField()
     type_attribute = models.CharField(max_length=UNIQUE_LENGTH)
     value = models.CharField(max_length=DEFAULT)
     # system fields
