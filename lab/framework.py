@@ -613,6 +613,7 @@ class GetDynamic(GetStandard):
         return custom.capitalize(_header)
 
     def table_row_head_total(self, row, query_dynamic):
+        # TODO #59
         if self.verify_checksum(row=row):
             for row in query_dynamic:
                 if not self.verify_checksum_dynamic(row=row):
