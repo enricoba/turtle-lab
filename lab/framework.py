@@ -361,10 +361,10 @@ class GetStandard(Master):
             to_verify += '{}:{};'.format(field, row[field])
 
         to_verify += str(SECRET)
-        checksum = self.table.objects.checksum(row[self.unique])
+        checksum = row['checksum']
         try:
             return argon2.verify(to_verify, checksum)
-        except TypeError or ValueError:
+        except ValueError or TypeError:
             # return false + log entry
             message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'.\
                 format(row[self.unique], self.table_name)
@@ -560,26 +560,112 @@ class GetLog(GetStandard):
 
 
 class GetDynamic(GetStandard):
-    def __init__(self, table, type):
+    def __init__(self, table, dynamic_table, type):
         super().__init__(table)
         self.type = type
+        self.type_attributes = models.TypeAttributes.objects.columns_as_list(type=type)
+        self.dynamic_table = dynamic_table
+        self.dynamic_table_name = dynamic_table._meta.db_table
+        self.dynamic_table_unique = self.dynamic_table.objects.unique
         self.affiliation = models.Types.objects.get_affiliation(type=type)
 
     @property
+    def _table_header_dynamic(self):
+        return [head.name for head in self.dynamic_table._meta.get_fields()]
+
+    def query_dynamic(self, id_ref):
+        """Query dynamic table for main record id.
+
+            :param id_ref: main record identifier id
+            :type id_ref: int
+
+            :return: records for id_ref
+            :rtype: django.db.models.query.QuerySet
+        """
+        return self.dynamic_table.objects.filter(id_ref=id_ref).values()
+
+    @property
+    def header_dynamic(self):
+        _header_dynamic = self._table_header_dynamic
+        _header_dynamic.remove('id')
+        _header_dynamic.remove('checksum')
+        return _header_dynamic
+
+    @property
+    def header_start(self):
+        _header_start = self.header
+        if self.affiliation == 'Reagents':
+            _header_start.remove('type')
+        _header_start.remove('version')
+        return _header_start
+
+    @property
     def html_header(self):
-        _header = self._table_header
-        _columns = models.TypeAttributes.objects.columns_as_list(type=self.type)
-        _header.remove('id')
-        if self.affiliation == 'Reagent':
-            _header.remove('type')
+        _header = self.header_start + self.type_attributes
+        _header.append('Version')
+        return custom.capitalize(_header)
+
+    def table_row_head_total(self, row, query_dynamic):
+        if self.verify_checksum(row=row):
+            for row in query_dynamic:
+                if not self.verify_checksum_dynamic(row=row):
+                    return '<tr style="color: red">'
+            return '<tr>'
         else:
-            # TODO remove new column "type" of samples header
-            pass
-        _header.remove('checksum')
-        _header.remove('version')
-        _header = _header + _columns
-        _header.append('version')
-        return _header
+            return '<tr style="color: red">'
+
+    def verify_checksum_dynamic(self, row):
+        """Verify checksum of dynamic class table.
+
+            :param row: element of Django queryset
+            :type row: dict
+
+            :returns: success flag
+            :rtype: bool
+        """
+        to_verify = str()
+        for field in self.header_dynamic:
+            to_verify += '{}:{};'.format(field, row[field])
+
+        to_verify += str(SECRET)
+        checksum = row['checksum']
+        try:
+            return argon2.verify(to_verify, checksum)
+        except ValueError or TypeError:
+            # return false + log entry
+            message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'. \
+                format(row[self.dynamic_table_unique], self.dynamic_table_name)
+            log.warning(message)
+            return False
+
+    def get(self, **dic):
+        _query = self.query(order_by=self.order_by, type=self.type)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic(row['id'])
+            tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
+            # adding all tds for builder_header_start
+            for field in self.header_start:
+                # tagging the unique field
+                if field == self.unique:
+                    tmp += '<td class="unique gui">{}</td>'.format(row[field])
+                else:
+                    tmp += '<td class="gui">{}</td>'.format(row[field])
+            # adding all tds for builder_header_dynamic
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_ref=row['id']):
+                    tmp += '<td class="gui"></td>'
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            tmp += '<td>{}</td>'.format(row_dynamic['value'])
+            # adding all tds for builder_header_end
+            tmp += '<td>{}</td>'.format(row['version'])
+            # close table
+            tmp += '</tr>'
+            # append table row
+            _list.append(tmp)
+        return _list
 
 
 class TableManipulation(Master):

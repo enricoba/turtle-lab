@@ -277,7 +277,7 @@ class TypeAttributesManager(GlobalManager):
 
     def columns_as_list(self, type):
         try:
-            return list(self.filter(type=type).values_list('column', flat=True))
+            return list(self.filter(type=type).order_by('id').values_list('column', flat=True))
         except IndexError:
             return list()
 
@@ -337,6 +337,12 @@ class DynamicReagentsManager(GlobalManager):
     @property
     def unique(self):
         return 'id'
+
+    def list_of_type_attributes(self, id_ref):
+        try:
+            return list(self.filter(id_ref=id_ref).order_by('id').values_list('type_attribute', flat=True))
+        except IndexError:
+            return list()
 
 
 # table
