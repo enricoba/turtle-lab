@@ -570,6 +570,13 @@ class GetDynamic(GetStandard):
         self.affiliation = models.Types.objects.get_affiliation(type=type)
 
     @property
+    def js_header(self):
+        _header = self.header_start
+        for column in self.type_attributes:
+            _header.append(column)
+        return _header
+
+    @property
     def _table_header_dynamic(self):
         return [head.name for head in self.dynamic_table._meta.get_fields()]
 

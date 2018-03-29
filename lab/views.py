@@ -1147,6 +1147,7 @@ def reagents_dynamic(request, reagent):
         context={'tables': True,
                  'content': 'reagents',
                  'content_dynamic': reagent,
+                 'type_attributes': models.TypeAttributes.objects.columns_as_list(type=reagent),
                  'session': True,
                  'user': request.user.username,
                  'perm': request.user.permissions},
@@ -1208,7 +1209,7 @@ def reagents_new(request, reagent):
                                                                     timestamp=manipulation.timestamp,
                                                                     id_main=manipulation.id,
                                                                     type_attribute=field,
-                                                                    value='test123')
+                                                                    value=request.POST.get(field))
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)

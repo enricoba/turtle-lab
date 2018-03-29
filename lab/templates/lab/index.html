@@ -412,6 +412,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endfor %}
+                                    {% if content_dynamic %}
+                                        {% for column in type_attributes %}
+                                            <div class="form-group">
+                                                <label for="id_{{ column }}">{{ column }}:</label>
+                                                <input name="{{ column }}" id="id_{{ column }}" class="form-control" maxlength="255" type="text">
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </form>
                             </div>
                             <!-- FOOTER -->

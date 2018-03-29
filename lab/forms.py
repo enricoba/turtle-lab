@@ -419,9 +419,6 @@ class SamplesFormEdit(forms.Form):
 class ReagentsFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    type = forms.ModelChoiceField(label='type', queryset=Types.objects.reagents,
-                                  widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None,
-                                  help_text='Select a type.')
 
 
 class ReagentsFormEdit(forms.Form):
@@ -429,9 +426,6 @@ class ReagentsFormEdit(forms.Form):
                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    type = forms.ModelChoiceField(label='type', queryset=Types.objects.reagents,
-                                  widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}),
-                                  empty_label=None, help_text='Select a type.')
 
 
 class MovementsForm(forms.Form):
