@@ -281,6 +281,16 @@ class TypeAttributesManager(GlobalManager):
         except IndexError:
             return list()
 
+    def all_list_exchanged(self, type):
+        try:
+            query = list(self.filter(type=type).order_by('id'))
+            for row in query:
+                if row.list_values:
+                    row.list_values = row.list_values.split(',')
+            return query
+        except IndexError:
+            return list()
+
 
 # table
 class TypeAttributes(models.Model):
@@ -299,7 +309,7 @@ class TypeAttributes(models.Model):
     objects = TypeAttributesManager()
 
     def __str__(self):
-        return '{} ({})'.format(self.column, self.type)
+        return self.column
 
 
 # audit trail manager

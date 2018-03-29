@@ -1147,7 +1147,7 @@ def reagents_dynamic(request, reagent):
         context={'tables': True,
                  'content': 'reagents',
                  'content_dynamic': reagent,
-                 'type_attributes': models.TypeAttributes.objects.columns_as_list(type=reagent),
+                 'type_attributes': models.TypeAttributes.objects.all_list_exchanged(type=reagent),
                  'session': True,
                  'user': request.user.username,
                  'perm': request.user.permissions},
@@ -1193,7 +1193,7 @@ def reagents_audit_trail(request):
 @decorators.permission('re_w')
 @decorators.require_ajax
 def reagents_new(request, reagent):
-    form = forms.ReagentsFormNew(request.POST)
+    form = forms.ReagentsFormNew(request.POST, request=request, type=reagent)
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.Reagents,
                                                    table_audit_trail=models.ReagentsAuditTrail)
@@ -1201,15 +1201,19 @@ def reagents_new(request, reagent):
                                                            reagent='R {}'.format(str(timezone.now())),
                                                            name=form.cleaned_data['name'],
                                                            type=reagent)
-        manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
-                                                           table_audit_trail=models.DynamicReagentsAuditTrail)
-        for field in models.TypeAttributes.objects.columns_as_list(type=reagent):
-            response, message = manipulation_dynamic.new_dynamic_at(user=request.user.username,
-                                                                    identifier=manipulation.unique_value,
-                                                                    timestamp=manipulation.timestamp,
-                                                                    id_main=manipulation.id,
-                                                                    type_attribute=field,
-                                                                    value=request.POST.get(field))
+        if response:
+            manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
+                                                               table_audit_trail=models.DynamicReagentsAuditTrail)
+            _success_list = list()
+            for field in models.TypeAttributes.objects.columns_as_list(type=reagent):
+                response, message = manipulation_dynamic.new_dynamic_at(user=request.user.username,
+                                                                        identifier=manipulation.unique_value,
+                                                                        timestamp=manipulation.timestamp,
+                                                                        id_main=manipulation.id,
+                                                                        type_attribute=field,
+                                                                        value=request.POST.get(field))
+                _success_list.append(response)
+            response = custom.check_equal(_success_list)
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
