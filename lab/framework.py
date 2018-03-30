@@ -666,7 +666,7 @@ class GetDynamic(GetStandard):
                 else:
                     for row_dynamic in _query_dynamic:
                         if field == row_dynamic['type_attribute']:
-                            tmp += '<td>{}</td>'.format(row_dynamic['value'])
+                            tmp += '<td class="gui">{}</td>'.format(row_dynamic['value'])
             # adding all tds for builder_header_end
             tmp += '<td>{}</td>'.format(row['version'])
             # close table
