@@ -127,3 +127,15 @@ html, body {
 .sidebar-sub-vis {
     display: none;
 }
+
+.sidebar-active {
+    background-color: limegreen;
+}
+
+.sidebar-active a span {
+    color: white;
+}
+
+.sidebar-active a svg {
+    color: white;
+}
