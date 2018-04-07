@@ -1240,6 +1240,10 @@ class TableManipulation(Master):
                     log.info(message)
                     return True, message
 
+    def move(self, user, obj, method, initial_location, new_location, timestamp):
+        return self.new_log(user=user, object=obj, method=method, initial_location=initial_location,
+                            new_location=new_location, timestamp=timestamp)
+
 
 def new_login_log(username, action, method='manual', active=None):
     """Function to create new login log records. 

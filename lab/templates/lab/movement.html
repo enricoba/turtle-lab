@@ -29,7 +29,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 dataType: 'json',
                 success: function (data) {
                     if (data.response) {
-                        $('#id_actual_location').val(data.data);
+                        $('#id_actual_location').val(data.location);
+                        var id_target = '#id_new_location';
+                        $(id_target).empty();
+                        $.each(data.targets, function (i, item) {
+                            $(id_target).append($('<option>', {
+                                value: item.value,
+                                text : item.text
+                            }));
+                        });
                         $('#id_modal_movement').modal("show");
                     }
                 }

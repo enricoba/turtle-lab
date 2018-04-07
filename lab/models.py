@@ -142,6 +142,16 @@ class LocationsManager(GlobalManager):
         dic = {self.unique: unique}
         return self.filter(**dic)[0].condition
 
+    def locations_by_type(self, type):
+        condition = Types.objects.storage_condition(type=type)
+        if condition:
+            try:
+                return self.filter(condition=condition).all()
+            except IndexError:
+                return False
+        else:
+            return False
+
 
 # table
 class Locations(models.Model):
@@ -160,9 +170,9 @@ class Locations(models.Model):
 
     def __str__(self):
         if self.name == '':
-            _return = '{} ({})'.format(self.location, self.condition)
+            _return = self.location
         else:
-            _return = '{} ({}) ({})'.format(self.location, self.name, self.condition)
+            _return = '{} ({})'.format(self.location, self.name)
         return _return
 
 
@@ -217,6 +227,12 @@ class TypesManager(GlobalManager):
     def get_affiliation(self, type):
         try:
             return self.filter(type=type)[0].affiliation
+        except IndexError:
+            return False
+
+    def storage_condition(self, type):
+        try:
+            return self.filter(type=type)[0].storage_condition
         except IndexError:
             return False
 
@@ -614,6 +630,13 @@ class ReagentsManager(GlobalManager):
     def unique(self):
         return 'reagent'
 
+    def condition(self, reagent):
+        try:
+            type = self.objects.filter(reagent=reagent)[0].type
+            return Types.objects.storage_condition(type=type)
+        except IndexError:
+            return False
+
 
 # table
 class Reagents(models.Model):
@@ -750,7 +773,7 @@ class MovementLog(models.Model):
     id = models.AutoField(primary_key=True)
     # custom fields
     object = models.CharField(max_length=UNIQUE_LENGTH)
-    type = models.CharField(max_length=UNIQUE_LENGTH)
+    method = models.CharField(max_length=UNIQUE_LENGTH)
     initial_location = models.CharField(max_length=UNIQUE_LENGTH)
     new_location = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
@@ -825,7 +848,10 @@ class OverviewManager(GlobalManager):
         return 'object'
 
     def location(self, unique):
-        return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+        try:
+            return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+        except IndexError:
+            return ''
 
     def method(self, unique):
         return self.filter(object=unique)[0].type
@@ -833,11 +859,18 @@ class OverviewManager(GlobalManager):
     def box(self, unique):
         return self.filter(object=unique)[0].box
 
+    def type(self, unique):
+        try:
+            return self.filter(object=unique)[0].type
+        except IndexError:
+            return False
+
 
 # table
 class Overview(models.Model):
     id = models.BigIntegerField(primary_key=True)
     object = models.CharField(max_length=UNIQUE_LENGTH)
+    affiliation = models.CharField(max_length=UNIQUE_LENGTH)
     type = models.CharField(max_length=UNIQUE_LENGTH)
     location = models.CharField(max_length=UNIQUE_LENGTH)
     box = models.CharField(max_length=UNIQUE_LENGTH)
@@ -963,7 +996,7 @@ PERMISSIONS = (
     ('ov_w', 'Overview write'),
     # ('home', 'Home'),
     # ('bo', 'Home boxing'),
-    # ('mo', 'Home movements'),
+    ('mo', 'Overview movements'),
     # ('sa_r', 'Samples read'),
     # ('sa_w', 'Samples write'),
     # ('sa_d', 'Samples delete'),

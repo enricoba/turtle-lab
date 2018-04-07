@@ -1273,14 +1273,14 @@ def reagents_delete(request):
                                                    table_audit_trail=models.ReagentsAuditTrail)
         response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
                                                 user=request.user.username)
-        if response:
+        """if response:
             manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
                                                                table_audit_trail=models.DynamicReagentsAuditTrail)
             print(manipulation.id)
             # manipulation_dynamic.delete_dynamic(id_main=manipulation.id, identifier=manipulation.unique_value,
             #                                     timestamp=manipulation.timestamp)
         _success_list = list()
-        print(request.POST.get('items'))
+        print(request.POST.get('items'))"""
         data = {'response': response}
         return JsonResponse(data)
 
@@ -1497,11 +1497,63 @@ def overview(request):
                'user': request.user.username,
                'perm': request.user.permissions,
                'modal_overview_boxing': forms.OverviewBoxingForm(),
+               'modal_movement': forms.MovementsForm(),
                'header': framework.GetView(table=models.Overview).html_header,
                'query': framework.GetView(table=models.Overview).get(),
                'reagents': models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True),
                'samples': models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)}
     return render(request, 'lab/index.html', context)
+
+
+@require_GET
+@login_required
+@decorators.permission('mo')
+@decorators.require_ajax
+def overview_movement(request):
+    unique = request.GET.get('unique')
+    location = models.Overview.objects.location(unique=unique)
+    if not location:
+        location = '---'
+    targets = models.Locations.objects.locations_by_type(type=models.Overview.objects.type(unique=unique))
+    tmp_dict = dict()
+    if targets:
+        for idx, target in enumerate(targets):
+            keys = ['value', 'text']
+            # TODO #64
+            values = [target.id, target.location]
+            tmp_dict['Option{}'.format(idx)] = dict(zip(keys, values))
+    else:
+        keys = ['value', 'text']
+        values = ['---', '---']
+        tmp_dict['Option0'] = dict(zip(keys, values))
+    data = {'response': True,
+            'location': location,
+            'targets': tmp_dict}
+    return JsonResponse(data)
+
+
+@require_POST
+@login_required
+@decorators.permission('mo')
+@decorators.require_ajax
+def overview_move(request):
+    form = forms.MovementsForm(request.POST, request=request)
+    if form.is_valid():
+        manipulation = framework.TableManipulation(table=models.MovementLog)
+        timestamp = timezone.now()
+        response = manipulation.move(user=request.user.username,
+                                     obj=request.POST.get('unique'),
+                                     method='manual',
+                                     initial_location=str(form.cleaned_data['actual_location'])[:7],
+                                     new_location=str(form.cleaned_data['new_location'])[:7],
+                                     timestamp=timestamp)
+        data = {'response': response}
+        return JsonResponse(data)
+    else:
+        data = {'response': False,
+                'form_id': 'id_form_movement',
+                'errors': form.errors}
+        return JsonResponse(data)
 
 
 @require_GET

@@ -118,5 +118,7 @@ urlpatterns = [
     # overview
     url(r'^overview/$', views.overview, name='overview'),
     url(r'^overview/boxing/$', views.overview_boxing, name='overview boxing'),
-    url(r'^overview/locate/$', views.overview_locate, name='overview locate')
+    url(r'^overview/locate/$', views.overview_locate, name='overview locate'),
+    url(r'^overview/movement/$', views.overview_movement, name='overview movement'),
+    url(r'^overview/move/$', views.overview_move, name='overview move')
 ]

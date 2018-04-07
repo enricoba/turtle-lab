@@ -325,6 +325,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- Overview -->
+                    <!-- MOVEMENT -->
+                    {% if content == 'overview' and 'mo' in perm %}
+                        <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-exchange-alt"></i></button>
+                    {% endif %}
                     <!-- BOXING -->
                     {% if content == 'overview'%}
                         <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-success">
@@ -586,7 +591,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             {% endif %}
 
             <!-- HOME -->
-            {% if content == 'home' %}
+            {% if content == 'overview' %}
                 <!-- MOVEMENT -->
                 <div class="modal fade" id="id_modal_movement" tabindex="-1" role="dialog" aria-labelledby="id_modal_movement">
                     <div class="modal-dialog" role="document">
@@ -876,6 +881,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'overview' %}
         {% include "lab/overview_boxing.html" %}
+        {% include "lab/movement.html" %}
         {% include "lab/form.html" %}
     {% endif %}
 

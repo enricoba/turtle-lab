@@ -266,10 +266,11 @@ class TypesFormNew(forms.Form):
     def clean(self):
         cleaned_data = super(TypesFormNew, self).clean()
         affiliation = cleaned_data.get('affiliation')
-        usage_condition = cleaned_data.get('usage_condition')
+        # usage_condition = cleaned_data.get('usage_condition')
         if affiliation == 'Samples':
-            if usage_condition is None:
-                raise forms.ValidationError('Samples must have usage condition.')
+            raise forms.ValidationError('Samples are not supported in this version.')
+            # if usage_condition is None:
+            # raise forms.ValidationError('Samples must have usage condition.')
 
 
 class TypesFormEdit(TypesFormNew):
@@ -469,19 +470,16 @@ class MovementsForm(forms.Form):
 
     def clean(self):
         cleaned_data = super(MovementsForm, self).clean()
-        actual_location = cleaned_data.get('actual_location')
+        actual_location = str(cleaned_data.get('actual_location'))[:7]
         new_location = str(cleaned_data.get('new_location'))[:7]
         unique = self.request.POST.get('unique')
         if actual_location == new_location:
             raise forms.ValidationError('Actual location is equal to new location.')
         if unique[:1] == 'B':
-            boxed_samples = models.RTD.objects.filter(box=unique[:7])
-            for sample in boxed_samples:
-                if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(sample):
-                    raise forms.ValidationError('Target location has no suitable condition for {}.'.format(sample))
-        if unique[:1] == 'S':
-            if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
-                raise forms.ValidationError('Target location has no suitable condition.')
+            boxed_objects = models.Overview.objects.filter(box=unique[:7])
+            for obj in boxed_objects:
+                if models.Locations.objects.condition(new_location) != models.Reagents.objects.condition(obj):
+                    raise forms.ValidationError('Target location has no suitable condition for {}.'.format(obj))
 
 
 class BoxingForm(forms.Form):
