@@ -676,6 +676,53 @@ class GetDynamic(GetStandard):
         return _list
 
 
+class GetDynamicAuditTrail(GetStandard):
+    def __init__(self, table, dynamic_table, type):
+        super().__init__(table)
+        self.type = type
+
+
+
+    def table_row_head_total(self, row, query_dynamic):
+        # TODO #59
+        if self.verify_checksum(row=row):
+            for row in query_dynamic:
+                if not self.verify_checksum_dynamic(row=row):
+                    return '<tr class="tmp_audit_trail" style="color: red">'
+            return '<tr class="tmp_audit_trail">'
+        else:
+            return '<tr class="tmp_audit_trail" style="color: red">'
+
+    def get(self, **dic):
+        _query = self.query(order_by=self.order_by, type=self.type)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic(row['id'])
+            tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
+            # adding all tds for builder_header_start
+            for field in self.header_start:
+                # tagging the unique field
+                if field == self.unique:
+                    tmp += '<td class="unique gui">{}</td>'.format(row[field])
+                else:
+                    tmp += '<td class="gui">{}</td>'.format(row[field])
+            # adding all tds for builder_header_dynamic
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
+                    tmp += '<td class="gui"></td>'
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            tmp += '<td class="gui">{}</td>'.format(row_dynamic['value'])
+            # adding all tds for builder_header_end
+            tmp += '<td>{}</td>'.format(row['version'])
+            # close table
+            tmp += '</tr>'
+            # append table row
+            _list.append(tmp)
+        return _list
+
+
 class TableManipulation(Master):
     def __init__(self, table, table_audit_trail=None):
         super().__init__(table)
@@ -684,6 +731,7 @@ class TableManipulation(Master):
         self._dict = dict()
         self._id = int
         self._user = str()
+        self._version = None
         self._unique_value = None
         self.unique_old = self.unique + '_old'
 
@@ -710,6 +758,14 @@ class TableManipulation(Master):
     @id.setter
     def id(self, value):
         self._id = value
+
+    @property
+    def version(self):
+        return self._version
+
+    @version.setter
+    def version(self, value):
+        self._version = value
 
     @property
     def user(self):
@@ -739,11 +795,9 @@ class TableManipulation(Master):
         _header.remove('checksum')
         return _header
 
-    def parsing(self, version=None, **kwargs):
+    def parsing(self, **kwargs):
         """Function to parse passed dict to generate json string, generate checksum and result dict for return. 
 
-            :param version: record version 
-            :type version: int
             :param kwargs: custom table fields 
             :type kwargs: str/int/float
 
@@ -767,10 +821,9 @@ class TableManipulation(Master):
                 message = 'Field "{}" is missing in argument list.'.format(field)
                 raise NameError(message)
         # add version
-        if version is not None:
-            version = version
-            _dict['version'] = version
-            _json += 'version:{};'.format(version)
+        if self.version is not None:
+            _dict['version'] = self.version
+            _json += 'version:{};'.format(self.version)
         self.json = _json
         self.dict = _dict
         # add secret to json string
@@ -794,7 +847,8 @@ class TableManipulation(Master):
         if self.table.objects.exist(kwargs[self.unique]) is False:
             self.user = user
             self.unique_value = kwargs[self.unique]
-            checksum = self.parsing(version=1, **kwargs)
+            self.version = 1
+            checksum = self.parsing(**kwargs)
             try:
                 entry = self.table.objects.create(**self.dict, checksum=checksum)
                 self.timestamp = timezone.now()
@@ -837,17 +891,19 @@ class TableManipulation(Master):
     def new_times(self, **kwargs):
         return self.new_log(text='times', unique='item', **kwargs)
 
-    def new_dynamic(self, user, identifier, timestamp=None, **kwargs):
+    def new_dynamic(self, user, identifier, main_version, timestamp, **kwargs):
         """Function to create new dynamic table records.
 
             :param user: user id/name
             :type user: str
-            :param kwargs: custom table fields
-            :type kwargs: str/int/float
             :param identifier: identifier of main object
             :rtype identifier: str
+            :param main_version: version of the main object
+            :rtype main_version: int
             :param timestamp: timestamp from external
             :rtype timestamp: datetime object
+            :param kwargs: custom table fields
+            :type kwargs: str/int/float
 
             :returns: flag + message
             :rtype: bool, str
@@ -856,9 +912,9 @@ class TableManipulation(Master):
         self.unique_value = '{} - {}'.format(identifier, kwargs['type_attribute'])
         checksum = self.parsing(**kwargs)
         try:
-            entry = self.table.objects.create(**self.dict, checksum=checksum)
+            self.table.objects.create(**self.dict, checksum=checksum)
             self.timestamp = timestamp
-            self.id = entry.id
+            self.id = main_version
             # success message + log entry
             message = 'Record "{}" has been created.'.format(self.unique_value)
             log.info(message)
@@ -888,8 +944,8 @@ class TableManipulation(Master):
             self.user = user
             self.unique_value = kwargs[self.unique]
             # get record version and increment
-            version = self.record_version(self.unique_value) + 1
-            checksum = self.parsing(version=version, **kwargs)
+            self.version = self.record_version(self.unique_value) + 1
+            checksum = self.parsing(**kwargs)
             try:
                 filter_dic = {self.unique: self.unique_value}
                 self.table.objects.filter(**filter_dic).update(**self.dict, checksum=checksum)
@@ -910,6 +966,34 @@ class TableManipulation(Master):
             log.warning(message)
             return False, message
 
+    def edit_dynamic(self, user, identifier, main_version, timestamp, **kwargs):
+        self.unique_value = '{} - {}'.format(identifier, kwargs['type_attribute'])
+        keys = ['id_main', 'type_attribute']
+        values = [kwargs['id_main'], kwargs['type_attribute']]
+        filter_dic = dict(zip(keys, values))
+        if self.table.objects.filter(**filter_dic).exists():
+            self.user = user
+            checksum = self.parsing(**kwargs)
+            # self.version = main_version
+            try:
+                self.table.objects.filter(**filter_dic).update(**self.dict, checksum=checksum)
+                self.timestamp = timestamp
+                self.id = main_version
+                # success message + log entry
+                message = 'Record "{}" has been updated.'.format(self.unique_value)
+                log.info(message)
+            except:
+                # raise error
+                message = 'Could not update record "{}".'.format(self.unique_value)
+                raise NameError(message)
+            else:
+                return True, message
+        else:
+            # return false and error message + log entry
+            message = 'Record "{}" is not existing.'.format(self.unique_value)
+            log.warning(message)
+            return False, message
+
     def new_at(self, user, **kwargs):
         result, message = self.new(user=user, **kwargs)
         if result:
@@ -918,10 +1002,20 @@ class TableManipulation(Master):
         else:
             return result, message
 
-    def new_dynamic_at(self, user, identifier, timestamp=None, **kwargs):
-        result, message = self.new_dynamic(user=user, identifier=identifier, timestamp=timestamp, **kwargs)
+    def new_dynamic_at(self, user, identifier, main_version, timestamp, **kwargs):
+        result, message = self.new_dynamic(user=user, identifier=identifier, main_version=main_version,
+                                           timestamp=timestamp, **kwargs)
         if result:
             if self.audit_trail(action='Create'):
+                return True, 'Success!'
+        else:
+            return result, message
+
+    def edit_dynamic_at(self, user, identifier, main_version, timestamp, **kwargs):
+        result, message = self.edit_dynamic(user=user, identifier=identifier, main_version=main_version,
+                                            timestamp=timestamp, **kwargs)
+        if result:
+            if self.audit_trail(action='Update'):
                 return True, 'Success!'
         else:
             return result, message
@@ -1023,7 +1117,8 @@ class TableManipulation(Master):
             # set id for audit trail entry
             self.id = _query[0]["id"]
             # parse record values to generate json string and dict to pass for audit trail
-            self.parsing(version=_query[0]["version"], **self.prepare(_query))
+            self.version = _query[0]["version"]
+            self.parsing(**self.prepare(_query))
             # delete record
             try:
                 self.table.objects.filter(**_dic).delete()
@@ -1039,6 +1134,27 @@ class TableManipulation(Master):
                 return True
         else:
             return False
+
+    def delete_dynamic(self, id_main, identifier, timestamp):
+        query = self.table.objects.filter(id_main=id_main)
+        print('query: ', query)
+        for record in query:
+            print('record: ', record)
+            self.unique_value = '{} - {}'.format(identifier, record.type_attribute)
+            print('unique value: ', self.unique_value)
+            self.id = record.id
+            self.parsing(**self.prepare(record))
+            try:
+                self.table.object.filter(id=record.id).delete()
+                self.timestamp = timestamp
+                # log entry
+                message = 'Record "{}" has been deleted.'.format(self.unique_value)
+                log.info(message)
+            except:
+                # raise error
+                message = 'Could not delete record "{}".'.format(self.unique_value)
+                raise NameError(message)
+        return True
 
     def movement(self, user, unique, new_location):
         # get actual information

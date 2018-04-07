@@ -75,7 +75,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% endfor %}
         $.ajax({
             method: "POST",
-            url: "/" + dialog + "/edit/",
+            url: "/" + dialog + "/edit/{% if content_dynamic %}{{ content_dynamic }}/{% endif %}",
             data: {
                 {% for item in modal_js_post %}
                     {{ item|safe }}

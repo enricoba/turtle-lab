@@ -516,6 +516,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endfor %}
+                                    <!-- DYNAMIC -->
+                                    {% if content_dynamic %}
+                                        {% for ta in type_attributes %}
+                                            <div class="form-group">
+                                                <label for="id_{{ ta.column }}">{{ ta.column }}:</label>
+                                                {% if not ta.list_values %}
+                                                    <input name="{{ ta.column }}" id="id_{{ ta.column }}" {% if ta.mandatory == True %} required=""{% endif %}
+                                                           value="{{ ta.default_value }}" class="form-control" maxlength="255" type="text">
+                                                {% else %}
+                                                    <!-- TODO maybe manual required to work with edit -->
+                                                    <select name="{{ ta.column }}" class="form-control" id="id_{{ ta.column }}">
+                                                        {% for element in ta.list_values %}
+                                                            <option {% if ta.default_value %} selected="selected"{% endif %} value="{{ element }}">{{ element }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </form>
                             </div>
                             <!-- FOOTER -->

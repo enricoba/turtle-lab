@@ -439,6 +439,18 @@ class ReagentsFormEdit(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        self.type = kwargs.pop('type', None)
+        super(ReagentsFormEdit, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        # TODO #61
+        for row in models.TypeAttributes.objects.filter(type=self.type).order_by('id'):
+            if row.mandatory:
+                if not self.request.POST.get(row.column):
+                    raise forms.ValidationError('Field "{}" is mandatory.'.format(row.column))
+
 
 #############
 # MOVEMENTS #

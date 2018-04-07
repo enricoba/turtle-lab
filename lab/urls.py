@@ -76,13 +76,13 @@ urlpatterns = [
     # url(r'^samples/audit_trail/$', views.samples_audit_trail, name='samples audit trail'),
     # url(r'^samples/label/$', views.samples_label, name='samples label'),
     # reagents
-    url(r'^reagents/$', views.reagents, name='reagents'),
     url(r'^reagents/new/(?P<reagent>\w+)/$', views.reagents_new, name='reagents new'),
-    url(r'^reagents/edit/$', views.reagents_edit, name='reagents edit'),
+    url(r'^reagents/edit/(?P<reagent>\w+)/$', views.reagents_edit, name='reagents edit'),
+    # url(r'^reagents/edit/$', views.reagents_edit, name='reagents edit'),
     url(r'^reagents/delete/$', views.reagents_delete, name='reagents delete'),
     url(r'^reagents/audit_trail/$', views.reagents_audit_trail, name='reagents audit trail'),
     url(r'^reagents/label/$', views.reagents_label, name='reagents label'),
-    url(r'^reagents/(?P<reagent>\w+)/$', views.reagents_dynamic, name='reagents dynamic'),
+    url(r'^reagents/(?P<reagent>\w+)/$', views.reagents, name='reagents'),
     # accounts
     # url(r'^freeze_thaw_accounts/$', views.freeze_thaw_accounts, name='freeze_thaw_accounts'),
     # url(r'^freeze_thaw_accounts/new/$', views.freeze_thaw_accounts_new, name='freeze_thaw_accounts new'),

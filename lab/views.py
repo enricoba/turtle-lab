@@ -1142,7 +1142,7 @@ def samples_label(request):
 @require_GET
 @login_required
 @decorators.permission('re_r', 're_w', 're_d', 're_l')
-def reagents_dynamic(request, reagent):
+def reagents(request, reagent):
     context = framework.html_and_data(
         context={'tables': True,
                  'content': 'reagents',
@@ -1158,6 +1158,7 @@ def reagents_dynamic(request, reagent):
     return render(request, 'lab/index.html', context)
 
 
+"""
 @require_GET
 @login_required
 @decorators.permission('re_r', 're_w', 're_d', 're_l')
@@ -1173,6 +1174,7 @@ def reagents(request):
         form_render_new=forms.ReagentsFormNew(),
         form_render_edit=forms.ReagentsFormEdit())
     return render(request, 'lab/index.html', context)
+"""
 
 
 @require_GET
@@ -1208,6 +1210,7 @@ def reagents_new(request, reagent):
             for field in models.TypeAttributes.objects.columns_as_list(type=reagent):
                 response, message = manipulation_dynamic.new_dynamic_at(user=request.user.username,
                                                                         identifier=manipulation.unique_value,
+                                                                        main_version=manipulation.version,
                                                                         timestamp=manipulation.timestamp,
                                                                         id_main=manipulation.id,
                                                                         type_attribute=field,
@@ -1228,15 +1231,29 @@ def reagents_new(request, reagent):
 @login_required
 @decorators.permission('re_w')
 @decorators.require_ajax
-def reagents_edit(request):
-    form = forms.ReagentsFormEdit(request.POST)
+def reagents_edit(request, reagent):
+    form = forms.ReagentsFormEdit(request.POST, request=request, type=reagent)
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.Reagents,
                                                    table_audit_trail=models.ReagentsAuditTrail)
         response, message = manipulation.edit_at(user=request.user.username,
                                                  reagent=form.cleaned_data['reagent'],
                                                  name=form.cleaned_data['name'],
-                                                 type=form.cleaned_data['type'])
+                                                 type=reagent)
+        if response:
+            manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
+                                                               table_audit_trail=models.DynamicReagentsAuditTrail)
+            _success_list = list()
+            for field in models.TypeAttributes.objects.columns_as_list(type=reagent):
+                response, message = manipulation_dynamic.edit_dynamic_at(user=request.user.username,
+                                                                         identifier=manipulation.unique_value,
+                                                                         main_version=manipulation.version,
+                                                                         timestamp=manipulation.timestamp,
+                                                                         id_main=manipulation.id,
+                                                                         type_attribute=field,
+                                                                         value=request.POST.get(field))
+                _success_list.append(response)
+            response = custom.check_equal(_success_list)
         data = {'response': response,
                 'message': message}
         return JsonResponse(data)
@@ -1256,6 +1273,14 @@ def reagents_delete(request):
                                                    table_audit_trail=models.ReagentsAuditTrail)
         response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
                                                 user=request.user.username)
+        if response:
+            manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
+                                                               table_audit_trail=models.DynamicReagentsAuditTrail)
+            print(manipulation.id)
+            # manipulation_dynamic.delete_dynamic(id_main=manipulation.id, identifier=manipulation.unique_value,
+            #                                     timestamp=manipulation.timestamp)
+        _success_list = list()
+        print(request.POST.get('items'))
         data = {'response': response}
         return JsonResponse(data)
 
