@@ -989,10 +989,12 @@ class TableManipulation(Master):
             else:
                 return True, message
         else:
-            # return false and error message + log entry
-            message = 'Record "{}" is not existing.'.format(self.unique_value)
-            log.warning(message)
-            return False, message
+            # error message + log entry
+            message = 'Record "{}" is not existing. Therefore adding new record.'.format(self.unique_value)
+            log.info(message)
+            result, message = self.new_dynamic(user=user, identifier=identifier, main_version=main_version,
+                                               timestamp=timestamp, **kwargs)
+            return result, message
 
     def new_at(self, user, **kwargs):
         result, message = self.new(user=user, **kwargs)
