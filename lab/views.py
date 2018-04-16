@@ -1520,7 +1520,7 @@ def overview_movement(request):
         for idx, target in enumerate(targets):
             keys = ['value', 'text']
             # TODO #64
-            values = [target.id, target.location]
+            values = [target.id, target.__str__()]
             tmp_dict['Option{}'.format(idx)] = dict(zip(keys, values))
     else:
         keys = ['value', 'text']
