@@ -1739,7 +1739,7 @@ def export(request, dialog):
     return response
 
 
-@require_POST
+""""@require_POST
 @login_required
 def import_data(request, dialog):
-    pass
+    pass"""
