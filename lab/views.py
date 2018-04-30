@@ -1561,7 +1561,7 @@ def overview_move(request):
 
 @require_GET
 @login_required
-@decorators.permission('ov_w')
+@decorators.permission('bo')
 @decorators.require_ajax
 def overview_locate(request):
     affiliation = models.Overview.objects.affiliation(unique=request.GET.get('unique'))
@@ -1603,7 +1603,7 @@ def overview_locate(request):
 
 @require_POST
 @login_required
-@decorators.permission('ov_w')
+@decorators.permission('bo')
 @decorators.require_ajax
 def overview_boxing(request):
     form = forms.OverviewBoxingForm(request.POST, request=request)

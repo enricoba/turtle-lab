@@ -331,9 +331,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-exchange-alt"></i></button>
                     {% endif %}
                     <!-- BOXING -->
-                    {% if content == 'overview'%}
-                        <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-success">
-                            <i class="fas fa-plus"></i></button>
+                    {% if content == 'overview' and 'bo' in perm %}
+                        <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- Export -->
                     <button id="id_nav_btn_export" type="button" class="btn btn-default">
