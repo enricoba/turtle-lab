@@ -15,14 +15,14 @@ UNION
 	SELECT
 		r.reagent AS object,
 		'reagent' AS affiliation,
-    r.type AS type
+		r.type AS type
    	FROM lab_reagents r;
 
 
 CREATE OR REPLACE VIEW public.tmp_overview_loc as
-	SELECT
+	SELECT DISTINCT
 		o.object,
-    l.new_location AS location
+		l.new_location AS location
 	FROM
 		tmp_overview o,
 		lab_movementlog l
@@ -38,7 +38,7 @@ CREATE OR REPLACE VIEW public.tmp_overview_loc as
 CREATE OR REPLACE VIEW public.tmp_overview_box as
 	SELECT
 		o.object,
-    b.box AS box,
+		b.box AS box,
 		b.position AS position
 	FROM
 		tmp_overview o,

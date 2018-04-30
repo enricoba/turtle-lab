@@ -1544,12 +1544,27 @@ def overview_move(request):
     if form.is_valid():
         manipulation = framework.TableManipulation(table=models.MovementLog)
         timestamp = timezone.now()
+        box = request.POST.get('unique')[:7]
         response = manipulation.move(user=request.user.username,
-                                     obj=request.POST.get('unique'),
+                                     obj=box,
                                      method='manual',
                                      initial_location=str(form.cleaned_data['actual_location'])[:7],
                                      new_location=str(form.cleaned_data['new_location'])[:7],
                                      timestamp=timestamp)
+
+        if response:
+            manipulation_more = framework.TableManipulation(table=models.MovementLog)
+            _success_list = list()
+            boxed_objects = models.Overview.objects.filter(box=box)
+            for obj in boxed_objects:
+                response = manipulation_more.move(user=request.user.username,
+                                                  obj=obj,
+                                                  method=box,
+                                                  initial_location=str(form.cleaned_data['actual_location'])[:7],
+                                                  new_location=str(form.cleaned_data['new_location'])[:7],
+                                                  timestamp=timestamp)
+                _success_list.append(response)
+            response = custom.check_equal(_success_list)
         data = {'response': response}
         return JsonResponse(data)
     else:

@@ -632,8 +632,8 @@ class ReagentsManager(GlobalManager):
 
     def condition(self, reagent):
         try:
-            type = self.objects.filter(reagent=reagent)[0].type
-            return Types.objects.storage_condition(type=type)
+            _type = self.filter(reagent=reagent)[0].type
+            return Types.objects.storage_condition(type=_type)
         except IndexError:
             return False
 
