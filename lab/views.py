@@ -1511,6 +1511,10 @@ def overview(request):
 @decorators.require_ajax
 def overview_movement(request):
     unique = request.GET.get('unique')
+    affiliation = models.Overview.objects.affiliation(unique=unique)
+    if affiliation != 'box':
+        data = {'response': False}
+        return JsonResponse(data)
     location = models.Overview.objects.location(unique=unique)
     if not location:
         location = '---'
