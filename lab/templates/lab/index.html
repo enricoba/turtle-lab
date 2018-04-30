@@ -669,7 +669,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <!-- HEADER -->
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" id="id_modal_overview_boxing">New Reagent / Sample</h4>
+                                <h4 class="modal-title" id="id_modal_overview_boxing">Boxing "<span id="id_overview_boxing_object"></span>"</h4>
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
@@ -677,27 +677,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_overview_boxing %}
-                                        {% if field.label == 'Type R' %}
-                                            <div id="id_type_r" class="form-group" style="">
-                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
-                                                <div class="col-sm-10">
-                                                    {% render_field field %}
-                                                </div>
-                                                {% if field.help_text %}
-                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                                {% endif %}
-                                            </div>
-                                        {% elif field.label == 'Type S' %}
-                                            <div id="id_type_s" class="form-group" style="display: none">
-                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
-                                                <div class="col-sm-10">
-                                                    {% render_field field %}
-                                                </div>
-                                                {% if field.help_text %}
-                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                                {% endif %}
-                                            </div>
-                                        {% elif field.label == 'Box' %}
+                                        {% if field.label == 'Box' %}
                                         {% elif field.label == 'target_box' %}
                                         {% else %}
                                             <div class="form-group">

@@ -865,6 +865,12 @@ class OverviewManager(GlobalManager):
         except IndexError:
             return False
 
+    def affiliation(self, unique):
+        try:
+            return self.filter(object=unique)[0].affiliation
+        except IndexError:
+            return False
+
 
 # table
 class Overview(models.Model):
@@ -942,6 +948,12 @@ class BoxingManager(GlobalManager):
     def next_position(self, box):
         try:
             return self.filter(object='', box=box).order_by('id')[0].position
+        except IndexError:
+            return False
+
+    def exist_object(self, unique):
+        try:
+            return self.filter(object=unique)[0].id
         except IndexError:
             return False
 
@@ -1378,7 +1390,7 @@ class BoxingLogManager(GlobalManager):
 class BoxingLog(models.Model):
     # id
     id = models.AutoField(primary_key=True)
-    sample = models.CharField(max_length=UNIQUE_LENGTH)
+    object = models.CharField(max_length=UNIQUE_LENGTH)
     box = models.CharField(max_length=UNIQUE_LENGTH)
     position = models.CharField(max_length=GENERATED_LENGTH)
     # system fields

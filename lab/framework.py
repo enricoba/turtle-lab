@@ -520,7 +520,7 @@ class GetView(GetStandard):
             tmp = self.table_row_head()
             for field in self.header:
                 # locations and box can be empty
-                if field == 'location' or field == 'box':
+                if field == 'location' or field == 'box' or field == 'position':
                     tmp += '<td>{}</td>'.format('' if row[field] is None else row[field])
                 # thaw count
                 elif field == 'remaining_thaw_count':
@@ -927,6 +927,39 @@ class TableManipulation(Master):
 
     def new_boxing(self, **kwargs):
         return self.new_log(text='boxing', unique='box', **kwargs)
+
+    def edit_boxing(self, **kwargs):
+        """Dedicated function to update boxing records. WARNING, does not suit framework!
+
+            :return: flag
+            :rtype: bool
+        """
+        try:
+            if self.table.objects.exist_object(kwargs['object']):
+                old = self.table.objects.filter(object=kwargs['object']).get()
+                old_kwargs = {
+                    'object': '',
+                    'position': old.position,
+                    'box': old.box
+                }
+                checksum = self.parsing(**old_kwargs)
+                self.table.objects.filter(object=old.object).update(**self.dict, checksum=checksum)
+                # success message + log entry
+                message = 'Boxing record for "{}" has been updated.'.format(old.object)
+                log.info(message)
+            # parse record data
+            checksum = self.parsing(**kwargs)
+            self.table.objects.filter(box=kwargs['box'],
+                                      position=kwargs['position']).update(**self.dict, checksum=checksum)
+            # success message + log entry
+            message = 'Boxing record for "{}" has been created.'.format(kwargs['object'])
+            log.info(message)
+        except:
+            # raise error
+            message = 'Could not create boxing record for "{}".'.format(kwargs['object'])
+            raise NameError(message)
+        else:
+            return True
 
     def edit(self, user, **kwargs):
         """Function to update existing standard table records. 

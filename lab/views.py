@@ -1560,7 +1560,12 @@ def overview_move(request):
 @decorators.permission('ov_w')
 @decorators.require_ajax
 def overview_locate(request):
-    box_count = models.Boxes.objects.count_box_by_type(type=request.GET.get('type'))
+    affiliation = models.Overview.objects.affiliation(unique=request.GET.get('unique'))
+    if affiliation == 'box':
+        data = {'response': False}
+        return JsonResponse(data)
+    _type = models.Overview.objects.type(unique=request.GET.get('unique'))
+    box_count = models.Boxes.objects.count_box_by_type(type=_type)
     if box_count == 0:
         box = '---'
         location = '---'
@@ -1571,9 +1576,11 @@ def overview_locate(request):
                 'position': position}
         return JsonResponse(data)
     for x in range(box_count):
-        box = models.Boxes.objects.box_by_type(type=request.GET.get('type'), count=x)
+        box = models.Boxes.objects.box_by_type(type=_type, count=x)
         position = models.Boxing.objects.next_position(box=box[:7])
-        location = models.RTD.objects.location(unique=box[:7])
+        location = models.Overview.objects.location(unique=box[:7])
+        if not location:
+            location = '---'
         if position:
             data = {'response': True,
                     'location': location,
@@ -1597,24 +1604,21 @@ def overview_locate(request):
 def overview_boxing(request):
     form = forms.OverviewBoxingForm(request.POST, request=request)
     if form.is_valid():
-        # create reagent record
-        if models.Types.objects.get_affiliation(request.POST.get('type')) == 'Reagents':
-            manipulation = framework.TableManipulation(table=models.Reagents,
-                                                       table_audit_trail=models.ReagentsAuditTrail)
-            response, message = manipulation.new_identifier_at(user=request.user.username, prefix='R',
-                                                               reagent='R {}'.format(str(timezone.now())),
-                                                               name='',
-                                                               type=request.POST.get('type'))
-            data = {'response': response,
-                    'message': message}
-            return JsonResponse(data)
-        elif models.Types.objects.get_affiliation(request.POST.get('type')) == 'Samples':
-            # TODO temporarily not active due to limited support of samples
-            data = {'response': True}
-            return JsonResponse(data)
-        else:
-            data = {'response': True}
-            return JsonResponse(data)
+        # log record
+        manipulation = framework.TableManipulation(table=models.Boxing)
+        response = manipulation.edit_boxing(box=form.cleaned_data['box'],
+                                            object=request.POST.get('unique'),
+                                            position=request.POST.get('target_position'))
+        if response:
+            # log record
+            manipulation_log = framework.TableManipulation(table=models.BoxingLog)
+            manipulation_log.new_log(object=request.POST.get('unique'),
+                                     user=request.user.username,
+                                     box=form.cleaned_data['box'],
+                                     position=request.POST.get('target_position'),
+                                     timestamp=timezone.now())
+        data = {'response': response}
+        return JsonResponse(data)
     else:
         data = {'response': False,
                 'form_id': 'id_form_overview_boxing',
