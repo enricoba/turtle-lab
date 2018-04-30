@@ -43,6 +43,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }
     });
 
+    // SCAN FIELD
+    // TODO #67
+    var input;
+    $('#id_box').bind('copy paste', function (e) {
+        e.preventDefault();
+    }).one('input', function () {
+        input = $.now();
+    });
+
     function boxing() {
         var box = $('#id_box').val();
         var target_box = $('#id_overview_boxing_p_box').text().substr(0, 7);
