@@ -176,27 +176,27 @@ class Labels(object):
     def exists(self):
         return os.path.isfile(self.svg)
 
-    def location(self, unique, version):
-        """Function to create a standard location label. 
+    def reagent(self, unique, version):
+        """Function to create a standard reagent label.
 
-            :param unique: unique value of location for creating label
+            :param unique: unique value of reagent for creating label
             :type unique: str
-            :param version: location entry version
+            :param version: reagent record version
             :type version: int
             :returns: flag + path for printing
             :rtype: bool, str
         """
-        # define variables for location label
+        # define variables for reagent label
         self.font_size = '80px'
         # _path must match exactly that pattern: no leading slash, but must end with slash
-        _path = 'locations/'
+        _path = 'reagents/'
         # create .svg and .pdf paths and file names
         self.svg = _path + '{}_v-{}.svg'.format(unique, version)
         self.svg_url = _path + '{}_v-{}.svg'.format(unique, version)
 
         # check if label already exists
         if self.exists:
-            log.info('SVG label file for location "{}" version "{}" already exists. Using existing SVG for printing.'
+            log.info('SVG label file for reagent "{}" version "{}" already exists. Using existing SVG for printing.'
                      .format(unique, version))
             return True, self.svg_url
         else:
@@ -227,6 +227,63 @@ class Labels(object):
             dwg.add(dwg.line(start=(self.margin + cut_end, self.margin),
                              end=(self.margin + cut_end, self.height),
                              stroke="black", stroke_width=self.bar))
+            # try to save SVG file
+            try:
+                dwg.save()
+                message = 'SVG label file "{}" for reagent "{}" version "{}" has successfully been created.' \
+                    .format(self.svg, unique, version)
+                log.info(message)
+            except:
+                # raise error
+                message = 'Could not create SVG label file for reagent "{}" version "{}".'.format(unique, version)
+                raise NameError(message)
+            # log entries for successful pdf generation
+            return True, self.svg_url
+
+    def location(self, unique, version):
+        """Function to create a standard location label.
+
+            :param unique: unique value of location for creating label
+            :type unique: str
+            :param version: location entry version
+            :type version: int
+            :returns: flag + path for printing
+            :rtype: bool, str
+        """
+        # define variables for location label
+        self.font_size = '140px'
+        # _path must match exactly that pattern: no leading slash, but must end with slash
+        _path = 'locations/'
+        # bar setting
+        self.bar = 8
+        # create .svg and .pdf paths and file names
+        self.svg = _path + '{}_v-{}.svg'.format(unique, version)
+        self.svg_url = _path + '{}_v-{}.svg'.format(unique, version)
+
+        # check if label already exists
+        if self.exists:
+            log.info('SVG label file for location "{}" version "{}" already exists. Using existing SVG for printing.'
+                     .format(unique, version))
+            return True, self.svg_url
+        else:
+            # generate code
+            self.code = unique
+            # label design
+            dwg = svgwrite.Drawing(filename=self.svg, size=(self.width, self.height))
+            dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), fill='white'))
+            dwg.add(dwg.text(unique, insert=(self.margin + 350, self.margin + 60), font_size=self.font_size,
+                             font_family=self.font_family, font_weight="bold"))
+
+            # barcode
+            for idx, y in enumerate(self.code):
+                if y is "0":
+                    stroke = "white"
+                else:
+                    stroke = "black"
+                dwg.add(dwg.line(start=(self.quiet_zone + idx * self.bar + 200, self.margin + 120),
+                                 end=(self.quiet_zone + idx * self.bar + 200, self.height),
+                                 stroke=stroke, stroke_width=self.bar))
+
             # try to save SVG file
             try:
                 dwg.save()
