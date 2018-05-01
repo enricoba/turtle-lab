@@ -345,7 +345,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <form style="float: left; padding-left: 5px;">
                 <div class="input-group" style="height: 46px;">
                     <span class="input-group-addon" id="basic-addon1"><i class="fas fa-search"></i></span>
-                    <input style="height: 46px;" type="text" class="form-control" placeholder="Search" aria-describedby="basic-addon1">
+                    <input id="id_search" style="height: 46px;" type="text" class="form-control" placeholder="Search"
+                           aria-describedby="basic-addon1">
                 </div>
             </form>
 
@@ -368,8 +369,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     <!-- TABLE HEAD -->
     {% if tables %}
-        <div id="id_table_head" class="container-fluid top2 left">
-            <table class="table table-auto">
+        <div class="container-fluid top2 left">
+            <table id="id_table_head" class="table table-auto">
                 <thead>
                     <tr>
                         {% for head in header %}
@@ -385,7 +386,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% if tables %}
             <!-- Table -->
             <table id="id_table" class="table table-hover table-auto">
-                <tbody id="id_tbody">
+                <tbody>
                     {% block row %}
                         {% for row in query %}
                             {{ row|safe }}
@@ -837,6 +838,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% include "lab/logout.html" %}
     {% include "lab/export.html" %}
     {% include "lab/import.html" %}
+    {% include "lab/search.html" %}
 
     {% if tables %}
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
