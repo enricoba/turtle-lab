@@ -30,9 +30,6 @@ In this project phase target devices are PCs and Laptops. Mobile device support 
 # GxP
 Turtle-lab is intending to meet GxP requirements for working with clinical samples.  
 
-# Partners
-[<img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/Cambridge_University_Crest_-_flat.png" width="10%" alt="University of Camebridge">](https://www.path.cam.ac.uk/)
-
 # Built With
 * [Django 1.11](https://www.djangoproject.com/)
 * [Bootstrap 3.3.7](https://getbootstrap.com/docs/3.3/)
@@ -44,6 +41,9 @@ Turtle-lab is intending to meet GxP requirements for working with clinical sampl
 * [Svgwrite 1.1.12](http://svgwrite.readthedocs.io/en/stable/)
 * [Psycopg2 2.7.4](http://initd.org/psycopg/docs/)
 * [Django-widget-tweaks 1.4.2](https://github.com/jazzband/django-widget-tweaks)
+
+# Partners
+[<img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/Cambridge_University_Crest_-_flat.png" width="15%" alt="University of Camebridge">](https://www.path.cam.ac.uk/)
 
 # Versioning
 This project follows [SemVer](https://semver.org/) for versioning. 
