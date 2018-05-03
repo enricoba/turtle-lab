@@ -31,7 +31,7 @@ In this project phase target devices are PCs and Laptops. Mobile device support 
 Turtle-lab is intending to meet GxP requirements for working with clinical samples.  
 
 # Partners
-![University of Cambridge](https://upload.wikimedia.org/wikipedia/commons/a/a3/Cambridge_University_Crest_-_flat.png)
+<img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/Cambridge_University_Crest_-_flat.png" width="20%" alt="University of Camebridge">
 
 # Built With
 * [Django 1.11](https://www.djangoproject.com/)
