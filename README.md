@@ -23,9 +23,6 @@ This project is under development and currently published for alpha testing phas
 Requirement engineering, function design and testing is aligned with researchers from 
 the [University of Cambridge](https://www.path.cam.ac.uk/).  
 
-# Partners
-[<img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/Cambridge_University_Crest_-_flat.png" width="10%" alt="University of Camebridge">](https://www.path.cam.ac.uk/)
-
 # Technology
 This app is designed as a web service to be used independent of the operating system and web browser. 
 In this project phase target devices are PCs and Laptops. Mobile device support is under development.
