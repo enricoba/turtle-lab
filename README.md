@@ -1,34 +1,37 @@
 # Turtle Lab
 Turtle-lab is a free and open source reagents and samples management tool to organise your lab. 
-The main audience are research laboratories, non-commercial interested research organisations, 
-universities and others that focus on a science and innovation focused research. 
+Our main target group are research institutes, universities and others that focus on a science and innovation focused research. 
 
 Basic features are:
 
-- locations and storage conditions
-- organise boxing of reagents and samples 
-- box management 
-- full audit trails 
-- label printouts with barcodes for scanning 
+- location management
+- monitoring of storage conditions
+- audit trails 
+- barcoded labels 
 - logs
 - permission management 
 
-For what is working check each published release in the [release section](https://github.com/enricoba/turtle-lab/releases)
+Fore more details check each published release in the [release section](https://github.com/enricoba/turtle-lab/releases).
 
 # Vision
-The vision behind this project ist to supply mentioned organisations with lab transparency. That means easy finding of
-samples and reagents, stress-less project material handover and log-records of material movement. 
+Our vision is to supply our target organisations with lab transparency. That means easy store, search and
+find sample and reagent locations, stress-less project material handover, sharing of common 
+reagents and log-records of sample movements. 
 
 # Project 
-This project is still under development and only published for alpha testing purpose. 
-Requirement engineering, function design and testing is aligned with researchers from well-known universities. 
+This project is under development and currently published for alpha testing phase. 
+Requirement engineering, function design and testing is aligned with researchers from 
+the [University of Cambridge](https://www.path.cam.ac.uk/).  
 
 # Technology
-This app is designed as a web service to be used independent of operating system and web browser. 
-In this project phase target devices are PCs and Laptops. Mobile device support is planned for a later phase.
+This app is designed as a web service to be used independent of the operating system and web browser. 
+In this project phase target devices are PCs and Laptops. Mobile device support is under development.
 
 # GxP
-Turtle-lab is intending to meet GxP requirements for working with samples from clinical trials. 
+Turtle-lab is intending to meet GxP requirements for working with clinical samples.  
+
+# Partners
+[![University of Cambridge](https://commons.wikimedia.org/wiki/File:Cambridge_University_Crest.svg)](https://www.path.cam.ac.uk/)
 
 # Built With
 * [Django 1.11](https://www.djangoproject.com/)
@@ -47,7 +50,7 @@ This project follows [SemVer](https://semver.org/) for versioning.
 For published versions check the [release section](https://github.com/enricoba/turtle-lab/releases).
 
 # Contributing 
-If you want to contribute to his project, contact me via [mail](mailto:h.baran@posteo.eu).
+If you want to contribute to his project, contact us via [mail](mailto:info@turtle-lab.org).
 
 # License 
 This project is licensed under GPL-3.0 license, see [LICENSE](LICENSE) for more details.
