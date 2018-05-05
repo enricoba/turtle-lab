@@ -55,9 +55,9 @@ def validate_unique_type(value):
         raise ValidationError('Record already exists.')
 
 
-def validation_no_space_type(value):
+def validation_no_space(value):
     if ' ' in value:
-        raise ValidationError('Type shall not contain white spaces.')
+        raise ValidationError('Input shall not contain white spaces.')
 
 
 def validate_unique_roles(value):
@@ -248,7 +248,7 @@ class TypesFormNew(forms.Form):
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
                            help_text='Enter a type.',
                            validators=[validate_unique_type,
-                                       validation_no_space_type])
+                                       validation_no_space])
     affiliation = forms.CharField(label='affiliation', max_length=UNIQUE_LENGTH, help_text='Select an affiliation.',
                                   widget=forms.Select(choices=models.AFFILIATIONS,
                                                       attrs={'class': 'form-control manual'}))
@@ -316,7 +316,8 @@ class BoxesFormEdit(forms.Form):
 class TypeAttributesFormNew(forms.Form):
     column = forms.CharField(label='column', max_length=UNIQUE_LENGTH, help_text='Enter a column name.',
                              widget=forms.TextInput(attrs={'class': 'form-control'}),
-                             validators=[validate_unique_type_attributes])
+                             validators=[validate_unique_type_attributes,
+                                         validation_no_space])
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label=None,
                                   widget=forms.Select(attrs={'class': 'form-control'}),
                                   help_text='Select a type.')
