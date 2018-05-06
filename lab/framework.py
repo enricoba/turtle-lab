@@ -24,6 +24,9 @@ import logging
 import svgwrite
 import datetime
 from passlib.hash import argon2
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPDF
+
 
 # django imports
 from django.utils import timezone
@@ -43,19 +46,20 @@ SECRET = settings.SECRET
 class Labels(object):
     def __init__(self):
         self.dpi = 600
-        self.margin = self.pixel(3)  # 3 mm margin top/bottom/left/right
+        self.margin = self.pixel(4)  # 3 mm margin top/bottom/left/right
         self.width = self.pixel(62)  # 62 mm width
         self.height = self.pixel(29)  # 29 mm height
         self.json_b = self._get_json_b
         self.json_c = self._get_json_c
         self.json_inv_b = self._get_json_inv_b
-        self._bar = 4  # 5 pixel
-        self.quiet_zone = self.margin + 10 * self.bar
+        self._bar = 8
         self._code = str()
-        self._font_size = '22px'
+        self._font_size = '140px'
         self._font_family = 'arial'
         self._svg = str()
-        self._svg_url = str()
+        self._pdf_url = str()
+        self._pdf = str()
+        # self.quiet_zone = self.margin + 10 * self.bar
 
     def pixel(self, value):
         return round((self.dpi * value) / 25.4)
@@ -133,12 +137,20 @@ class Labels(object):
         self._svg = settings.MEDIA_ROOT + '/' + value
 
     @property
-    def svg_url(self):
-        return self._svg_url
+    def pdf(self):
+        return self._pdf
 
-    @svg_url.setter
-    def svg_url(self, value):
-        self._svg_url = settings.MEDIA_URL + value
+    @pdf.setter
+    def pdf(self, value):
+        self._pdf = settings.MEDIA_ROOT + '/' + value
+
+    @property
+    def pdf_url(self):
+        return self._pdf_url
+
+    @pdf_url.setter
+    def pdf_url(self, value):
+        self._pdf_url = settings.MEDIA_URL + value
 
     @property
     def code(self):
@@ -174,7 +186,7 @@ class Labels(object):
 
     @property
     def exists(self):
-        return os.path.isfile(self.svg)
+        return os.path.isfile(self.pdf)
 
     def reagent(self, unique, version):
         """Function to create a standard reagent label.
@@ -240,39 +252,45 @@ class Labels(object):
             # log entries for successful pdf generation
             return True, self.svg_url
 
-    def location(self, unique, version):
-        """Function to create a standard location label.
+    def default(self, unique, version, label):
+        """Function to create a standard label.
 
-            :param unique: unique value of location for creating label
+            :param unique: unique label value
             :type unique: str
-            :param version: location entry version
-            :type version: int
+            :param version: label version
+            :type version: str
+            :param label: label object can be "location", "box" or "reagent"
             :returns: flag + path for printing
             :rtype: bool, str
         """
-        # define variables for location label
-        self.font_size = '140px'
-        # _path must match exactly that pattern: no leading slash, but must end with slash
-        _path = 'locations/'
-        # bar setting
-        self.bar = 8
+        # validation
+        if not isinstance(unique, str) or not isinstance(label, str) or not isinstance(version, str):
+            raise TypeError('Argument of type string expected.')
+        allowed = ['location', 'box', 'reagent']
+        if label not in allowed:
+            raise ValueError('Argument "label" must match "location", "box" or "reagent".')
         # create .svg and .pdf paths and file names
-        self.svg = _path + '{}_v-{}.svg'.format(unique, version)
-        self.svg_url = _path + '{}_v-{}.svg'.format(unique, version)
+        self.svg = label + '/{}_v-{}.svg'.format(unique, version)
+        self.pdf = label + '/{}_v-{}.pdf'.format(unique, version)
+        self.pdf_url = label + '/{}_v-{}.pdf'.format(unique, version)
 
         # check if label already exists
         if self.exists:
-            log.info('SVG label file for location "{}" version "{}" already exists. Using existing SVG for printing.'
-                     .format(unique, version))
-            return True, self.svg_url
+            log.info('PDF File for {} "{}" version "{}" already exists. Using existing PDF file for printing.'
+                     .format(label, unique, version))
+            return True, self.pdf_url
         else:
             # generate code
             self.code = unique
             # label design
             dwg = svgwrite.Drawing(filename=self.svg, size=(self.width, self.height))
             dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), fill='white'))
-            dwg.add(dwg.text(unique, insert=(self.margin + 350, self.margin + 60), font_size=self.font_size,
+            dwg.add(dwg.text(unique, insert=(self.margin + 50, self.margin + 100), font_size=self.font_size,
                              font_family=self.font_family, font_weight="bold"))
+
+            # determine barcode length
+            barcode_length = len(self.code) * self.bar
+            left = (self.width - barcode_length) / 2
 
             # barcode
             for idx, y in enumerate(self.code):
@@ -280,22 +298,35 @@ class Labels(object):
                     stroke = "white"
                 else:
                     stroke = "black"
-                dwg.add(dwg.line(start=(self.quiet_zone + idx * self.bar + 200, self.margin + 120),
-                                 end=(self.quiet_zone + idx * self.bar + 200, self.height),
+                dwg.add(dwg.line(start=(left + idx * self.bar, self.margin + 170),
+                                 end=(left + idx * self.bar, self.height - self.margin),
                                  stroke=stroke, stroke_width=self.bar))
 
-            # try to save SVG file
             try:
+                # save SVG
                 dwg.save()
-                message = 'SVG label file "{}" for location "{}" version "{}" has successfully been created.' \
-                    .format(self.svg, unique, version)
+                message = 'SVG label file "{}" for {} "{}" version "{}" has successfully been created.' \
+                    .format(self.svg, label, unique, version)
                 log.info(message)
             except:
                 # raise error
-                message = 'Could not create SVG label file for location "{}" version "{}".'.format(unique, version)
+                message = 'Could not create SVG file for {} "{}" version "{}".'.format(label, unique, version)
                 raise NameError(message)
-            # log entries for successful pdf generation
-            return True, self.svg_url
+            else:
+                try:
+                    # save raw PDF
+                    drawing = svg2rlg(self.svg)
+                    renderPDF.drawToFile(drawing, self.pdf)
+                    message = 'PDF label file "{}" for {} "{}" version "{}" has successfully been created.' \
+                        .format(self.pdf, label, unique, version)
+                    log.info(message)
+                except:
+                    # raise error
+                    message = 'Could not create PDF file for {} "{}" version "{}".' \
+                        .format(label, unique, version)
+                    raise NameError(message)
+                else:
+                    return True, self.pdf_url
 
 
 class Master(object):

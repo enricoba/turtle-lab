@@ -662,6 +662,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
             {% endif %}
 
+            <!-- LABELS -->
+            {% if content == 'locations' or content == 'boxes' or content == 'reagents' %}
+                <div class="modal fade" id="id_modal_label" tabindex="-1" role="dialog" aria-labelledby="id_modal_label">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="id_modal_label">Label</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body" id="id_modal_label_body">
+
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <!-- OVERVIEW -->
             {% if content == 'overview' %}
                 <!-- BOXING -->
@@ -833,6 +856,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     <script type="text/javascript" src="{% static "jquery/jquery-3.2.1.min.js" %}"></script>
     <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
+
 
     {% include "lab/core.html" %}
     {% include "lab/sidebar.html" %}

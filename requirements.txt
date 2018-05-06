@@ -5,3 +5,7 @@ passlib===1.7.1
 svgwrite===1.1.12
 psycopg2===2.7.4
 django-widget-tweaks===1.4.2
+pillow===5.1.0
+reportlab===3.4.0
+lxml===4.2.1
+svglib===0.8.1

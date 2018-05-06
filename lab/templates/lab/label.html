@@ -18,10 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 <script>
     function print_pdf(url){
-        var iFrameJQueryObject = $('<iframe id="id_iframe" src="'+url+'" style="display:none"></iframe>');
-        $('body').append(iFrameJQueryObject);
+        var iFrameJQueryObject = $('<iframe id="id_iframe" src="'+url+'" height="100%" width="100%"></iframe>');
+        $('#id_modal_label_body').append(iFrameJQueryObject);
         iFrameJQueryObject.on('load', function() {
-            $(this).get(0).contentWindow.print();
+            $('#id_modal_label').modal("show");
         });
     }
 
@@ -48,4 +48,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             });
         }
     });
+
+    // model dismiss
+    $('#id_modal_label').on('hidden.bs.modal', function () {
+        $("iframe").remove();
+    })
 </script>
