@@ -301,7 +301,7 @@ def determine_box_position(alignment, x, y, value):
     y_max = transform_box_type_figures(y)
     if alignment == 'Horizontal':
         _second = int(value / x_max + i)
-        _first = value - y_max * (_second - 1)
+        _first = value - x_max * (_second - 1)
         if determine_box_type_figures_type(x) is int:
             first = _first
         else:
