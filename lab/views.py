@@ -1294,15 +1294,16 @@ def reagents_delete(request):
 def reagents_label(request):
     label = framework.Labels()
     # barcode printing
-    response, filename = label.location(unique=request.POST.get('unique'),
-                                        version=request.POST.get('version'))
+    response, filename = label.default(unique=request.POST.get('unique'),
+                                       version=request.POST.get('version'),
+                                       label='reagent')
     if response:
         log.info('Label print for "{}" version "{}" was requested.'.format(request.POST.get('unique'),
                                                                            request.POST.get('version')))
         # log record
         manipulation = framework.TableManipulation(table=models.LabelLog)
-        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username, action='print',
-                             timestamp=timezone.now())
+        manipulation.new_log(unique='label', label=filename.split('/')[3], user=request.user.username,
+                             action='print attempt', timestamp=timezone.now())
     data = {'response': response,
             'pdf': filename}
     return JsonResponse(data)
