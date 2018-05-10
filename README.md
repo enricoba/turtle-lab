@@ -38,10 +38,10 @@ Turtle-lab is intending to meet GxP requirements for working with clinical sampl
 * [Argon2-cffi 18.1.0](https://argon2-cffi.readthedocs.io/en/stable/)
 * [Cffi 1.11.5](https://cffi.readthedocs.io/en/latest/)
 * [Passlib 1.7.1](https://passlib.readthedocs.io/en/stable/)
-* [Svgwrite 1.1.12](http://svgwrite.readthedocs.io/en/stable/)
+* [Svgwrite 1.1.12](https://github.com/mozman/svgwrite)
 * [Reportlab 3.4.0](https://www.reportlab.com/opensource/)
 * [Svglib 0.8.1](https://github.com/deeplook/svglib)
-* [Psycopg2 2.7.4](http://initd.org/psycopg/docs/)
+* [Psycopg2 2.7.4](https://pypi.org/project/psycopg2/)
 * [Gunicorn 19.8.1](https://github.com/benoitc/gunicorn)
 * [Django-widget-tweaks 1.4.2](https://github.com/jazzband/django-widget-tweaks)
 
