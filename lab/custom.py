@@ -322,3 +322,35 @@ def determine_box_position(alignment, x, y, value):
         else:
             first = ALPHABET_INV[_first]
     return '{}{}'.format(first, second)
+
+
+def value_to_bool(value):
+    """Converts 0/1 values to bool
+
+    :param value: value containing 0 or 1
+    :type value: int/str
+    :return: bool
+    """
+    if not isinstance(value, int):
+        value = value_to_int(value)
+    if value > 1:
+        raise ValueError('Only 0 or 1 allowed.')
+    return bool(value)
+
+
+def value_to_int(value):
+    """Converts value to real integer
+
+    :param value: string with integer content or integer
+    :type value: str/int
+    :return: int
+    """
+    if not isinstance(value, str):
+        if isinstance(value, int):
+            return value
+        else:
+            raise TypeError('Argument of type string or integer expected.')
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError('Can not convert "{}" to integer.'.format(value))

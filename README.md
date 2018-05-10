@@ -39,11 +39,10 @@ Turtle-lab is intending to meet GxP requirements for working with clinical sampl
 * [Cffi 1.11.5](https://cffi.readthedocs.io/en/latest/)
 * [Passlib 1.7.1](https://passlib.readthedocs.io/en/stable/)
 * [Svgwrite 1.1.12](http://svgwrite.readthedocs.io/en/stable/)
-* [Pillow 5.1.0](https://pillow.readthedocs.io/en/stable/)
 * [Reportlab 3.4.0](https://www.reportlab.com/opensource/)
-* [Lxml 4.2.1](https://github.com/lxml/lxml)
 * [Svglib 0.8.1](https://github.com/deeplook/svglib)
 * [Psycopg2 2.7.4](http://initd.org/psycopg/docs/)
+* [Gunicorn 19.8.1](https://github.com/benoitc/gunicorn)
 * [Django-widget-tweaks 1.4.2](https://github.com/jazzband/django-widget-tweaks)
 
 # Versioning
