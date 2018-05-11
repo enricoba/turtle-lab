@@ -4,6 +4,8 @@
 # local venv
 venv
 
+# env files
+*.env
 
 # runntime
 logs
@@ -12,15 +14,10 @@ migrations
 security
 fixtures
 
-
 # docker
 Dockerfile
 docker-entrypoint.sh
 gunicorn_config.py
-
-# static files
-static/*
-!static/custom.css
 
 # others
 others

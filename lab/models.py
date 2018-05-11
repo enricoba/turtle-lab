@@ -49,6 +49,7 @@ ACTION_LENGTH = 6
 GENERATED_LENGTH = 40
 LABEL_LENGTH = 50
 PASSWORD_LENGTH = 128
+DEFAULT = 255
 
 
 class GlobalManager(models.Manager):
@@ -141,6 +142,16 @@ class LocationsManager(GlobalManager):
         dic = {self.unique: unique}
         return self.filter(**dic)[0].condition
 
+    def locations_by_type(self, type):
+        condition = Types.objects.storage_condition(type=type)
+        if condition:
+            try:
+                return self.filter(condition=condition).all()
+            except IndexError:
+                return False
+        else:
+            return False
+
 
 # table
 class Locations(models.Model):
@@ -159,9 +170,9 @@ class Locations(models.Model):
 
     def __str__(self):
         if self.name == '':
-            _return = '{} ({})'.format(self.location, self.condition)
+            _return = self.location
         else:
-            _return = '{} ({}) ({})'.format(self.location, self.name, self.condition)
+            _return = '{} ({})'.format(self.location, self.name)
         return _return
 
 
@@ -219,6 +230,12 @@ class TypesManager(GlobalManager):
         except IndexError:
             return False
 
+    def storage_condition(self, type):
+        try:
+            return self.filter(type=type)[0].storage_condition
+        except IndexError:
+            return False
+
 
 # table
 class Types(models.Model):
@@ -262,6 +279,133 @@ class TypesAuditTrail(models.Model):
     checksum = models.CharField(max_length=CHECKSUM_LENGTH)
     # manager
     objects = TypesAuditTrailManager()
+
+
+###################
+# TYPE ATTRIBUTES #
+###################
+
+# manager
+class TypeAttributesManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'column'
+
+    def columns_as_list(self, type):
+        try:
+            return list(self.filter(type=type).order_by('id').values_list('column', flat=True))
+        except IndexError:
+            return list()
+
+    def all_list_exchanged(self, type):
+        try:
+            query = list(self.filter(type=type).order_by('id'))
+            for row in query:
+                if row.list_values:
+                    row.list_values = row.list_values.split(',')
+            return query
+        except IndexError:
+            return list()
+
+
+# table
+class TypeAttributes(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    # custom fields
+    column = models.CharField(max_length=UNIQUE_LENGTH, unique=True)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    list_values = models.CharField(max_length=DEFAULT)
+    default_value = models.CharField(max_length=DEFAULT)
+    mandatory = models.BooleanField()
+    # system fields
+    version = models.IntegerField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypeAttributesManager()
+
+    def __str__(self):
+        return self.column
+
+
+# audit trail manager
+class TypeAttributesAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class TypeAttributesAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    column = models.CharField(max_length=UNIQUE_LENGTH)
+    type = models.CharField(max_length=UNIQUE_LENGTH)
+    list_values = models.CharField(max_length=DEFAULT)
+    default_value = models.CharField(max_length=DEFAULT)
+    mandatory = models.BooleanField()
+    # system fields
+    version = models.IntegerField()
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = TypeAttributesAuditTrailManager()
+
+
+####################
+# DYNAMIC REAGENTS #
+####################
+
+# manager
+class DynamicReagentsManager(GlobalManager):
+    @property
+    def unique(self):
+        return 'id'
+
+    def list_of_type_attributes(self, id_main):
+        try:
+            return list(self.filter(id_main=id_main).order_by('id').values_list('type_attribute', flat=True))
+        except IndexError:
+            return list()
+
+
+# table
+class DynamicReagents(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_main = models.IntegerField()
+    # custom fields
+    type_attribute = models.CharField(max_length=UNIQUE_LENGTH)
+    value = models.CharField(max_length=DEFAULT)
+    # system fields
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = DynamicReagentsManager()
+
+
+# audit trail manager
+class DynamicReagentsAuditTrailManager(GlobalAuditTrailManager):
+    pass
+
+
+# audit trail table
+class DynamicReagentsAuditTrail(models.Model):
+    # id
+    id = models.AutoField(primary_key=True)
+    id_ref = models.IntegerField()
+    # custom fields
+    id_main = models.IntegerField()
+    type_attribute = models.CharField(max_length=UNIQUE_LENGTH)
+    value = models.CharField(max_length=DEFAULT)
+    # system fields
+    action = models.CharField(max_length=ACTION_LENGTH)
+    user = models.CharField(max_length=UNIQUE_LENGTH)
+    timestamp = models.DateTimeField()
+    checksum = models.CharField(max_length=CHECKSUM_LENGTH)
+    # manager
+    objects = DynamicReagentsAuditTrailManager()
 
 
 #############
@@ -486,6 +630,13 @@ class ReagentsManager(GlobalManager):
     def unique(self):
         return 'reagent'
 
+    def condition(self, reagent):
+        try:
+            _type = self.filter(reagent=reagent)[0].type
+            return Types.objects.storage_condition(type=_type)
+        except IndexError:
+            return False
+
 
 # table
 class Reagents(models.Model):
@@ -622,7 +773,7 @@ class MovementLog(models.Model):
     id = models.AutoField(primary_key=True)
     # custom fields
     object = models.CharField(max_length=UNIQUE_LENGTH)
-    type = models.CharField(max_length=UNIQUE_LENGTH)
+    method = models.CharField(max_length=UNIQUE_LENGTH)
     initial_location = models.CharField(max_length=UNIQUE_LENGTH)
     new_location = models.CharField(max_length=UNIQUE_LENGTH)
     # system fields
@@ -697,7 +848,10 @@ class OverviewManager(GlobalManager):
         return 'object'
 
     def location(self, unique):
-        return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+        try:
+            return Locations.objects.filter(location=self.filter(object=unique)[0].location)[0].__str__()
+        except IndexError:
+            return ''
 
     def method(self, unique):
         return self.filter(object=unique)[0].type
@@ -705,11 +859,24 @@ class OverviewManager(GlobalManager):
     def box(self, unique):
         return self.filter(object=unique)[0].box
 
+    def type(self, unique):
+        try:
+            return self.filter(object=unique)[0].type
+        except IndexError:
+            return False
+
+    def affiliation(self, unique):
+        try:
+            return self.filter(object=unique)[0].affiliation
+        except IndexError:
+            return False
+
 
 # table
 class Overview(models.Model):
     id = models.BigIntegerField(primary_key=True)
     object = models.CharField(max_length=UNIQUE_LENGTH)
+    affiliation = models.CharField(max_length=UNIQUE_LENGTH)
     type = models.CharField(max_length=UNIQUE_LENGTH)
     location = models.CharField(max_length=UNIQUE_LENGTH)
     box = models.CharField(max_length=UNIQUE_LENGTH)
@@ -784,6 +951,12 @@ class BoxingManager(GlobalManager):
         except IndexError:
             return False
 
+    def exist_object(self, unique):
+        try:
+            return self.filter(object=unique)[0].id
+        except IndexError:
+            return False
+
 
 # table
 class Boxing(models.Model):
@@ -828,11 +1001,13 @@ PERMISSIONS = (
     ('ty_r', 'Types read'),
     ('ty_w', 'Types write'),
     ('ty_d', 'Types delete'),
+    ('ta_r', 'Type attributes read'),
+    ('ta_w', 'Type attributes write'),
+    ('ta_d', 'Type attributes delete'),
     ('overview', 'Overview'),
-    ('ov_w', 'Overview write'),
     # ('home', 'Home'),
-    # ('bo', 'Home boxing'),
-    # ('mo', 'Home movements'),
+    ('bo', 'Overview boxing'),
+    ('mo', 'Overview movements'),
     # ('sa_r', 'Samples read'),
     # ('sa_w', 'Samples write'),
     # ('sa_d', 'Samples delete'),
@@ -1214,7 +1389,7 @@ class BoxingLogManager(GlobalManager):
 class BoxingLog(models.Model):
     # id
     id = models.AutoField(primary_key=True)
-    sample = models.CharField(max_length=UNIQUE_LENGTH)
+    object = models.CharField(max_length=UNIQUE_LENGTH)
     box = models.CharField(max_length=UNIQUE_LENGTH)
     position = models.CharField(max_length=GENERATED_LENGTH)
     # system fields
@@ -1242,7 +1417,8 @@ TABLES = {
     'label_log': LabelLog,
     'boxing_log': BoxingLog,
     'home': RTD,
-    'Overview': Overview
+    'Overview': Overview,
+    'type_attributes': TypeAttributes
 }
 
 EXPORT_PERMISSIONS = {
@@ -1261,5 +1437,6 @@ EXPORT_PERMISSIONS = {
     'label_log': 'log_la',
     'boxing_log': 'log_bo',
     'home': 'home',
-    'overview': 'overview'
+    'overview': 'overview',
+    'type_attributes': 'ta_r'
 }

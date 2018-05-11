@@ -19,12 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <script>
     $('#id_nav_btn_overview_boxing').click(function() {
         if (!$(this).hasClass("disabled")) {
-            var type = $('#id_r option:first').text();
+            var item = $('#id_table').find('#id_unique').find("td:first").text();
+            $('#id_overview_boxing_object').text(item);
             $.ajax({
                method: "GET",
                url: "/" + "{{ content }}" + "/locate/",
                data: {
-                   "type": type
+                   "unique": item
                },
                dataType: "json",
                success: function (data) {
@@ -35,71 +36,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                        $('#id_form_overview_boxing').trigger("reset");
                        $('#id_modal_overview_boxing').modal("show");
                    } else {
-                       alert("Test error.")
+                       alert('Boxes can not be boxed.')
                    }
                 }
             });
         }
     });
 
-    function positioning(id, method) {
-        var type;
-        if (method === "first") {
-            var id_con = id + " option:selected";
-            type = $(id_con).text();
-        } else {
-            type = $(id).text();
-        }
-        $.ajax({
-           method: "GET",
-           url: "/" + "{{ content }}" + "/locate/",
-           data: {
-               "type": type
-           },
-           dataType: "json",
-           success: function (data) {
-               if (data.response) {
-                   $('#id_overview_boxing_p_location').text(data.location);
-                   $('#id_overview_boxing_p_box').text(data.box);
-                   $('#id_overview_boxing_p_position').text(data.position);
-               }
-           }
-       });
-    }
-
-
-    $('#id_r_s').change(function() {
-       if ($(this).val() === "R") {
-           $('#id_type_s').hide();
-           $('#id_type_r').show();
-           positioning('#id_r', 'first')
-       } else {
-           $('#id_type_r').hide();
-           $('#id_type_s').show();
-           positioning('#id_s', 'first')
-       }
+    // SCAN FIELD
+    // TODO #67
+    var input;
+    $('#id_box').bind('copy paste', function (e) {
+        e.preventDefault();
+    }).one('input', function () {
+        input = $.now();
     });
-
-    $('#id_type_r').change(function() {
-       positioning('#id_r', 'first')
-    });
-
-    function determine_type() {
-        var type;
-        if ($('#id_r_s').val() === "R") {
-            type = $('#id_r option:selected').text();
-        } else {
-            type = $('#id_s option:selected').text();
-        }
-        return type;
-    }
 
     function boxing() {
         var box = $('#id_box').val();
         var target_box = $('#id_overview_boxing_p_box').text().substr(0, 7);
         var target_position = $('#id_overview_boxing_p_position').text();
-        var type = determine_type();
-        console.log(type);
+        var item = $('#id_overview_boxing_object').text();
         $.ajax({
             method: "POST",
             url: "/" + "{{ content }}" + "/boxing/",
@@ -107,7 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 'box': box,
                 'target_box': target_box,
                 'target_position': target_position,
-                'type': type
+                'unique': item
             },
             dataType: 'json',
             success: function (data) {

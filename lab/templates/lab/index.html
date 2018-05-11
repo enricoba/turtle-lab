@@ -28,11 +28,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <title>Turtle Lab</title>
     {% load static %}
     <!-- Stylesheet Bootstrap -->
-    <link rel="stylesheet" href="{% static "bootstrap-3.3.7-dist/css/bootstrap.min.css" %}">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+          crossorigin="anonymous">
     <!-- Custom -->
     <link rel="stylesheet" href="{% static "custom.css" %}">
     <!-- JS Font Awesome -->
-    <script defer src="{% static "fontawesome-free-5.0.6/svg-with-js/js/fontawesome-all.min.js" %}"></script>
+    <script defer
+            src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"
+            integrity="sha384-Voup2lBiiyZYkRto2XWqbzxHXwzcm4A5RfdfG6466bu5LqjwwrjXCMBQBLMWh7qR"
+            crossorigin="anonymous"></script>
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- COVER -->
@@ -48,49 +54,67 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <div>
                 <ul class="sidebar-menu">
                     {% if 'overview' in perm %}
-                        <li><a href="/overview/"><i class="fas fa-home"></i><span> Overview</span></a></li>
+                        <li id="id_sidebar_menu_li_overview"><a href="/overview/"><i class="fas fa-home"></i><span> Overview</span></a></li>
                     {% endif %}
                     <li id="id_sidebar_menu_par_md"><a><i class="fas fa-database"></i><span> Master Data</span></a></li>
                         {% if 'co_r' in perm or 'co_w' in perm or 'co_d' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/conditions/"><span> Conditions</span></a></li>
+                            <li id="id_sidebar_menu_li_conditions" class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/conditions/"><span> Conditions</span></a></li>
                         {% endif %}
                         {% if 'lo_r' in perm or 'lo_w' in perm or 'lo_d' in perm or 'lo_l' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/locations/"><span> Locations</span></a></li>
+                            <li id="id_sidebar_menu_li_locations" class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/locations/"><span> Locations</span></a></li>
                         {% endif %}
                         {% if 'ty_r' in perm or 'ty_w' in perm or 'ty_d' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/types/"><span> Types</span></a></li>
+                            <li id="id_sidebar_menu_li_types" class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/types/"><span> Types</span></a></li>
+                        {% endif %}
+                        {% if 'ta_r' in perm or 'ta_w' in perm or 'ta_d' in perm %}
+                            <li id="id_sidebar_menu_li_type_attributes" class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/type_attributes/"><span> Type Attributes</span></a></li>
                         {% endif %}
                         {% if 'bt_r' in perm or 'bt_w' in perm or 'bt_d' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/box_types/"><span> Box Types</span></a></li>
+                            <li id="id_sidebar_menu_li_box_types" class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/box_types/"><span> Box Types</span></a></li>
                         {% endif %}
                         {% if 'bo_r' in perm or 'bo_w' in perm or 'bo_d' in perm or 'bo_l' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/boxes/"><span> Boxes</span></a></li>
+                            <li id="id_sidebar_menu_li_boxes" class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/boxes/"><span> Boxes</span></a></li>
                         {% endif %}
-                        {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
-                            <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/reagents/"><span> Reagents</span></a></li>
-                        {% endif %}
+                        <!-- TODO can be removed later -->
+                        <!-- <li class="sidebar-sub sidebar-sub-md sidebar-sub-vis"><a href="/reagents/"><span> Reagents</span></a></li>-->
+                    <!-- REAGENTS -->
+                    {% if 're_r' in perm or 're_w' in perm or 're_d' in perm or 're_l' in perm %}
+                        <li id="id_sidebar_menu_par_re"><a><i class="fas fa-vials"></i><span> Reagents</span></a></li>
+                        <!-- dynamic reagents -->
+                        {% for reagent in reagents %}
+                            <li id="id_sidebar_menu_li_{{ reagent }}" class="sidebar-sub sidebar-sub-re sidebar-sub-vis"><a href="/reagents/{{ reagent }}"><span> {{ reagent }}</span></a></li>
+                        {% endfor %}
+                    {% endif %}
+                    <!-- SAMPLES -->
+                    {% if 'sa_r' in perm or 'sa_w' in perm or 'sa_d' in perm or 'sa_l' in perm %}
+                        <li id="id_sidebar_menu_par_sa"><a><i class="fas fa-flask"></i><span> Samples</span></a></li>
+                        <!-- dynamic samples -->
+                        {% for sample in samples %}
+                            <li id="id_sidebar_menu_li_{{ sample }}" class="sidebar-sub sidebar-sub-sa sidebar-sub-vis"><a href="/reagents/{{ sample }}"><span> {{ sample }}</span></a></li>
+                        {% endfor %}
+                    {% endif %}
                     {% if 'log_mo' in perm or 'log_lo' in perm or 'log_la' in perm or 'log_bo' in perm %}
                         <li id="id_sidebar_menu_par_log"><a><i class="fas fa-history"></i><span> Logs</span></a></li>
                             {% if 'log_mo' in perm %}
-                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/movement_log/"><span> Movements</span></a></li>
+                                <li id="id_sidebar_menu_li_movement_log" class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/movement_log/"><span> Movements</span></a></li>
                             {% endif %}
                             {% if 'log_lo' in perm %}
-                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/login_log/"><span> Login</span></a></li>
+                                <li id="id_sidebar_menu_li_login_log" class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/login_log/"><span> Login</span></a></li>
                             {% endif %}
                             {% if 'log_la' in perm %}
-                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/label_log/"><span> Labels</span></a></li>
+                                <li id="id_sidebar_menu_li_label_log" class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/label_log/"><span> Labels</span></a></li>
                             {% endif %}
                             {% if 'log_bo' in perm %}
-                                <li class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/boxing_log/"><span> Boxing</span></a></li>
+                                <li id="id_sidebar_menu_li_boxing_log" class="sidebar-sub sidebar-sub-log sidebar-sub-vis"><a href="/boxing_log/"><span> Boxing</span></a></li>
                             {% endif %}
                     {% endif %}
                     {% if 'ro_r' in perm or 'ro_w' in perm or 'ro_d' in perm or 'us_r' in perm or 'us_w' in perm or 'us_a' in perm or 'us_p' in perm %}
                         <li id="id_sidebar_menu_par_ad"><a><i class="fas fa-cogs"></i><span> Administration</span></a></li>
                             {% if 'ro_r' in perm or 'ro_w' in perm or 'ro_d' in perm %}
-                                <li class="sidebar-sub sidebar-sub-ad sidebar-sub-vis"><a href="/roles/"><span> Roles</span></a></li>
+                                <li id="id_sidebar_menu_li_roles" class="sidebar-sub sidebar-sub-ad sidebar-sub-vis"><a href="/roles/"><span> Roles</span></a></li>
                             {% endif %}
                             {% if 'us_r' in perm or 'us_w' in perm or 'us_a' in perm or 'us_p' in perm %}
-                                <li class="sidebar-sub sidebar-sub-ad sidebar-sub-vis"><a href="/users/"><span> Users</span></a></li>
+                                <li id="id_sidebar_menu_li_users" class="sidebar-sub sidebar-sub-ad sidebar-sub-vis"><a href="/users/"><span> Users</span></a></li>
                             {% endif %}
                     {% endif %}
                 </ul>
@@ -117,8 +141,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'conditions' and 'co_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -132,8 +156,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'locations' and 'lo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -147,10 +171,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'types' and 'ty_d' in perm %}
+                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-trash-alt"></i></button>
+                    {% endif %}
+                    <!-- Type attributes -->
+                    {% if content == 'type_attributes' and 'ta_w' in perm %}
+                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                            <i class="fas fa-plus"></i></button>
+                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-copy"></i></button>
+                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-edit"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
+                    {% endif %}
+                    {% if content == 'type_attributes' and 'ta_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
@@ -162,8 +201,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'box_types' and 'bt_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -177,8 +216,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'samples' and 'sa_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -192,8 +231,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'reagents' and 're_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -207,8 +246,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'boxes' and 'bo_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -222,8 +261,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'freeze_thaw_accounts' and 'ac_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -252,8 +291,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-copy"></i></button>
                         <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
-                        <button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>
+                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
+                            <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'roles' and 'ro_d' in perm %}
                         <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
@@ -292,22 +331,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- Overview -->
+                    <!-- MOVEMENT -->
+                    {% if content == 'overview' and 'mo' in perm %}
+                        <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-exchange-alt"></i></button>
+                    {% endif %}
                     <!-- BOXING -->
-                    {% if content == 'overview'%}
-                        <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-success">
-                            <i class="fas fa-plus"></i></button>
+                    {% if content == 'overview' and 'bo' in perm %}
+                        <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- Export -->
                     <button id="id_nav_btn_export" type="button" class="btn btn-default">
                         <i class="fas fa-download"></i></button>
                 <!-- UNUSED -->
-                    <button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
-                        <i class="fas fa-filter"></i></button>
+                    <!-- TODO #16 -->
+                    <!--<button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
+                        <i class="fas fa-filter"></i></button>-->
             </div>
             <form style="float: left; padding-left: 5px;">
                 <div class="input-group" style="height: 46px;">
                     <span class="input-group-addon" id="basic-addon1"><i class="fas fa-search"></i></span>
-                    <input style="height: 46px;" type="text" class="form-control" placeholder="Search" aria-describedby="basic-addon1">
+                    <input id="id_search" style="height: 46px;" type="text" class="form-control" placeholder="Search"
+                           aria-describedby="basic-addon1">
                 </div>
             </form>
 
@@ -329,9 +375,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% endif %}
 
     <!-- TABLE HEAD -->
-    <div id="id_table_head" class="container-fluid top2 left">
-        {% if tables %}
-            <table class="table table-auto">
+    {% if tables %}
+        <div class="container-fluid top2 left">
+            <table id="id_table_head" class="table table-auto">
                 <thead>
                     <tr>
                         {% for head in header %}
@@ -340,14 +386,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </tr>
                 </thead>
             </table>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
     <!-- CONTENT -->
-    <div id="id_content" class="container-fluid content left">
+    <div id="id_content" class="container-fluid content {% if content != 'index' %}left{% endif %}">
         {% if tables %}
             <!-- Table -->
             <table id="id_table" class="table table-hover table-auto">
-                <tbody id="id_tbody">
+                <tbody>
                     {% block row %}
                         {% for row in query %}
                             {{ row|safe }}
@@ -379,6 +425,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endfor %}
+                                    <!-- DYNAMIC -->
+                                    {% if content_dynamic %}
+                                        {% for ta in type_attributes %}
+                                            <div class="form-group">
+                                                <label for="id_{{ ta.column }}">{{ ta.column }}:</label>
+                                                {% if not ta.list_values %}
+                                                    <input name="{{ ta.column }}" id="id_{{ ta.column }}" {% if ta.mandatory == True %} required=""{% endif %}
+                                                           value="{{ ta.default_value }}" class="form-control" maxlength="255" type="text">
+                                                {% else %}
+                                                    <!-- TODO maybe manual required to work with edit -->
+                                                    <select name="{{ ta.column }}" class="form-control" id="id_{{ ta.column }}">
+                                                        {% for element in ta.list_values %}
+                                                            <option {% if ta.default_value %} selected="selected"{% endif %} value="{{ element }}">{{ element }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </form>
                             </div>
                             <!-- FOOTER -->
@@ -412,6 +477,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endfor %}
+                                    <!-- DYNAMIC -->
+                                    {% if content_dynamic %}
+                                        {% for ta in type_attributes %}
+                                            <div class="form-group">
+                                                <label for="id_{{ ta.column }}">{{ ta.column }}:</label>
+                                                {% if not ta.list_values %}
+                                                    <input name="{{ ta.column }}" id="id_{{ ta.column }}" {% if ta.mandatory == True %} required=""{% endif %}
+                                                           value="{{ ta.default_value }}" class="form-control" maxlength="255" type="text">
+                                                {% else %}
+                                                    <!-- TODO maybe manual required to work with edit -->
+                                                    <select name="{{ ta.column }}" class="form-control" id="id_{{ ta.column }}">
+                                                        {% for element in ta.list_values %}
+                                                            <option {% if ta.default_value %} selected="selected"{% endif %} value="{{ element }}">{{ element }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </form>
                             </div>
                             <!-- FOOTER -->
@@ -445,6 +529,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             {% endif %}
                                         </div>
                                     {% endfor %}
+                                    <!-- DYNAMIC -->
+                                    {% if content_dynamic %}
+                                        {% for ta in type_attributes %}
+                                            <div class="form-group">
+                                                <label for="id_{{ ta.column }}">{{ ta.column }}:</label>
+                                                {% if not ta.list_values %}
+                                                    <input name="{{ ta.column }}" id="id_{{ ta.column }}" {% if ta.mandatory == True %} required=""{% endif %}
+                                                           value="{{ ta.default_value }}" class="form-control" maxlength="255" type="text">
+                                                {% else %}
+                                                    <!-- TODO maybe manual required to work with edit -->
+                                                    <select name="{{ ta.column }}" class="form-control" id="id_{{ ta.column }}">
+                                                        {% for element in ta.list_values %}
+                                                            <option {% if ta.default_value %} selected="selected"{% endif %} value="{{ element }}">{{ element }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </form>
                             </div>
                             <!-- FOOTER -->
@@ -496,7 +599,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             {% endif %}
 
             <!-- HOME -->
-            {% if content == 'home' %}
+            {% if content == 'overview' %}
                 <!-- MOVEMENT -->
                 <div class="modal fade" id="id_modal_movement" tabindex="-1" role="dialog" aria-labelledby="id_modal_movement">
                     <div class="modal-dialog" role="document">
@@ -565,6 +668,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
             {% endif %}
 
+            <!-- LABELS -->
+            {% if content == 'locations' or content == 'boxes' or content == 'reagents' %}
+                <div class="modal fade" id="id_modal_label" tabindex="-1" role="dialog" aria-labelledby="id_modal_label">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <!-- HEADER -->
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="id_modal_label">Label</h4>
+                            </div>
+                            <!-- BODY -->
+                            <div class="modal-body" id="id_modal_label_body">
+
+                            </div>
+                            <!-- FOOTER -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <!-- OVERVIEW -->
             {% if content == 'overview' %}
                 <!-- BOXING -->
@@ -574,7 +700,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <!-- HEADER -->
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" id="id_modal_overview_boxing">New Reagent / Sample</h4>
+                                <h4 class="modal-title" id="id_modal_overview_boxing">Boxing "<span id="id_overview_boxing_object"></span>"</h4>
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
@@ -582,27 +708,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_overview_boxing %}
-                                        {% if field.label == 'Type R' %}
-                                            <div id="id_type_r" class="form-group" style="">
-                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
-                                                <div class="col-sm-10">
-                                                    {% render_field field %}
-                                                </div>
-                                                {% if field.help_text %}
-                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                                {% endif %}
-                                            </div>
-                                        {% elif field.label == 'Type S' %}
-                                            <div id="id_type_s" class="form-group" style="display: none">
-                                                <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
-                                                <div class="col-sm-10">
-                                                    {% render_field field %}
-                                                </div>
-                                                {% if field.help_text %}
-                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                                {% endif %}
-                                            </div>
-                                        {% elif field.label == 'Box' %}
+                                        {% if field.label == 'Box' %}
                                         {% elif field.label == 'target_box' %}
                                         {% else %}
                                             <div class="form-group">
@@ -753,15 +859,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% endif %}
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+			crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
 
-    <script type="text/javascript" src="{% static "jquery/jquery-3.2.1.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
 
     {% include "lab/core.html" %}
     {% include "lab/sidebar.html" %}
     {% include "lab/logout.html" %}
     {% include "lab/export.html" %}
     {% include "lab/import.html" %}
+    {% include "lab/search.html" %}
 
     {% if tables %}
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
@@ -774,7 +885,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% endif %}
     {% endif %}
 
-    {% if content == 'locations' or content == 'samples' or content == 'boxes' %}
+    {% if content == 'locations' or content == 'reagents' or content == 'boxes' %}
         {% include "lab/label.html" %}
     {% endif %}
 
@@ -786,6 +897,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'overview' %}
         {% include "lab/overview_boxing.html" %}
+        {% include "lab/movement.html" %}
         {% include "lab/form.html" %}
     {% endif %}
 

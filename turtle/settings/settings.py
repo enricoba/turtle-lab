@@ -16,28 +16,92 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
+# python imports
 import os
 
+# django imports
+from django.core.exceptions import ImproperlyConfigured
+
+# app imports
+import lab.custom as custom
+
+
+# function for required settings from environment variable
+def _require_env(env):
+    """Raise an error if environment variable is not defined.
+
+    :param env: environment variable
+    :type env: str
+    :return: returns string or integer of env variable
+    :rtype: str/int
+    """
+    if not isinstance(env, str):
+        raise TypeError('Argument of type string expected.')
+    raw_value = os.getenv(env)
+    if raw_value is None:
+        raise ImproperlyConfigured('Required environment variable "{}" is not set.'.format(env))
+    try:
+        return custom.value_to_int(raw_value)
+    except ValueError:
+        return raw_value
+
+
+# function for required settings from local files
+def _require_file(path, file_name):
+    """Raise an error if file for configuration not existing or empty
+
+    :param path: absolute path to file ending with /
+    :type path: str
+    :param file_name: file name
+    :type file_name: str
+    :return: returns string of file content
+    :rtype: str
+    """
+    if not isinstance(path, str) or not isinstance(file_name, str):
+        raise TypeError('Argument of type string expected.')
+    try:
+        with open(path + file_name) as local_file:
+            content = local_file.read().strip()
+            if content:
+                return content
+            else:
+                raise ImproperlyConfigured('File "{}" is empty.'.format(file_name))
+    except FileNotFoundError:
+        raise
+
+
+#########
+# PATHS #
+#########
 
 # base directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# security directory
+# security directory for storing secrets in permission controlled files
 SECURITY_DIR = os.path.join(BASE_DIR, 'security')
 # log directory
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
-# labels dir
+# files dir
 FILES_DIR = os.path.join(BASE_DIR, 'lab')
+# media root for labels
+MEDIA_ROOT = os.path.join(BASE_DIR, 'labels')
+# static files dir
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
 
+
+###########
+# SECRETS #
+###########
 
 # django secret key
-with open(SECURITY_DIR + '/keys/SECRET_KEY') as f:
-    SECRET_KEY = f.read().strip()
+SECRET_KEY = _require_file(path=SECURITY_DIR + '/keys/', file_name='SECRET_KEY')
+SECRET = _require_file(path=SECURITY_DIR + '/keys/', file_name='SECRET')
+POSTGRES_USER = _require_file(path=SECURITY_DIR + '/credentials/', file_name='POSTGRES_USER')
+POSTGRES_PASSWORD = _require_file(path=SECURITY_DIR + '/credentials/', file_name='POSTGRES_PASSWORD')
 
-# key for data integrity hashing
-with open(SECURITY_DIR + '/keys/SECRET') as f:
-    SECRET = f.read().strip()
 
+##########################
+# APPS MODULES AND SO ON #
+##########################
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -114,29 +178,81 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#####################
+# LANGUAGE AND TIME #
+#####################
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.10/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# FILE SYSTEM SETTINGS
-MEDIA_ROOT = os.path.join(BASE_DIR, 'labels')
-MEDIA_URL = '/labels/'
 
+########
+# URLS #
+########
+
+MEDIA_URL = '/labels/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    STATIC_DIR,
 ]
 
-SESSION_COOKIE_AGE = 3600
+
+############
+# DATABASE #
+############
+
+# postgres settings
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': _require_env('POSTGRES_DB'),
+        'USER': POSTGRES_USER,
+        'PASSWORD': POSTGRES_PASSWORD,
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', 5432)
+    }
+}
+
+
+####################
+# FLAGS AND VALUES #
+####################
+
+# general settings
+DEBUG = custom.value_to_bool(_require_env('DEBUG'))
+ALLOWED_HOSTS = ['{}'.format(_require_env('ALLOWED_HOSTS'))]
 CONN_MAX_AGE = None
 
-# LOGGING
+# security settings of type bool
+CSRF_COOKIE_SECURE = custom.value_to_bool(os.environ.get('CSRF_COOKIE_SECURE', 0))
+CSRF_USE_SESSIONS = custom.value_to_bool(os.environ.get('CSRF_USE_SESSIONS', 0))
+SESSION_COOKIE_SECURE = custom.value_to_bool(os.environ.get('SESSION_COOKIE_SECURE', 0))
+SECURE_CONTENT_TYPE_NOSNIFF = custom.value_to_bool(os.environ.get('SECURE_CONTENT_TYPE_NOSNIFF', 0))
+SECURE_BROWSER_XSS_FILTER = custom.value_to_bool(os.environ.get('SECURE_BROWSER_XSS_FILTER', 0))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = custom.value_to_bool(os.environ.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 0))
+SECURE_SSL_REDIRECT = custom.value_to_bool(os.environ.get('SECURE_SSL_REDIRECT', 0))
+SECURE_HSTS_PRELOAD = custom.value_to_bool(os.environ.get('SECURE_HSTS_PRELOAD', 0))
+
+# security settings of type integer
+SECURE_HSTS_SECONDS = custom.value_to_int(os.environ.get('SECURE_HSTS_SECONDS', 0))
+SESSION_COOKIE_AGE = custom.value_to_int(os.environ.get('SESSION_COOKIE_AGE', 3600))
+
+# security settings of type tuple
+if os.environ.get('SECURE_PROXY_SSL_HEADER', 0):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# security settings of type string
+X_FRAME_OPTIONS = os.environ.get('X_FRAME_OPTIONS', 'SAMEORIGIN')
+
+###########
+# LOGGING #
+###########
+
+# logging settings
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,

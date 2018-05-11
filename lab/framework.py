@@ -24,6 +24,9 @@ import logging
 import svgwrite
 import datetime
 from passlib.hash import argon2
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPDF
+
 
 # django imports
 from django.utils import timezone
@@ -43,19 +46,20 @@ SECRET = settings.SECRET
 class Labels(object):
     def __init__(self):
         self.dpi = 600
-        self.margin = self.pixel(3)  # 3 mm margin top/bottom/left/right
+        self.margin = self.pixel(4)  # 3 mm margin top/bottom/left/right
         self.width = self.pixel(62)  # 62 mm width
         self.height = self.pixel(29)  # 29 mm height
         self.json_b = self._get_json_b
         self.json_c = self._get_json_c
         self.json_inv_b = self._get_json_inv_b
-        self._bar = 4  # 5 pixel
-        self.quiet_zone = self.margin + 10 * self.bar
+        self._bar = 8
         self._code = str()
-        self._font_size = '22px'
+        self._font_size = '140px'
         self._font_family = 'arial'
         self._svg = str()
-        self._svg_url = str()
+        self._pdf_url = str()
+        self._pdf = str()
+        # self.quiet_zone = self.margin + 10 * self.bar
 
     def pixel(self, value):
         return round((self.dpi * value) / 25.4)
@@ -133,12 +137,20 @@ class Labels(object):
         self._svg = settings.MEDIA_ROOT + '/' + value
 
     @property
-    def svg_url(self):
-        return self._svg_url
+    def pdf(self):
+        return self._pdf
 
-    @svg_url.setter
-    def svg_url(self, value):
-        self._svg_url = settings.MEDIA_URL + value
+    @pdf.setter
+    def pdf(self, value):
+        self._pdf = settings.MEDIA_ROOT + '/' + value
+
+    @property
+    def pdf_url(self):
+        return self._pdf_url
+
+    @pdf_url.setter
+    def pdf_url(self, value):
+        self._pdf_url = settings.MEDIA_URL + value
 
     @property
     def code(self):
@@ -174,29 +186,29 @@ class Labels(object):
 
     @property
     def exists(self):
-        return os.path.isfile(self.svg)
+        return os.path.isfile(self.pdf)
 
-    def location(self, unique, version):
-        """Function to create a standard location label. 
+    def reagent(self, unique, version):
+        """Function to create a standard reagent label.
 
-            :param unique: unique value of location for creating label
+            :param unique: unique value of reagent for creating label
             :type unique: str
-            :param version: location entry version
+            :param version: reagent record version
             :type version: int
             :returns: flag + path for printing
             :rtype: bool, str
         """
-        # define variables for location label
+        # define variables for reagent label
         self.font_size = '80px'
         # _path must match exactly that pattern: no leading slash, but must end with slash
-        _path = 'locations/'
+        _path = 'reagents/'
         # create .svg and .pdf paths and file names
         self.svg = _path + '{}_v-{}.svg'.format(unique, version)
         self.svg_url = _path + '{}_v-{}.svg'.format(unique, version)
 
         # check if label already exists
         if self.exists:
-            log.info('SVG label file for location "{}" version "{}" already exists. Using existing SVG for printing.'
+            log.info('SVG label file for reagent "{}" version "{}" already exists. Using existing SVG for printing.'
                      .format(unique, version))
             return True, self.svg_url
         else:
@@ -230,15 +242,91 @@ class Labels(object):
             # try to save SVG file
             try:
                 dwg.save()
-                message = 'SVG label file "{}" for location "{}" version "{}" has successfully been created.' \
+                message = 'SVG label file "{}" for reagent "{}" version "{}" has successfully been created.' \
                     .format(self.svg, unique, version)
                 log.info(message)
             except:
                 # raise error
-                message = 'Could not create SVG label file for location "{}" version "{}".'.format(unique, version)
+                message = 'Could not create SVG label file for reagent "{}" version "{}".'.format(unique, version)
                 raise NameError(message)
             # log entries for successful pdf generation
             return True, self.svg_url
+
+    def default(self, unique, version, label):
+        """Function to create a standard label.
+
+            :param unique: unique label value
+            :type unique: str
+            :param version: label version
+            :type version: str
+            :param label: label object can be "location", "box" or "reagent"
+            :returns: flag + path for printing
+            :rtype: bool, str
+        """
+        # validation
+        if not isinstance(unique, str) or not isinstance(label, str) or not isinstance(version, str):
+            raise TypeError('Argument of type string expected.')
+        allowed = ['location', 'box', 'reagent']
+        if label not in allowed:
+            raise ValueError('Argument "label" must match "location", "box" or "reagent".')
+        # create .svg and .pdf paths and file names
+        self.svg = label + '/{}_v-{}.svg'.format(unique, version)
+        self.pdf = label + '/{}_v-{}.pdf'.format(unique, version)
+        self.pdf_url = label + '/{}_v-{}.pdf'.format(unique, version)
+
+        # check if label already exists
+        if self.exists:
+            log.info('PDF File for {} "{}" version "{}" already exists. Using existing PDF file for printing.'
+                     .format(label, unique, version))
+            return True, self.pdf_url
+        else:
+            # generate code
+            self.code = unique
+            # label design
+            dwg = svgwrite.Drawing(filename=self.svg, size=(self.width, self.height))
+            dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), fill='white'))
+            dwg.add(dwg.text(unique, insert=(self.margin + 50, self.margin + 100), font_size=self.font_size,
+                             font_family=self.font_family, font_weight="bold"))
+
+            # determine barcode length
+            barcode_length = len(self.code) * self.bar
+            left = (self.width - barcode_length) / 2
+
+            # barcode
+            for idx, y in enumerate(self.code):
+                if y is "0":
+                    stroke = "white"
+                else:
+                    stroke = "black"
+                dwg.add(dwg.line(start=(left + idx * self.bar, self.margin + 170),
+                                 end=(left + idx * self.bar, self.height - self.margin),
+                                 stroke=stroke, stroke_width=self.bar))
+
+            try:
+                # save SVG
+                dwg.save()
+                message = 'SVG label file "{}" for {} "{}" version "{}" has successfully been created.' \
+                    .format(self.svg, label, unique, version)
+                log.info(message)
+            except:
+                # raise error
+                message = 'Could not create SVG file for {} "{}" version "{}".'.format(label, unique, version)
+                raise NameError(message)
+            else:
+                try:
+                    # save raw PDF
+                    drawing = svg2rlg(self.svg)
+                    renderPDF.drawToFile(drawing, self.pdf)
+                    message = 'PDF label file "{}" for {} "{}" version "{}" has successfully been created.' \
+                        .format(self.pdf, label, unique, version)
+                    log.info(message)
+                except:
+                    # raise error
+                    message = 'Could not create PDF file for {} "{}" version "{}".' \
+                        .format(label, unique, version)
+                    raise NameError(message)
+                else:
+                    return True, self.pdf_url
 
 
 class Master(object):
@@ -324,7 +412,7 @@ class GetStandard(Master):
         for item in self.js_header:
             if item == 'permissions':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val().toString();'.format(item))
-            elif item == 'is_active' or item == 'default':
+            elif item == 'is_active' or item == 'default' or item == 'mandatory':
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").is(":checked");'.format(item))
             else:
                 _return.append('var v_{0} = $(myDomElement).find("#id_{0}").val();'.format(item))
@@ -361,10 +449,10 @@ class GetStandard(Master):
             to_verify += '{}:{};'.format(field, row[field])
 
         to_verify += str(SECRET)
-        checksum = self.table.objects.checksum(row[self.unique])
+        checksum = row['checksum']
         try:
             return argon2.verify(to_verify, checksum)
-        except TypeError or ValueError:
+        except ValueError or TypeError:
             # return false + log entry
             message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'.\
                 format(row[self.unique], self.table_name)
@@ -405,7 +493,8 @@ class GetStandard(Master):
                     tmp += '<td class="version">{}</td>'.format(row[field])
                 elif field == 'password':
                     tmp += '<td>*****</td>'
-                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default' \
+                        or field == 'mandatory':
                     if row[field]:
                         tmp += '<td class="gui"><p style="display: none">True</p>' \
                                '<i class="fas fa-check-circle" style="color: green"></td>'
@@ -470,7 +559,8 @@ class GetAuditTrail(GetStandard):
                 # formatting duration fields
                 elif field == 'thaw_time':
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['thaw_uom'], dt=row[field]))
-                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default':
+                elif field == 'is_active' or field == 'initial_password' or field == 'active' or field == 'default' \
+                        or field == 'mandatory':
                     if row[field]:
                         tmp += '<td><p style="display: none">True</p>' \
                                '<i class="fas fa-check-circle" style="color: green"></td>'
@@ -518,7 +608,7 @@ class GetView(GetStandard):
             tmp = self.table_row_head()
             for field in self.header:
                 # locations and box can be empty
-                if field == 'location' or field == 'box':
+                if field == 'location' or field == 'box' or field == 'position':
                     tmp += '<td>{}</td>'.format('' if row[field] is None else row[field])
                 # thaw count
                 elif field == 'remaining_thaw_count':
@@ -557,6 +647,170 @@ class GetLog(GetStandard):
     pass
 
 
+class GetDynamic(GetStandard):
+    def __init__(self, table, dynamic_table, type):
+        super().__init__(table)
+        self.type = type
+        self.type_attributes = models.TypeAttributes.objects.columns_as_list(type=type)
+        self.dynamic_table = dynamic_table
+        self.dynamic_table_name = dynamic_table._meta.db_table
+        self.dynamic_table_unique = self.dynamic_table.objects.unique
+        self.affiliation = models.Types.objects.get_affiliation(type=type)
+
+    @property
+    def js_header(self):
+        _header = self.header_start
+        for column in self.type_attributes:
+            _header.append(column)
+        return _header
+
+    @property
+    def _table_header_dynamic(self):
+        return [head.name for head in self.dynamic_table._meta.get_fields()]
+
+    def query_dynamic(self, id_main):
+        """Query dynamic table for main record id.
+
+            :param id_ref: main record identifier id
+            :type id_ref: int
+
+            :return: records for id_ref
+            :rtype: django.db.models.query.QuerySet
+        """
+        return self.dynamic_table.objects.filter(id_main=id_main).values()
+
+    @property
+    def header_dynamic(self):
+        _header_dynamic = self._table_header_dynamic
+        _header_dynamic.remove('id')
+        _header_dynamic.remove('checksum')
+        return _header_dynamic
+
+    @property
+    def header_start(self):
+        _header_start = self.header
+        if self.affiliation == 'Reagents':
+            _header_start.remove('type')
+        _header_start.remove('version')
+        return _header_start
+
+    @property
+    def html_header(self):
+        _header = self.header_start + self.type_attributes
+        _header.append('Version')
+        return custom.capitalize(_header)
+
+    def table_row_head_total(self, row, query_dynamic):
+        # TODO #59
+        if self.verify_checksum(row=row):
+            for row in query_dynamic:
+                if not self.verify_checksum_dynamic(row=row):
+                    return '<tr style="color: red">'
+            return '<tr>'
+        else:
+            return '<tr style="color: red">'
+
+    def verify_checksum_dynamic(self, row):
+        """Verify checksum of dynamic class table.
+
+            :param row: element of Django queryset
+            :type row: dict
+
+            :returns: success flag
+            :rtype: bool
+        """
+        to_verify = str()
+        for field in self.header_dynamic:
+            to_verify += '{}:{};'.format(field, row[field])
+
+        to_verify += str(SECRET)
+        checksum = row['checksum']
+        try:
+            return argon2.verify(to_verify, checksum)
+        except ValueError or TypeError:
+            # return false + log entry
+            message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'. \
+                format(row[self.dynamic_table_unique], self.dynamic_table_name)
+            log.warning(message)
+            return False
+
+    def get(self, **dic):
+        _query = self.query(order_by=self.order_by, type=self.type)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic(row['id'])
+            tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
+            # adding all tds for builder_header_start
+            for field in self.header_start:
+                # tagging the unique field
+                if field == self.unique:
+                    tmp += '<td class="unique gui">{}</td>'.format(row[field])
+                else:
+                    tmp += '<td class="gui">{}</td>'.format(row[field])
+            # adding all tds for builder_header_dynamic
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
+                    tmp += '<td class="gui"></td>'
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            tmp += '<td class="gui">{}</td>'.format(row_dynamic['value'])
+            # adding all tds for builder_header_end
+            tmp += '<td>{}</td>'.format(row['version'])
+            # close table
+            tmp += '</tr>'
+            # append table row
+            _list.append(tmp)
+        return _list
+
+
+class GetDynamicAuditTrail(GetStandard):
+    def __init__(self, table, dynamic_table, type):
+        super().__init__(table)
+        self.type = type
+
+
+
+    def table_row_head_total(self, row, query_dynamic):
+        # TODO #59
+        if self.verify_checksum(row=row):
+            for row in query_dynamic:
+                if not self.verify_checksum_dynamic(row=row):
+                    return '<tr class="tmp_audit_trail" style="color: red">'
+            return '<tr class="tmp_audit_trail">'
+        else:
+            return '<tr class="tmp_audit_trail" style="color: red">'
+
+    def get(self, **dic):
+        _query = self.query(order_by=self.order_by, type=self.type)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic(row['id'])
+            tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
+            # adding all tds for builder_header_start
+            for field in self.header_start:
+                # tagging the unique field
+                if field == self.unique:
+                    tmp += '<td class="unique gui">{}</td>'.format(row[field])
+                else:
+                    tmp += '<td class="gui">{}</td>'.format(row[field])
+            # adding all tds for builder_header_dynamic
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
+                    tmp += '<td class="gui"></td>'
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            tmp += '<td class="gui">{}</td>'.format(row_dynamic['value'])
+            # adding all tds for builder_header_end
+            tmp += '<td>{}</td>'.format(row['version'])
+            # close table
+            tmp += '</tr>'
+            # append table row
+            _list.append(tmp)
+        return _list
+
+
 class TableManipulation(Master):
     def __init__(self, table, table_audit_trail=None):
         super().__init__(table)
@@ -565,6 +819,7 @@ class TableManipulation(Master):
         self._dict = dict()
         self._id = int
         self._user = str()
+        self._version = None
         self._unique_value = None
         self.unique_old = self.unique + '_old'
 
@@ -591,6 +846,14 @@ class TableManipulation(Master):
     @id.setter
     def id(self, value):
         self._id = value
+
+    @property
+    def version(self):
+        return self._version
+
+    @version.setter
+    def version(self, value):
+        self._version = value
 
     @property
     def user(self):
@@ -620,11 +883,9 @@ class TableManipulation(Master):
         _header.remove('checksum')
         return _header
 
-    def parsing(self, version=None, **kwargs):
+    def parsing(self, **kwargs):
         """Function to parse passed dict to generate json string, generate checksum and result dict for return. 
 
-            :param version: record version 
-            :type version: int
             :param kwargs: custom table fields 
             :type kwargs: str/int/float
 
@@ -648,10 +909,9 @@ class TableManipulation(Master):
                 message = 'Field "{}" is missing in argument list.'.format(field)
                 raise NameError(message)
         # add version
-        if version is not None:
-            version = version
-            _dict['version'] = version
-            _json += 'version:{};'.format(version)
+        if self.version is not None:
+            _dict['version'] = self.version
+            _json += 'version:{};'.format(self.version)
         self.json = _json
         self.dict = _dict
         # add secret to json string
@@ -675,7 +935,8 @@ class TableManipulation(Master):
         if self.table.objects.exist(kwargs[self.unique]) is False:
             self.user = user
             self.unique_value = kwargs[self.unique]
-            checksum = self.parsing(version=1, **kwargs)
+            self.version = 1
+            checksum = self.parsing(**kwargs)
             try:
                 entry = self.table.objects.create(**self.dict, checksum=checksum)
                 self.timestamp = timezone.now()
@@ -718,8 +979,75 @@ class TableManipulation(Master):
     def new_times(self, **kwargs):
         return self.new_log(text='times', unique='item', **kwargs)
 
+    def new_dynamic(self, user, identifier, main_version, timestamp, **kwargs):
+        """Function to create new dynamic table records.
+
+            :param user: user id/name
+            :type user: str
+            :param identifier: identifier of main object
+            :rtype identifier: str
+            :param main_version: version of the main object
+            :rtype main_version: int
+            :param timestamp: timestamp from external
+            :rtype timestamp: datetime object
+            :param kwargs: custom table fields
+            :type kwargs: str/int/float
+
+            :returns: flag + message
+            :rtype: bool, str
+        """
+        self.user = user
+        self.unique_value = '{} - {}'.format(identifier, kwargs['type_attribute'])
+        checksum = self.parsing(**kwargs)
+        try:
+            self.table.objects.create(**self.dict, checksum=checksum)
+            self.timestamp = timestamp
+            self.id = main_version
+            # success message + log entry
+            message = 'Record "{}" has been created.'.format(self.unique_value)
+            log.info(message)
+        except:
+            # raise error
+            message = 'Could not create record "{}".'.format(self.unique_value)
+            raise NameError(message)
+        else:
+            return True, message
+
     def new_boxing(self, **kwargs):
         return self.new_log(text='boxing', unique='box', **kwargs)
+
+    def edit_boxing(self, **kwargs):
+        """Dedicated function to update boxing records. WARNING, does not suit framework!
+
+            :return: flag
+            :rtype: bool
+        """
+        try:
+            if self.table.objects.exist_object(kwargs['object']):
+                old = self.table.objects.filter(object=kwargs['object']).get()
+                old_kwargs = {
+                    'object': '',
+                    'position': old.position,
+                    'box': old.box
+                }
+                checksum = self.parsing(**old_kwargs)
+                self.table.objects.filter(object=old.object).update(**self.dict, checksum=checksum)
+                # success message + log entry
+                message = 'Boxing record for "{}" has been updated.'.format(old.object)
+                log.info(message)
+            # parse record data
+            checksum = self.parsing(**kwargs)
+            self.table.objects.filter(box=kwargs['box'],
+                                      position=kwargs['position']).update(**self.dict, checksum=checksum)
+            # success message + log entry
+            message = 'Boxing record for "{}" has been created.'.format(kwargs['object'])
+            log.info(message)
+        except:
+            # raise error
+            message = 'Could not create boxing record for "{}".'.format(kwargs['object'])
+            raise NameError(message)
+        else:
+            return True
 
     def edit(self, user, **kwargs):
         """Function to update existing standard table records. 
@@ -737,8 +1065,8 @@ class TableManipulation(Master):
             self.user = user
             self.unique_value = kwargs[self.unique]
             # get record version and increment
-            version = self.record_version(self.unique_value) + 1
-            checksum = self.parsing(version=version, **kwargs)
+            self.version = self.record_version(self.unique_value) + 1
+            checksum = self.parsing(**kwargs)
             try:
                 filter_dic = {self.unique: self.unique_value}
                 self.table.objects.filter(**filter_dic).update(**self.dict, checksum=checksum)
@@ -759,10 +1087,58 @@ class TableManipulation(Master):
             log.warning(message)
             return False, message
 
+    def edit_dynamic(self, user, identifier, main_version, timestamp, **kwargs):
+        self.unique_value = '{} - {}'.format(identifier, kwargs['type_attribute'])
+        keys = ['id_main', 'type_attribute']
+        values = [kwargs['id_main'], kwargs['type_attribute']]
+        filter_dic = dict(zip(keys, values))
+        if self.table.objects.filter(**filter_dic).exists():
+            self.user = user
+            checksum = self.parsing(**kwargs)
+            # self.version = main_version
+            try:
+                self.table.objects.filter(**filter_dic).update(**self.dict, checksum=checksum)
+                self.timestamp = timestamp
+                self.id = main_version
+                # success message + log entry
+                message = 'Record "{}" has been updated.'.format(self.unique_value)
+                log.info(message)
+            except:
+                # raise error
+                message = 'Could not update record "{}".'.format(self.unique_value)
+                raise NameError(message)
+            else:
+                return True, message
+        else:
+            # error message + log entry
+            message = 'Record "{}" is not existing. Therefore adding new record.'.format(self.unique_value)
+            log.info(message)
+            result, message = self.new_dynamic(user=user, identifier=identifier, main_version=main_version,
+                                               timestamp=timestamp, **kwargs)
+            return result, message
+
     def new_at(self, user, **kwargs):
         result, message = self.new(user=user, **kwargs)
         if result:
             if self.audit_trail(action='Create'):
+                return True, 'Success!'
+        else:
+            return result, message
+
+    def new_dynamic_at(self, user, identifier, main_version, timestamp, **kwargs):
+        result, message = self.new_dynamic(user=user, identifier=identifier, main_version=main_version,
+                                           timestamp=timestamp, **kwargs)
+        if result:
+            if self.audit_trail(action='Create'):
+                return True, 'Success!'
+        else:
+            return result, message
+
+    def edit_dynamic_at(self, user, identifier, main_version, timestamp, **kwargs):
+        result, message = self.edit_dynamic(user=user, identifier=identifier, main_version=main_version,
+                                            timestamp=timestamp, **kwargs)
+        if result:
+            if self.audit_trail(action='Update'):
                 return True, 'Success!'
         else:
             return result, message
@@ -864,7 +1240,8 @@ class TableManipulation(Master):
             # set id for audit trail entry
             self.id = _query[0]["id"]
             # parse record values to generate json string and dict to pass for audit trail
-            self.parsing(version=_query[0]["version"], **self.prepare(_query))
+            self.version = _query[0]["version"]
+            self.parsing(**self.prepare(_query))
             # delete record
             try:
                 self.table.objects.filter(**_dic).delete()
@@ -880,6 +1257,27 @@ class TableManipulation(Master):
                 return True
         else:
             return False
+
+    def delete_dynamic(self, id_main, identifier, timestamp):
+        query = self.table.objects.filter(id_main=id_main)
+        print('query: ', query)
+        for record in query:
+            print('record: ', record)
+            self.unique_value = '{} - {}'.format(identifier, record.type_attribute)
+            print('unique value: ', self.unique_value)
+            self.id = record.id
+            self.parsing(**self.prepare(record))
+            try:
+                self.table.object.filter(id=record.id).delete()
+                self.timestamp = timestamp
+                # log entry
+                message = 'Record "{}" has been deleted.'.format(self.unique_value)
+                log.info(message)
+            except:
+                # raise error
+                message = 'Could not delete record "{}".'.format(self.unique_value)
+                raise NameError(message)
+        return True
 
     def movement(self, user, unique, new_location):
         # get actual information
@@ -963,6 +1361,10 @@ class TableManipulation(Master):
                     log.info(message)
                     return True, message
 
+    def move(self, user, obj, method, initial_location, new_location, timestamp):
+        return self.new_log(user=user, object=obj, method=method, initial_location=initial_location,
+                            new_location=new_location, timestamp=timestamp)
+
 
 def new_login_log(username, action, method='manual', active=None):
     """Function to create new login log records. 
@@ -999,4 +1401,6 @@ def html_and_data(context, get_standard, get_audit_trail, form_render_new, form_
     context['header_audit_trail'] = get_audit_trail.html_header
     # pass verified query
     context['query'] = get_standard.get()
+    context['reagents'] = models.Types.objects.filter(affiliation='Reagents').values_list('type', flat=True)
+    context['samples'] = models.Types.objects.filter(affiliation='Samples').values_list('type', flat=True)
     return context

@@ -1,7 +1,10 @@
 Django===1.11
-argon2-cffi===16.3.0
-cffi===1.11.2
+argon2-cffi===18.1.0
+cffi===1.11.5
 passlib===1.7.1
-svgwrite===1.1.11
-psycopg2===2.7.3.2
-django-widget-tweaks===1.4.1
+svgwrite===1.1.12
+psycopg2===2.7.4
+django-widget-tweaks===1.4.2
+reportlab===3.4.0
+svglib===0.8.1
+gunicorn===19.8.1

@@ -27,12 +27,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $(".sidebar-sub-md").toggleClass("sidebar-sub-vis");
     });
 
+    $("#id_sidebar_menu_par_re").click(function() {
+        $(".sidebar-sub-re").toggleClass("sidebar-sub-vis");
+    });
+
+    $("#id_sidebar_menu_par_sa").click(function() {
+        $(".sidebar-sub-sa").toggleClass("sidebar-sub-vis");
+    });
+
     $("#id_sidebar_menu_par_log").click(function() {
         $(".sidebar-sub-log").toggleClass("sidebar-sub-vis");
     });
 
     $("#id_sidebar_menu_par_ad").click(function() {
         $(".sidebar-sub-ad").toggleClass("sidebar-sub-vis");
-    })
+    });
 
+    // active sidebar menu
+    var content;
+    {% if content_dynamic %}
+        content = "{{ content_dynamic }}";
+    {% else %}
+        content = "{{ content }}"; {% endif %}
+    var id = "#id_sidebar_menu_li_" + content;
+    $(id).addClass("sidebar-active");
+    if ($(id).hasClass("sidebar-sub-md")) {
+        $(".sidebar-sub-md").removeClass("sidebar-sub-vis");
+    } if ($(id).hasClass("sidebar-sub-re")) {
+        $(".sidebar-sub-re").removeClass("sidebar-sub-vis");
+    } if ($(id).hasClass("sidebar-sub-log")) {
+        $(".sidebar-sub-log").removeClass("sidebar-sub-vis");
+    } if ($(id).hasClass("sidebar-sub-ad")) {
+        $(".sidebar-sub-ad").removeClass("sidebar-sub-vis");
+    } if ($(id).hasClass("sidebar-sub-sa")) {
+        $(".sidebar-sub-sa").removeClass("sidebar-sub-vis");
+    }
 </script>

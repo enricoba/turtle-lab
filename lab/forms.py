@@ -26,7 +26,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from lab.models import UNIQUE_LENGTH, GENERATED_LENGTH, TIMES, \
     Conditions, Locations, FreezeThawAccounts, PERMISSIONS, Roles, \
-    Types, BoxTypes
+    Types, BoxTypes, DEFAULT
 
 # app imports
 import lab.models as models
@@ -55,6 +55,11 @@ def validate_unique_type(value):
         raise ValidationError('Record already exists.')
 
 
+def validation_no_space(value):
+    if ' ' in value:
+        raise ValidationError('Input shall not contain white spaces.')
+
+
 def validate_unique_roles(value):
     if models.Roles.objects.exist(value):
         raise ValidationError('Record already exists.')
@@ -62,6 +67,11 @@ def validate_unique_roles(value):
 
 def validate_unique_freeze_thaw_accounts(value):
     if models.FreezeThawAccounts.objects.exist(value):
+        raise ValidationError('Record already exists.')
+
+
+def validate_unique_type_attributes(value):
+    if models.TypeAttributes.objects.exist(value):
         raise ValidationError('Record already exists.')
 
 
@@ -237,7 +247,8 @@ class TypesFormNew(forms.Form):
     type = forms.CharField(label='type', max_length=UNIQUE_LENGTH,
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
                            help_text='Enter a type.',
-                           validators=[validate_unique_type])
+                           validators=[validate_unique_type,
+                                       validation_no_space])
     affiliation = forms.CharField(label='affiliation', max_length=UNIQUE_LENGTH, help_text='Select an affiliation.',
                                   widget=forms.Select(choices=models.AFFILIATIONS,
                                                       attrs={'class': 'form-control manual'}))
@@ -255,10 +266,9 @@ class TypesFormNew(forms.Form):
     def clean(self):
         cleaned_data = super(TypesFormNew, self).clean()
         affiliation = cleaned_data.get('affiliation')
-        # TODO temporarily disabled due to limited support of samples
         # usage_condition = cleaned_data.get('usage_condition')
         if affiliation == 'Samples':
-            raise forms.ValidationError('Samples not supported in this version.')
+            raise forms.ValidationError('Samples are not supported in this version.')
             # if usage_condition is None:
             # raise forms.ValidationError('Samples must have usage condition.')
 
@@ -276,8 +286,8 @@ class TypesFormEdit(TypesFormNew):
 class BoxesFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a box name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.order_by('-default', 'id'), empty_label=None,
-                                      widget=forms.Select(attrs={'class': 'form-control'}),
+    box_type = forms.ModelChoiceField(label='box type', queryset=BoxTypes.objects.order_by('-default', 'id'),
+                                      empty_label=None, widget=forms.Select(attrs={'class': 'form-control'}),
                                       help_text='Select a box type.')
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
                                   widget=forms.Select(attrs={'class': 'form-control'}), required=False,
@@ -296,6 +306,46 @@ class BoxesFormEdit(forms.Form):
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label='',
                                   widget=forms.Select(attrs={'class': 'form-control'}), required=False,
                                   help_text='Select a type. This field is optional.')
+
+
+###################
+# TYPE ATTRIBUTES #
+###################
+
+
+class TypeAttributesFormNew(forms.Form):
+    column = forms.CharField(label='column', max_length=UNIQUE_LENGTH, help_text='Enter a column name.',
+                             widget=forms.TextInput(attrs={'class': 'form-control'}),
+                             validators=[validate_unique_type_attributes,
+                                         validation_no_space])
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label=None,
+                                  widget=forms.Select(attrs={'class': 'form-control'}),
+                                  help_text='Select a type.')
+    list_values = forms.CharField(label='list values', max_length=DEFAULT, required=False,
+                                  help_text='Enter values via comma separated list.',
+                                  widget=forms.TextInput(attrs={'class': 'form-control'}))
+    default_value = forms.CharField(label='default value', max_length=DEFAULT, required=False,
+                                    help_text='Enter a default value.',
+                                    widget=forms.TextInput(attrs={'class': 'form-control'}))
+    mandatory = forms.BooleanField(label='mandatory', required=False, help_text='Define if field is mandatory.',
+                                   widget=forms.CheckboxInput(attrs={'class': 'form-control', 'style': 'align: left'}))
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(TypeAttributesFormNew, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(TypeAttributesFormNew, self).clean()
+        if cleaned_data.get('list_values') and cleaned_data.get('default_value'):
+            if cleaned_data.get('default_value') not in cleaned_data.get('list_values').split(','):
+                raise ValidationError('Default value must be list option.')
+
+
+class TypeAttributesFormEdit(TypeAttributesFormNew):
+    column = forms.CharField(label='column', max_length=UNIQUE_LENGTH,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
+    type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label=None,
+                                  widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}))
 
 
 #############
@@ -371,9 +421,18 @@ class SamplesFormEdit(forms.Form):
 class ReagentsFormNew(forms.Form):
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    type = forms.ModelChoiceField(label='type', queryset=Types.objects.reagents,
-                                  widget=forms.Select(attrs={'class': 'form-control'}), empty_label=None,
-                                  help_text='Select a type.')
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        self.type = kwargs.pop('type', None)
+        super(ReagentsFormNew, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        # TODO #61
+        for row in models.TypeAttributes.objects.filter(type=self.type).order_by('id'):
+            if row.mandatory:
+                if not self.request.POST.get(row.column):
+                    raise forms.ValidationError('Field "{}" is mandatory.'.format(row.column))
 
 
 class ReagentsFormEdit(forms.Form):
@@ -381,10 +440,23 @@ class ReagentsFormEdit(forms.Form):
                               widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
     name = forms.CharField(label='name', max_length=UNIQUE_LENGTH, help_text='Enter a reagent name.',
                            widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    type = forms.ModelChoiceField(label='type', queryset=Types.objects.reagents,
-                                  widget=forms.Select(attrs={'class': 'form-control', 'disabled': True}),
-                                  empty_label=None, help_text='Select a type.')
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        self.type = kwargs.pop('type', None)
+        super(ReagentsFormEdit, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        # TODO #61
+        for row in models.TypeAttributes.objects.filter(type=self.type).order_by('id'):
+            if row.mandatory:
+                if not self.request.POST.get(row.column):
+                    raise forms.ValidationError('Field "{}" is mandatory.'.format(row.column))
+
+
+#############
+# MOVEMENTS #
+#############
 
 class MovementsForm(forms.Form):
     actual_location = forms.CharField(label='actual location', max_length=UNIQUE_LENGTH, required=False,
@@ -399,19 +471,16 @@ class MovementsForm(forms.Form):
 
     def clean(self):
         cleaned_data = super(MovementsForm, self).clean()
-        actual_location = cleaned_data.get('actual_location')
+        actual_location = str(cleaned_data.get('actual_location'))[:7]
         new_location = str(cleaned_data.get('new_location'))[:7]
         unique = self.request.POST.get('unique')
         if actual_location == new_location:
             raise forms.ValidationError('Actual location is equal to new location.')
         if unique[:1] == 'B':
-            boxed_samples = models.RTD.objects.filter(box=unique[:7])
-            for sample in boxed_samples:
-                if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(sample):
-                    raise forms.ValidationError('Target location has no suitable condition for {}.'.format(sample))
-        if unique[:1] == 'S':
-            if models.Locations.objects.condition(new_location) not in models.Samples.objects.conditions(unique):
-                raise forms.ValidationError('Target location has no suitable condition.')
+            boxed_objects = models.Overview.objects.filter(box=unique[:7])
+            for obj in boxed_objects:
+                if models.Locations.objects.condition(new_location) != models.Reagents.objects.condition(obj):
+                    raise forms.ValidationError('Target location has no suitable condition for {}.'.format(obj))
 
 
 class BoxingForm(forms.Form):
@@ -438,14 +507,6 @@ class BoxingForm(forms.Form):
 
 
 class OverviewBoxingForm(forms.Form):
-    r_s = forms.ChoiceField(label='R / S', choices=(('R', 'Reagent'), ('S', 'Sample')), required=False,
-                            widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_r_s'}))
-    type_r = forms.ModelChoiceField(label='Type R', queryset=models.Types.objects.reagents.all(), empty_label=None,
-                                    widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_r'}),
-                                    required=False, validators=[validate_box_exist])
-    type_s = forms.ModelChoiceField(label='Type S', queryset=models.Types.objects.samples.all(), empty_label=None,
-                                    widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_s'}),
-                                    required=False, validators=[validate_box_exist])
     box = forms.CharField(label='Box', max_length=UNIQUE_LENGTH,
                           widget=forms.TextInput(attrs={'class': 'form-control',
                                                         'placeholder': 'scan target box'}))

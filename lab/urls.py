@@ -24,7 +24,7 @@ from . import views
 urlpatterns = [
     # export
     url(r'^export/(?P<dialog>\w+)/$', views.export, name='export'),
-    url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
+    # url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
     # index
     url(r'^$', views.index, name='index'),
     url(r'^index/login/$', views.index_login, name='index login'),
@@ -42,6 +42,12 @@ urlpatterns = [
     url(r'^types/edit/$', views.types_edit, name='types edit'),
     url(r'^types/delete/$', views.types_delete, name='types delete'),
     url(r'^types/audit_trail/$', views.types_audit_trail, name='types audit trail'),
+    # type attributes
+    url(r'^type_attributes/$', views.type_attributes, name='type attributes'),
+    url(r'^type_attributes/new/$', views.type_attributes_new, name='type attributes new'),
+    url(r'^type_attributes/edit/$', views.type_attributes_edit, name='type attributes edit'),
+    url(r'^type_attributes/delete/$', views.type_attributes_delete, name='type attributes delete'),
+    url(r'^type_attributes/audit_trail/$', views.type_attributes_audit_trail, name='type attributes audit trail'),
     # locations
     url(r'^locations/$', views.locations, name='locations'),
     url(r'^locations/new/$', views.locations_new, name='locations new'),
@@ -70,12 +76,13 @@ urlpatterns = [
     # url(r'^samples/audit_trail/$', views.samples_audit_trail, name='samples audit trail'),
     # url(r'^samples/label/$', views.samples_label, name='samples label'),
     # reagents
-    url(r'^reagents/$', views.reagents, name='reagents'),
-    url(r'^reagents/new/$', views.reagents_new, name='reagents new'),
-    url(r'^reagents/edit/$', views.reagents_edit, name='reagents edit'),
+    url(r'^reagents/new/(?P<reagent>\w+)/$', views.reagents_new, name='reagents new'),
+    url(r'^reagents/edit/(?P<reagent>\w+)/$', views.reagents_edit, name='reagents edit'),
+    # url(r'^reagents/edit/$', views.reagents_edit, name='reagents edit'),
     url(r'^reagents/delete/$', views.reagents_delete, name='reagents delete'),
     url(r'^reagents/audit_trail/$', views.reagents_audit_trail, name='reagents audit trail'),
     url(r'^reagents/label/$', views.reagents_label, name='reagents label'),
+    url(r'^reagents/(?P<reagent>\w+)/$', views.reagents, name='reagents'),
     # accounts
     # url(r'^freeze_thaw_accounts/$', views.freeze_thaw_accounts, name='freeze_thaw_accounts'),
     # url(r'^freeze_thaw_accounts/new/$', views.freeze_thaw_accounts_new, name='freeze_thaw_accounts new'),
@@ -111,5 +118,7 @@ urlpatterns = [
     # overview
     url(r'^overview/$', views.overview, name='overview'),
     url(r'^overview/boxing/$', views.overview_boxing, name='overview boxing'),
-    url(r'^overview/locate/$', views.overview_locate, name='overview locate')
+    url(r'^overview/locate/$', views.overview_locate, name='overview locate'),
+    url(r'^overview/movement/$', views.overview_movement, name='overview movement'),
+    url(r'^overview/move/$', views.overview_move, name='overview move')
 ]
