@@ -206,7 +206,7 @@ if os.environ.get('CACHE', 0):
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://redis:6379/0",
+            "LOCATION": "redis://{}:6379/0".format(os.environ.get('REDIS_HOST', 'redis')),
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
                 "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
