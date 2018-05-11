@@ -7,9 +7,9 @@ Basic features are:
 - location management
 - monitoring of storage conditions
 - audit trails 
-- barcoded labels 
+- barcode labels 
 - logs
-- permission management 
+- user and permission management 
 
 Fore more details check each published release in the [release section](https://github.com/enricoba/turtle-lab/releases).
 
