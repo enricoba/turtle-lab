@@ -1,10 +1,3 @@
-drop view overview;
-drop view tmp_overview_loc;
-drop view tmp_overview_box;
-drop view tmp_overview;
-
-
-
 CREATE OR REPLACE VIEW public.tmp_overview as
 	SELECT
 		b.box AS object,
