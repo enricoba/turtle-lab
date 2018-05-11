@@ -44,6 +44,7 @@ Turtle-lab is intending to meet GxP requirements for working with clinical sampl
 * [Psycopg2 2.7.4](https://pypi.org/project/psycopg2/)
 * [Gunicorn 19.8.1](https://github.com/benoitc/gunicorn)
 * [Django-widget-tweaks 1.4.2](https://github.com/jazzband/django-widget-tweaks)
+* [Django-redis 4.9.0](https://niwinz.github.io/django-redis/latest/)
 
 # Versioning
 This project follows [SemVer](https://semver.org/) for versioning. 
