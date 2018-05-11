@@ -8,4 +8,4 @@ django-widget-tweaks===1.4.2
 reportlab===3.4.0
 svglib===0.8.1
 gunicorn===19.8.1
-django-redis-cache===1.7.1
+django-redis===4.9.0

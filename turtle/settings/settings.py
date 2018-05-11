@@ -159,8 +159,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'turtle.wsgi.application'
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -200,6 +198,25 @@ STATICFILES_DIRS = [
     STATIC_DIR,
 ]
 
+#########
+# CACHE #
+#########
+
+if os.environ.get('CACHE', 0):
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://redis:6379/0",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            }
+        }
+    }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 ############
 # DATABASE #
