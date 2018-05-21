@@ -611,7 +611,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
-                                <form id="id_form_movement">
+                                <form id="id_form_movement" onsubmit="return false">
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_movement %}
@@ -644,7 +644,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
-                                <form id="id_form_boxing">
+                                <form id="id_form_boxing" onsubmit="return false">
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_boxing %}
@@ -704,7 +704,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
-                                <form id="id_form_overview_boxing" class="form-horizontal">
+                                <form id="id_form_overview_boxing" class="form-horizontal" onsubmit="return false">
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_overview_boxing %}
