@@ -45,18 +45,44 @@ CREATE OR REPLACE VIEW public.tmp_overview_box as
 										b.object::text = o.object::text));
 
 
+CREATE OR REPLACE VIEW public.tmp_overview_box_loc AS
+  SELECT
+		b.object,
+		l.location
+  FROM
+		tmp_overview_box b,
+		tmp_overview_loc l
+	WHERE
+		l.object::text = b.box::text;
+
+
+CREATE OR REPLACE VIEW public.tmp_overview_loc_merged AS
+	SELECT
+		l.object,
+		l.location
+	FROM
+		tmp_overview_loc l
+UNION
+	SELECT
+		b.object,
+		b.location
+	FROM tmp_overview_box_loc b;
+
+
+
+
 CREATE OR REPLACE VIEW public.overview AS
 	SELECT
 		row_number() OVER () AS id,
     r.object,
 		r.affiliation,
     r.type,
-		tmp_overview_loc.location,
+		tmp_overview_loc_merged.location,
 		tmp_overview_box.box AS box,
 		tmp_overview_box.position AS position
 	FROM
 		tmp_overview r
 	LEFT JOIN
-		tmp_overview_loc ON r.object::text = tmp_overview_loc.object::text
+		tmp_overview_loc_merged ON r.object::text = tmp_overview_loc_merged.object::text
 	LEFT JOIN
 		tmp_overview_box ON r.object::text = tmp_overview_box.object::text;
