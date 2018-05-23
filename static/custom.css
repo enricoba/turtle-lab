@@ -99,6 +99,24 @@ html, body {
     transition: all 0ms linear;
 }
 
+.sidebar-bottom {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 20px;
+    color: #aaabae;
+    text-align: center;
+    opacity: 1;
+    transition: all 200ms linear 200ms;
+}
+
+.sidebar-bottom-reduced {
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0ms linear;
+}
+
 .sidebar-menu li {
     position: relative;
     font-size: 14px;
