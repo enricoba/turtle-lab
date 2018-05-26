@@ -16,6 +16,11 @@ html, body {
     transition: all 200ms ease-out;
 }
 
+.left-instant {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+}
+
 
 .left-reduced {
     margin-left: 0;
@@ -24,6 +29,13 @@ html, body {
     -moz-transition: all 200ms ease-out;
     -o-transition: all 200ms ease-out;
     transition: all 200ms ease-out;
+}
+
+.left-reduced-instant {
+    margin-left: 0;
+    width: 100%;
+    top: 0;
+    height: 0;
 }
 
 .sidebar {
@@ -37,6 +49,15 @@ html, body {
     -moz-transition: all 200ms ease-out;
     -o-transition: all 200ms ease-out;
     transition: all 200ms ease-out;
+}
+
+.sidebar-instant {
+   z-index: 500;
+    top: 0;
+    width: 200px;
+    height: 100%;
+    position: fixed;
+    background: #173C45;
 }
 
 .top {
@@ -66,6 +87,10 @@ html, body {
     transition: all 200ms ease-out;
 }
 
+.reduced-instant {
+    width: 0;
+}
+
 .table-auto {
     table-layout: fixed;
 }
@@ -93,10 +118,20 @@ html, body {
     transition: all 200ms linear 200ms;
 }
 
+.sidebar-menu-instant {
+    list-style: none;
+    visibility: visible;
+}
+
 .sidebar-menu-reduced {
     visibility: hidden;
     opacity: 0;
     transition: all 0ms linear;
+}
+
+.sidebar-menu-reduced-instant {
+    visibility: hidden;
+    opacity: 0;
 }
 
 .sidebar-bottom {
@@ -111,10 +146,25 @@ html, body {
     transition: all 200ms linear 200ms;
 }
 
+.sidebar-bottom-instant {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 20px;
+    color: #aaabae;
+    text-align: center;
+}
+
 .sidebar-bottom-reduced {
     visibility: hidden;
     opacity: 0;
     transition: all 0ms linear;
+}
+
+.sidebar-bottom-reduced-instant {
+    visibility: hidden;
+    opacity: 0;
 }
 
 .sidebar-menu li {

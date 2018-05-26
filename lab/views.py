@@ -143,9 +143,18 @@ def index_logout(request):
 @decorators.require_ajax
 @login_required
 def offset(request):
-    # get timezone delta from client
-    dt = request.POST.get('dt')
-    request.session['offset'] = dt
+    # get timezone delta from client and set session key
+    request.session['offset'] = request.POST.get('dt')
+    data = {'response': True}
+    return JsonResponse(data)
+
+
+@require_POST
+@decorators.require_ajax
+@login_required
+def sidebar(request):
+    # get sidebar status and set session key
+    request.session['sidebar'] = request.POST.get('status')
     data = {'response': True}
     return JsonResponse(data)
 
@@ -158,6 +167,7 @@ def roles(request):
         context={'tables': True,
                  'content': 'roles',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.Roles, dt=request.session['offset']),
@@ -247,6 +257,7 @@ def users(request):
         context={'tables': True,
                  'content': 'users',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.Users, dt=request.session['offset']),
@@ -424,6 +435,7 @@ def conditions(request):
         context={'tables': True,
                  'content': 'conditions',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.Conditions, dt=request.session['offset']),
@@ -509,6 +521,7 @@ def locations(request):
         context={'tables': True,
                  'content': 'locations',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.Locations, dt=request.session['offset']),
@@ -622,6 +635,7 @@ def types(request):
         context={'tables': True,
                  'content': 'types',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.Types, dt=request.session['offset']),
@@ -718,6 +732,7 @@ def boxes(request):
         context={'tables': True,
                  'content': 'boxes',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.Boxes, dt=request.session['offset']),
@@ -848,6 +863,7 @@ def type_attributes(request):
         context={'tables': True,
                  'content': 'type_attributes',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.TypeAttributes, dt=request.session['offset']),
@@ -945,6 +961,7 @@ def box_types(request):
         context={'tables': True,
                  'content': 'box_types',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetStandard(table=models.BoxTypes, dt=request.session['offset']),
@@ -1162,6 +1179,7 @@ def reagents(request, reagent):
                  'content_dynamic': reagent,
                  'type_attributes': models.TypeAttributes.objects.all_list_exchanged(type=reagent),
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent),
@@ -1422,6 +1440,7 @@ def movement_log(request):
     context = {'tables': True,
                'content': 'movement_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1439,6 +1458,7 @@ def login_log(request):
     context = {'tables': True,
                'content': 'login_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1456,6 +1476,7 @@ def label_log(request):
     context = {'tables': True,
                'content': 'label_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1473,6 +1494,7 @@ def boxing_log(request):
     context = {'tables': True,
                'content': 'boxing_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1489,6 +1511,7 @@ def overview(request):
     context = {'tables': True,
                'content': 'overview',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'modal_overview_boxing': forms.OverviewBoxingForm(),

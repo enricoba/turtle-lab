@@ -27,6 +27,7 @@ urlpatterns = [
     # url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
     # others
     url(r'^offset/$', views.offset, name='offset'),
+    url(r'^sidebar/$', views.sidebar, name='sidebar'),
     # index
     url(r'^$', views.index, name='index'),
     url(r'^index/login/$', views.index_login, name='index login'),
