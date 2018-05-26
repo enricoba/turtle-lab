@@ -378,8 +378,11 @@ class Master(object):
 
 
 class GetStandard(Master):
-    def __init__(self, table):
+    def __init__(self, table, dt=None):
         super().__init__(table)
+        if dt:
+            self.dt = datetime.timedelta(seconds=int(dt) * 60)
+            self.utc_offset = custom.fill_up_time_delta(dt)
 
     @property
     def header(self):
@@ -479,7 +482,9 @@ class GetStandard(Master):
                     tmp += '<td class="unique gui">{}</td>'.format(row[field])
                 # formatting the timestamp
                 elif field == 'timestamp':
-                    tmp += '<td>{}</td>'.format(row[field].strftime("%Y-%m-%d %H:%M:%S %Z %z"))
+                    tmp += '<td>{}</td>'.format(custom.format_timestamp(timestamp=row[field],
+                                                                        dt=self.dt,
+                                                                        utc_offset=self.utc_offset))
                 # formatting duration fields
                 elif field == 'freeze_time':
                     tmp += '<td class="gui">{}</td>'.format(custom.timedelta_reverse(uom=row['freeze_uom'],
@@ -552,7 +557,9 @@ class GetAuditTrail(GetStandard):
             for field in self.header:
                 # formatting the timestamp
                 if field == 'timestamp':
-                    tmp += '<td>{}</td>'.format(row[field].strftime("%Y-%m-%d %H:%M:%S %Z %z"))
+                    tmp += '<td>{}</td>'.format(custom.format_timestamp(timestamp=row[field],
+                                                                        dt=self.dt,
+                                                                        utc_offset=self.utc_offset))
                 # formatting duration fields
                 elif field == 'freeze_time':
                     tmp += '<td>{}</td>'.format(custom.timedelta_reverse(uom=row['freeze_uom'], dt=row[field]))
@@ -768,8 +775,6 @@ class GetDynamicAuditTrail(GetStandard):
     def __init__(self, table, dynamic_table, type):
         super().__init__(table)
         self.type = type
-
-
 
     def table_row_head_total(self, row, query_dynamic):
         # TODO #59

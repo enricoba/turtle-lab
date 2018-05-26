@@ -863,6 +863,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% include "lab/overview_boxing.html" %}
         {% include "lab/movement.html" %}
         {% include "lab/form.html" %}
+        <!-- get timezone on initial load -->
+        <script>
+            {% include "lab/js/timezone.js" %}
+        </script>
     {% endif %}
 
     {% if content == 'users' %}
@@ -872,7 +876,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'index' %}
         {% include "lab/form.html" %}
-        {% include "lab/login.html" %}
+        <script>
+            {% include "lab/js/login.js" %}
+        </script>
     {% endif %}
 </body>
 </html>

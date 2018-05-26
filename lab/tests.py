@@ -36,6 +36,22 @@ class TestCheckEqual(TestCase):
             custom.check_equal(object())
 
 
+class FillUpTimeDelta(TestCase):
+    def test_fill_up_time_delta(self):
+        self.assertEqual(custom.fill_up_time_delta('-120'), '+02')
+        self.assertEqual(custom.fill_up_time_delta('120'), '-02')
+        self.assertEqual(custom.fill_up_time_delta('-180'), '+03')
+        self.assertEqual(custom.fill_up_time_delta('-600'), '+10')
+        self.assertEqual(custom.fill_up_time_delta('+660'), '-11')
+
+        with self.assertRaises(TypeError):
+            custom.transform_box_type_figures(2)
+            custom.transform_box_type_figures(list())
+            custom.transform_box_type_figures(dict())
+            custom.transform_box_type_figures(tuple())
+            custom.transform_box_type_figures(object())
+
+
 class TestTransformBoxTypeFigures(TestCase):
     def test_transform_box_type_figures(self):
         self.assertEqual(custom.transform_box_type_figures('2'), 2)
@@ -99,18 +115,6 @@ class TestTimedeltaReverse(TestCase):
         with self.assertRaises(TypeError):
             custom.timedelta(2, 2)
             custom.timedelta('d', 'test')
-
-
-class TestGenerateChecksum(TestCase):
-    def test_generate_checksum(self):
-        self.assertEqual(custom.generate_checksum('test123'),
-                         custom.argon2.using(salt_len=32, digest_size=32, rounds=1).hash('test123'))
-
-        with self.assertRaises(TypeError):
-            custom.generate_checksum(233)
-            custom.generate_checksum(list())
-            custom.generate_checksum(tuple())
-            custom.generate_checksum(object())
 
 
 class TestDetermineBoxTypeFiguresType(TestCase):

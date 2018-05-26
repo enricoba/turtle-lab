@@ -61,6 +61,56 @@ class Echo:
         return value
 
 
+def fill_up_time_delta(offset):
+    """Transfers javascript function Date().getTimezoneOffset() to human readable UTC offset
+
+    :param offset: Date().getTimezoneOffset() as string
+    :type offset: str
+
+    :return: human readable UTC offset
+    :rtype: str
+    """
+    if not isinstance(offset, str):
+        raise TypeError('Argument of type string expected.')
+    offset = value_to_int(offset)
+    if offset < 0:
+        operator = '+'
+    else:
+        operator = '-'
+    offset = round(offset / 60)
+    if 0 < offset < 10:
+        return '{}0{}'.format(operator, offset)
+    elif offset >= 10:
+        return '{}{}'.format(operator, offset)
+    elif 0 > offset > -10:
+        return '{}0{}'.format(operator, offset * -1)
+    elif offset <= -10:
+        return '{}{}'.format(operator, offset * -1)
+
+
+def format_timestamp(timestamp, dt, utc_offset):
+    """Format timestamp into human readable
+
+    :param timestamp: timestamp to format
+    :type timestamp: datetime.datetime
+    :param dt: offset as timedelta object
+    :type dt: datetime.timedelta
+    :param utc_offset: UTC offset
+    :type utc_offset: str
+
+    :return: human readable timestamp string
+    :rtype: str
+    """
+    if not isinstance(timestamp, datetime.datetime):
+        raise TypeError('Argument of type datetime.datetime expected.')
+    if not isinstance(dt, datetime.timedelta):
+        raise TypeError('Argument of type datetime.timedelta expected.')
+    if not isinstance(utc_offset, str):
+        raise TypeError('Argument of type string expected.')
+    tmp = timestamp - dt
+    return '{}{}'.format(tmp.strftime("%Y-%m-%d %H:%M:%S %Z"), utc_offset)
+
+
 def check_equal(iterator):
     """Function to check, if all items of a list are equal.
 
