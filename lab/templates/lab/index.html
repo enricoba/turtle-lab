@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"
             integrity="sha384-Voup2lBiiyZYkRto2XWqbzxHXwzcm4A5RfdfG6466bu5LqjwwrjXCMBQBLMWh7qR"
             crossorigin="anonymous"></script>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static "favicon.ico" %}">
 </head>
 <body id="id_body" oncontextmenu="return false;">
     <!-- COVER -->
@@ -119,6 +121,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% endif %}
                 </ul>
             </div>
+            <div class="sidebar-bottom">
+                Version: 0.1.0-alpha.1
+            </div>
         </div>
     {% endif %}
 
@@ -127,7 +132,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div id="id_controlbar" class="container-fluid top left">
             <!-- NAV -->
             <div class="btn-group-lg" role="group" style="float: left; margin-right: 40px">
-                <button id="id_nav_btn_sidebar" type="button" class="btn btn-default">
+                <button title="Navigation" id="id_nav_btn_sidebar" type="button" class="btn btn-default">
                     <i class="fas fa-bars"></i></button>
             </div>
             <div class="btn-group-lg" role="group" style="float: left;">
@@ -135,214 +140,173 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'label_log' and content != 'boxing_log' and content != 'overview' %}
                     <!-- Conditions -->
                     {% if content == 'conditions' and 'co_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'conditions' and 'co_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Locations -->
                     {% if content == 'locations' and 'lo_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'locations' and 'lo_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Types -->
                     {% if content == 'types' and 'ty_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'types' and 'ty_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Type attributes -->
                     {% if content == 'type_attributes' and 'ta_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'type_attributes' and 'ta_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Box Types -->
                     {% if content == 'box_types' and 'bt_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'box_types' and 'bt_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-trash-alt"></i></button>
-                    {% endif %}
-                    <!-- Samples -->
-                    {% if content == 'samples' and 'sa_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-edit"></i></button>
-                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>-->
-                    {% endif %}
-                    {% if content == 'samples' and 'sa_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Reagents -->
                     {% if content == 'reagents' and 're_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'reagents' and 're_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Boxes -->
                     {% if content == 'boxes' and 'bo_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'boxes' and 'bo_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-trash-alt"></i></button>
-                    {% endif %}
-                    <!-- Accounts -->
-                    {% if content == 'freeze_thaw_accounts' and 'ac_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
-                            <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-edit"></i></button>
-                        <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
-                            <i class="fas fa-upload"></i></button>-->
-                    {% endif %}
-                    {% if content == 'freeze_thaw_accounts' and 'ac_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- User -->
                     {% if content == 'users' and 'us_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                     {% endif %}
                     {% if content == 'users' and 'us_p' in perm %}
-                        <button id="id_nav_btn_password" type="button" class="btn btn-default disabled">
+                        <button title="Password reset" id="id_nav_btn_password" type="button" class="btn btn-default disabled">
                             <i class="fas fa-key"></i></button>
                     {% endif %}
                     {% if content == 'users' and 'us_a' in perm %}
-                        <button id="id_nav_btn_active" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-user-times"></i></button>
+                        <button title="Active / Inactive" id="id_nav_btn_active" type="button" class="btn btn-default disabled">
+                            <i class="fas fa-user-check"></i></button>
                     {% endif %}
                     <!-- Roles -->
                     {% if content == 'roles' and 'ro_w' in perm %}
-                        <button id="id_nav_btn_new" type="button" class="btn btn-success">
+                        <button title="New" id="id_nav_btn_new" type="button" class="btn btn-success">
                             <i class="fas fa-plus"></i></button>
-                        <button id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
+                        <button title="Duplicate" id="id_nav_btn_duplicate" type="button" class="btn btn-default disabled">
                             <i class="fas fa-copy"></i></button>
-                        <button id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
+                        <button title="Edit" id="id_nav_btn_edit" type="button" class="btn btn-default disabled">
                             <i class="fas fa-edit"></i></button>
                         <!--<button id="id_nav_btn_import" type="button" class="btn btn-default">
                             <i class="fas fa-upload"></i></button>-->
                     {% endif %}
                     {% if content == 'roles' and 'ro_d' in perm %}
-                        <button id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
+                        <button title="Delete" id="id_nav_btn_delete" type="button" class="btn btn-default disabled">
                             <i class="fas fa-trash-alt"></i></button>
                     {% endif %}
                     <!-- Label -->
                     {% if content == 'locations' and 'lo_l' in perm %}
-                        <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
+                        <button title="Label print" id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
                             <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'samples' and 'sa_l' in perm %}
-                        <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
+                        <button title="Label print" id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
                             <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'boxes' and 'bo_l' in perm %}
-                        <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
+                        <button title="Label print" id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
                             <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     {% if content == 'reagents' and 're_l' in perm %}
-                        <button id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
+                        <button title="Label print" id="id_nav_btn_barcode" type="button" class="btn btn-default disabled">
                             <i class="fas fa-barcode"></i></button>
                     {% endif %}
                     <!-- Audit trail -->
-                    <button id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
+                    <button title="Log record" id="id_nav_btn_audit_trail" type="button" class="btn btn-default disabled">
                         <i class="fas fa-clock"></i></button>
                 {% endif %}
-                <!-- Home -->
-                    <!-- Movement -->
-                    {% if content == 'home' and 'mo' in perm %}
-                        <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-exchange-alt"></i></button>
-                    {% endif %}
-                    <!-- Boxing -->
-                    {% if content == 'home' and 'bo' in perm %}
-                        <button id="id_nav_btn_boxing" type="button" class="btn btn-default disabled">
-                            <i class="fas fa-th"></i></button>
-                    {% endif %}
                 <!-- Overview -->
                     <!-- MOVEMENT -->
                     {% if content == 'overview' and 'mo' in perm %}
-                        <button id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
+                        <button title="Movement" id="id_nav_btn_movement" type="button" class="btn btn-default disabled">
                             <i class="fas fa-exchange-alt"></i></button>
                     {% endif %}
                     <!-- BOXING -->
                     {% if content == 'overview' and 'bo' in perm %}
-                        <button id="id_nav_btn_overview_boxing" type="button" class="btn btn-default disabled">
+                        <button title="Boxing" id="id_nav_btn_overview_boxing" type="button" class="btn btn-default disabled">
                             <i class="fas fa-th"></i></button>
                     {% endif %}
                 <!-- Export -->
-                    <button id="id_nav_btn_export" type="button" class="btn btn-default">
+                    <button title="Export" id="id_nav_btn_export" type="button" class="btn btn-default">
                         <i class="fas fa-download"></i></button>
                 <!-- UNUSED -->
                     <!-- TODO #16 -->
@@ -360,14 +324,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
             {% if session %}
             <div class="btn-group-lg" role="group" style="float: right;">
-                <button id="id_nav_btn_user" type="button" class="btn btn-default">
+                <button title="User" id="id_nav_btn_user" type="button" class="btn btn-default">
                     <i class="fas fa-lock" style="color: green"></i><span style="font-size: 14px;"> {{ user }}</span></button>
-                <button id="id_nav_btn_logout" style="" type="button" class="btn btn-default">
+                <button title="Logout" id="id_nav_btn_logout" style="" type="button" class="btn btn-default">
                         <i class="fas fa-sign-out-alt"></i></button>
             </div>
             {% else %}
             <div class="btn-group-lg" role="group" style="float: right;">
-                <button id="id_nav_btn_logout" type="button" class="btn btn-default">
+                <button title="Logout" id="id_nav_btn_logout" type="button" class="btn btn-default">
                     <i class="fas fa-lock-OPEN" style="color: RED"></i> {{ user }}</button>
             </div>
             {% endif %}
@@ -567,7 +531,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <!-- HEADER -->
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" id="id_modal_audit_trail">Audit Trail</h4>
+                                <h4 class="modal-title" id="id_modal_audit_trail">Log record</h4>
                             </div>
                             <!-- BODY -->
                             <div class="container-fluid">
@@ -611,7 +575,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
-                                <form id="id_form_movement">
+                                <form id="id_form_movement" onsubmit="return false">
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_movement %}
@@ -644,7 +608,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
-                                <form id="id_form_boxing">
+                                <form id="id_form_boxing" onsubmit="return false">
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_boxing %}
@@ -704,7 +668,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <!-- BODY -->
                             <div class="modal-body">
-                                <form id="id_form_overview_boxing" class="form-horizontal">
+                                <form id="id_form_overview_boxing" class="form-horizontal" onsubmit="return false">
                                     {% csrf_token %}
                                     <!-- SPECIFIC -->
                                     {% for field in modal_overview_boxing %}
@@ -872,7 +836,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     {% include "lab/logout.html" %}
     {% include "lab/export.html" %}
     {% include "lab/import.html" %}
-    {% include "lab/search.html" %}
+    <script>
+        {% include "lab/js/search.js" %}
+    </script>
 
     {% if tables %}
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
@@ -899,6 +865,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         {% include "lab/overview_boxing.html" %}
         {% include "lab/movement.html" %}
         {% include "lab/form.html" %}
+        <!-- get timezone on initial load -->
+        <script>
+            {% include "lab/js/timezone.js" %}
+        </script>
     {% endif %}
 
     {% if content == 'users' %}
@@ -908,7 +878,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'index' %}
         {% include "lab/form.html" %}
-        {% include "lab/login.html" %}
+        <script>
+            {% include "lab/js/login.js" %}
+        </script>
     {% endif %}
 </body>
 </html>

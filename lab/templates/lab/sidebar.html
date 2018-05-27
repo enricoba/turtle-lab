@@ -17,10 +17,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <script>
+    var id_sidebar = $("#id_sidebar");
+
+    if ("{{ sidebar }}" === "true") {
+        id_sidebar.addClass("reduced-instant").removeClass("sidebar").addClass("sidebar-instant");
+        $(".left").addClass("left-reduced-instant").removeClass("left").addClass("left-instant");
+        $(".sidebar-menu").addClass("sidebar-menu-reduced-instant").removeClass("sidebar-menu").addClass("sidebar-menu-instant");
+        $(".sidebar-bottom").addClass("sidebar-bottom-reduced-instant").removeClass("sidebar-bottom").addClass("sidebar-bottom-instant");
+    }
+
     $("#id_nav_btn_sidebar").click(function() {
-        $("#id_sidebar").toggleClass("reduced");
-        $(".left").toggleClass("left-reduced");
-        $(".sidebar-menu").toggleClass("sidebar-menu-reduced");
+        if (id_sidebar.hasClass("sidebar-instant")) {
+            id_sidebar.removeClass("reduced").removeClass("sidebar-instant").removeClass("reduced-instant").addClass("sidebar");
+        } else {
+            id_sidebar.toggleClass("reduced");
+        }
+
+        var left_instant = $(".left-instant");
+        if (left_instant[0]) {
+            left_instant.removeClass("left-reduced").removeClass("left-instant").removeClass("left-reduced-instant").addClass("left");
+        } else {
+            $(".left").toggleClass("left-reduced");
+        }
+
+        var sidebar_menu_instant = $(".sidebar-menu-instant");
+        if (sidebar_menu_instant[0]) {
+            sidebar_menu_instant.removeClass("sidebar-menu-reduced").removeClass("sidebar-menu-reduced-instant").removeClass("sidebar-menu-instant").addClass("sidebar-menu");
+        } else {
+            $(".sidebar-menu").toggleClass("sidebar-menu-reduced");
+        }
+
+        var sidebar_bottom_instant = $(".sidebar-bottom-instant");
+        if (sidebar_bottom_instant[0]) {
+            sidebar_bottom_instant.removeClass("sidebar-bottom-reduced").removeClass("sidebar-bottom-reduced-instant").removeClass("sidebar-bottom-instant").addClass("sidebar-bottom");
+        } else {
+            $(".sidebar-bottom").toggleClass("sidebar-bottom-reduced");
+        }
+
+        store_session_data(id_sidebar.hasClass('reduced'));
     });
 
     $("#id_sidebar_menu_par_md").click(function() {
@@ -61,5 +95,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         $(".sidebar-sub-ad").removeClass("sidebar-sub-vis");
     } if ($(id).hasClass("sidebar-sub-sa")) {
         $(".sidebar-sub-sa").removeClass("sidebar-sub-vis");
+    }
+
+    function store_session_data(status) {
+        $.ajax({
+          method: "POST",
+          url: "/sidebar/",
+          data: {
+              'status': status
+          },
+          dataType: 'json'
+        });
     }
 </script>

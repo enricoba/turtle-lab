@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # python imports
 import logging
+import string
 
 # django imports
 from django import forms
@@ -58,6 +59,13 @@ def validate_unique_type(value):
 def validation_no_space(value):
     if ' ' in value:
         raise ValidationError('Input shall not contain white spaces.')
+
+
+def validate_no_specials(value):
+    _list = string.punctuation.replace('_', '°').replace('-', '')
+    invalid_chars = set(_list)
+    if any(char in invalid_chars for char in value):
+        raise ValidationError('Input shall not contain special characters: {}'.format(_list))
 
 
 def validate_unique_roles(value):
@@ -165,10 +173,12 @@ class RolesFormEdit(forms.Form):
 class UsersFormNew(forms.Form):
     first_name = forms.CharField(label='first name', max_length=UNIQUE_LENGTH,
                                  widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter your first name.')
+                                 help_text='Enter your first name.',
+                                 validators=[validate_no_specials])
     last_name = forms.CharField(label='last name', max_length=UNIQUE_LENGTH,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                help_text='Enter your last name.')
+                                help_text='Enter your last name.',
+                                validators=[validate_no_specials])
     password = forms.CharField(label='password',
                                widget=forms.PasswordInput(attrs={'class': 'form-control'}),
                                help_text='Enter a new password. Must be longer than 8 characters'
@@ -203,10 +213,12 @@ class UsersFormEdit(forms.Form):
                                widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': True}))
     first_name = forms.CharField(label='first name', max_length=UNIQUE_LENGTH,
                                  widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                 help_text='Enter your first name.')
+                                 help_text='Enter your first name.',
+                                 validators=[validate_no_specials])
     last_name = forms.CharField(label='last name', max_length=UNIQUE_LENGTH,
                                 widget=forms.TextInput(attrs={'class': 'form-control'}),
-                                help_text='Enter your last name.')
+                                help_text='Enter your last name.',
+                                validators=[validate_no_specials])
     role = forms.ModelChoiceField(label='role', queryset=Roles.objects.all(), empty_label=None,
                                   widget=forms.Select(attrs={'class': 'form-control'}),
                                   help_text='Select a role.')
@@ -248,7 +260,8 @@ class TypesFormNew(forms.Form):
                            widget=forms.TextInput(attrs={'class': 'form-control'}),
                            help_text='Enter a type.',
                            validators=[validate_unique_type,
-                                       validation_no_space])
+                                       validation_no_space,
+                                       validate_no_specials])
     affiliation = forms.CharField(label='affiliation', max_length=UNIQUE_LENGTH, help_text='Select an affiliation.',
                                   widget=forms.Select(choices=models.AFFILIATIONS,
                                                       attrs={'class': 'form-control manual'}))
@@ -317,7 +330,8 @@ class TypeAttributesFormNew(forms.Form):
     column = forms.CharField(label='column', max_length=UNIQUE_LENGTH, help_text='Enter a column name.',
                              widget=forms.TextInput(attrs={'class': 'form-control'}),
                              validators=[validate_unique_type_attributes,
-                                         validation_no_space])
+                                         validation_no_space,
+                                         validate_no_specials])
     type = forms.ModelChoiceField(label='type', queryset=Types.objects.all(), empty_label=None,
                                   widget=forms.Select(attrs={'class': 'form-control'}),
                                   help_text='Select a type.')

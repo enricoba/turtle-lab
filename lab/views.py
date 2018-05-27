@@ -139,6 +139,26 @@ def index_logout(request):
     return HttpResponseRedirect('/')
 
 
+@require_POST
+@decorators.require_ajax
+@login_required
+def offset(request):
+    # get timezone delta from client and set session key
+    request.session['offset'] = request.POST.get('dt')
+    data = {'response': True}
+    return JsonResponse(data)
+
+
+@require_POST
+@decorators.require_ajax
+@login_required
+def sidebar(request):
+    # get sidebar status and set session key
+    request.session['sidebar'] = request.POST.get('status')
+    data = {'response': True}
+    return JsonResponse(data)
+
+
 @require_GET
 @login_required
 @decorators.permission('ro_r', 'ro_w', 'ro_d')
@@ -147,10 +167,11 @@ def roles(request):
         context={'tables': True,
                  'content': 'roles',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Roles),
-        get_audit_trail=framework.GetAuditTrail(table=models.RolesAuditTrail),
+        get_standard=framework.GetStandard(table=models.Roles, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.RolesAuditTrail, dt=request.session['offset']),
         form_render_new=forms.RolesFormNew(),
         form_render_edit=forms.RolesFormEdit())
     return render(request, 'lab/index.html', context)
@@ -162,7 +183,7 @@ def roles(request):
 @decorators.require_ajax
 def roles_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.RolesAuditTrail).get(
+        table=models.RolesAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Roles.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -236,10 +257,11 @@ def users(request):
         context={'tables': True,
                  'content': 'users',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Users),
-        get_audit_trail=framework.GetAuditTrail(table=models.UserAuditTrail),
+        get_standard=framework.GetStandard(table=models.Users, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.UserAuditTrail, dt=request.session['offset']),
         form_render_new=forms.UsersFormNew(),
         form_render_edit=forms.UsersFormEdit())
     context['modal_password_users'] = forms.PasswordFormUsers()
@@ -252,7 +274,7 @@ def users(request):
 @decorators.require_ajax
 def users_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.UserAuditTrail).get(
+        table=models.UserAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Users.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -413,10 +435,11 @@ def conditions(request):
         context={'tables': True,
                  'content': 'conditions',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Conditions),
-        get_audit_trail=framework.GetAuditTrail(table=models.ConditionsAuditTrail),
+        get_standard=framework.GetStandard(table=models.Conditions, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.ConditionsAuditTrail, dt=request.session['offset']),
         form_render_new=forms.ConditionFormNew(),
         form_render_edit=forms.ConditionFormEdit())
     return render(request, 'lab/index.html', context)
@@ -428,7 +451,7 @@ def conditions(request):
 @decorators.require_ajax
 def conditions_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.ConditionsAuditTrail).get(
+        table=models.ConditionsAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Conditions.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -498,10 +521,11 @@ def locations(request):
         context={'tables': True,
                  'content': 'locations',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Locations),
-        get_audit_trail=framework.GetAuditTrail(table=models.LocationsAuditTrail),
+        get_standard=framework.GetStandard(table=models.Locations, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.LocationsAuditTrail, dt=request.session['offset']),
         form_render_new=forms.LocationsFormNew(),
         form_render_edit=forms.LocationsFormEdit())
     return render(request, 'lab/index.html', context)
@@ -513,7 +537,7 @@ def locations(request):
 @decorators.require_ajax
 def locations_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.LocationsAuditTrail).get(
+        table=models.LocationsAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Locations.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -611,10 +635,11 @@ def types(request):
         context={'tables': True,
                  'content': 'types',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Types),
-        get_audit_trail=framework.GetAuditTrail(table=models.TypesAuditTrail),
+        get_standard=framework.GetStandard(table=models.Types, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.TypesAuditTrail, dt=request.session['offset']),
         form_render_new=forms.TypesFormNew(),
         form_render_edit=forms.TypesFormEdit())
     return render(request, 'lab/index.html', context)
@@ -626,7 +651,7 @@ def types(request):
 @decorators.require_ajax
 def types_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.TypesAuditTrail).get(
+        table=models.TypesAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Types.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -707,10 +732,11 @@ def boxes(request):
         context={'tables': True,
                  'content': 'boxes',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Boxes),
-        get_audit_trail=framework.GetAuditTrail(table=models.BoxesAuditTrail),
+        get_standard=framework.GetStandard(table=models.Boxes, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.BoxesAuditTrail, dt=request.session['offset']),
         form_render_new=forms.BoxesFormNew(),
         form_render_edit=forms.BoxesFormEdit())
     return render(request, 'lab/index.html', context)
@@ -722,7 +748,7 @@ def boxes(request):
 @decorators.require_ajax
 def boxes_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.BoxesAuditTrail).get(
+        table=models.BoxesAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Boxes.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -837,10 +863,11 @@ def type_attributes(request):
         context={'tables': True,
                  'content': 'type_attributes',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.TypeAttributes),
-        get_audit_trail=framework.GetAuditTrail(table=models.TypeAttributesAuditTrail),
+        get_standard=framework.GetStandard(table=models.TypeAttributes, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.TypeAttributesAuditTrail, dt=request.session['offset']),
         form_render_new=forms.TypeAttributesFormNew(),
         form_render_edit=forms.TypeAttributesFormEdit())
     return render(request, 'lab/index.html', context)
@@ -852,7 +879,7 @@ def type_attributes(request):
 @decorators.require_ajax
 def type_attributes_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.TypeAttributesAuditTrail).get(
+        table=models.TypeAttributesAuditTrail, dt=request.session['offset']).get(
         id_ref=models.TypeAttributes.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -934,10 +961,11 @@ def box_types(request):
         context={'tables': True,
                  'content': 'box_types',
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.BoxTypes),
-        get_audit_trail=framework.GetAuditTrail(table=models.BoxTypesAuditTrail),
+        get_standard=framework.GetStandard(table=models.BoxTypes, dt=request.session['offset']),
+        get_audit_trail=framework.GetAuditTrail(table=models.BoxTypesAuditTrail, dt=request.session['offset']),
         form_render_new=forms.BoxTypesFormNew(),
         form_render_edit=forms.BoxTypesFormEdit())
     return render(request, 'lab/index.html', context)
@@ -949,7 +977,7 @@ def box_types(request):
 @decorators.require_ajax
 def box_types_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.BoxTypesAuditTrail).get(
+        table=models.BoxTypesAuditTrail, dt=request.session['offset']).get(
         id_ref=models.BoxTypes.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -1151,32 +1179,14 @@ def reagents(request, reagent):
                  'content_dynamic': reagent,
                  'type_attributes': models.TypeAttributes.objects.all_list_exchanged(type=reagent),
                  'session': True,
+                 'sidebar': request.session.get('sidebar', 'false'),
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent),
-        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail),
+        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail, dt=request.session['offset']),
         form_render_new=forms.ReagentsFormNew(),
         form_render_edit=forms.ReagentsFormEdit())
     return render(request, 'lab/index.html', context)
-
-
-"""
-@require_GET
-@login_required
-@decorators.permission('re_r', 're_w', 're_d', 're_l')
-def reagents(request):
-    context = framework.html_and_data(
-        context={'tables': True,
-                 'content': 'reagents',
-                 'session': True,
-                 'user': request.user.username,
-                 'perm': request.user.permissions},
-        get_standard=framework.GetStandard(table=models.Reagents),
-        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail),
-        form_render_new=forms.ReagentsFormNew(),
-        form_render_edit=forms.ReagentsFormEdit())
-    return render(request, 'lab/index.html', context)
-"""
 
 
 @require_GET
@@ -1185,7 +1195,7 @@ def reagents(request):
 @decorators.require_ajax
 def reagents_audit_trail(request):
     response, data = framework.GetAuditTrail(
-        table=models.ReagentsAuditTrail).get(
+        table=models.ReagentsAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Reagents.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -1426,10 +1436,11 @@ def freeze_thaw_accounts_delete(request):
 @login_required
 @decorators.permission('log_mo')
 def movement_log(request):
-    get_log = framework.GetLog(table=models.MovementLog)
+    get_log = framework.GetLog(table=models.MovementLog, dt=request.session['offset'])
     context = {'tables': True,
                'content': 'movement_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1443,10 +1454,11 @@ def movement_log(request):
 @login_required
 @decorators.permission('log_lo')
 def login_log(request):
-    get_log = framework.GetLog(table=models.LoginLog)
+    get_log = framework.GetLog(table=models.LoginLog, dt=request.session['offset'])
     context = {'tables': True,
                'content': 'login_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1460,10 +1472,11 @@ def login_log(request):
 @login_required
 @decorators.permission('log_la')
 def label_log(request):
-    get_log = framework.GetLog(table=models.LabelLog)
+    get_log = framework.GetLog(table=models.LabelLog, dt=request.session['offset'])
     context = {'tables': True,
                'content': 'label_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1477,10 +1490,11 @@ def label_log(request):
 @login_required
 @decorators.permission('log_bo')
 def boxing_log(request):
-    get_log = framework.GetLog(table=models.BoxingLog)
+    get_log = framework.GetLog(table=models.BoxingLog, dt=request.session['offset'])
     context = {'tables': True,
                'content': 'boxing_log',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'header': get_log.html_header,
@@ -1497,6 +1511,7 @@ def overview(request):
     context = {'tables': True,
                'content': 'overview',
                'session': True,
+               'sidebar': request.session.get('sidebar', 'false'),
                'user': request.user.username,
                'perm': request.user.permissions,
                'modal_overview_boxing': forms.OverviewBoxingForm(),
@@ -1646,100 +1661,6 @@ def overview_boxing(request):
                 'form_id': 'id_form_overview_boxing',
                 'errors': form.errors}
         return JsonResponse(data)
-
-
-"""
-@require_GET
-@login_required
-@decorators.permission('home')
-def home(request):
-    context = {'tables': True,
-               'content': 'home',
-               'session': True,
-               'user': request.user.username,
-               'perm': request.user.permissions,
-               'modal_movement': forms.MovementsForm(),
-               'modal_boxing': forms.BoxingForm(),
-               'header': framework.GetView(table=models.RTD).html_header,
-               'query': framework.GetView(table=models.RTD).get()}
-    return render(request, 'lab/index.html', context)
-
-
-@require_GET
-@login_required
-@decorators.permission('mo')
-@decorators.require_ajax
-def home_movement(request):
-    unique = request.GET.get('unique')
-    query_verify = models.RTD.objects.location(unique=unique)
-    data = {'response': True,
-            'data': query_verify}
-    return JsonResponse(data)
-
-
-@require_POST
-@login_required
-@decorators.permission('mo')
-@decorators.require_ajax
-def home_move(request):
-    form = forms.MovementsForm(request.POST, request=request)
-    if form.is_valid():
-        manipulation = framework.TableManipulation(table=models.MovementLog)
-        # check if selected item is a sample
-        unique = request.POST.get('unique')
-        response, message = manipulation.movement(user=request.user.username,
-                                                  unique=request.POST.get('unique'),
-                                                  new_location=str(form.cleaned_data['new_location'])[:7])
-        # if box is moved boxed samples are moved as well
-        if unique[:1] == 'B':
-            boxed_samples = models.RTD.objects.filter(box=unique[:7])
-            for sample in boxed_samples:
-                manipulation.movement(user=request.user.username,
-                                      unique=sample,
-                                      new_location=str(form.cleaned_data['new_location'])[:7])
-        data = {'response': response,
-                'message': message}
-        return JsonResponse(data)
-    else:
-        data = {'response': False,
-                'form_id': 'id_form_movement',
-                'errors': form.errors}
-        return JsonResponse(data)
-
-
-@require_GET
-@login_required
-@decorators.permission('bo')
-@decorators.require_ajax
-def home_box(request):
-    unique = request.GET.get('unique')
-    # check if selected item is a sample
-    if unique[:1] == 'B':
-        return JsonResponse({'response': False})
-    query_verify = models.RTD.objects.box(unique=unique)
-    data = {'response': True,
-            'data': query_verify}
-    return JsonResponse(data)
-
-
-@require_POST
-@login_required
-@decorators.permission('bo')
-@decorators.require_ajax
-def home_boxing(request):
-    form = forms.BoxingForm(request.POST, request=request)
-    if form.is_valid():
-        manipulation = framework.TableManipulation(table=models.BoxingLog)
-        if manipulation.new_log(text='boxing', unique='sample', user=request.user.username,
-                                sample=request.POST.get('unique'), box=str(form.cleaned_data.get('new_box'))[:7],
-                                position='', timestamp=timezone.now()):
-            return JsonResponse({'response': True})
-    else:
-        data = {'response': False,
-                'form_id': 'id_form_boxing',
-                'errors': form.errors}
-        return JsonResponse(data)
-"""
 
 
 @require_GET

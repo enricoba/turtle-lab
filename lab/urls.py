@@ -25,6 +25,9 @@ urlpatterns = [
     # export
     url(r'^export/(?P<dialog>\w+)/$', views.export, name='export'),
     # url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
+    # others
+    url(r'^offset/$', views.offset, name='offset'),
+    url(r'^sidebar/$', views.sidebar, name='sidebar'),
     # index
     url(r'^$', views.index, name='index'),
     url(r'^index/login/$', views.index_login, name='index login'),
@@ -68,13 +71,6 @@ urlpatterns = [
     url(r'^box_types/edit/$', views.box_types_edit, name='box types edit'),
     url(r'^box_types/delete/$', views.box_types_delete, name='box types delete'),
     url(r'^box_types/audit_trail/$', views.box_types_audit_trail, name='box types audit trail'),
-    # samples
-    # url(r'^samples/$', views.samples, name='samples'),
-    # url(r'^samples/new/$', views.samples_new, name='samples new'),
-    # url(r'^samples/edit/$', views.samples_edit, name='samples edit'),
-    # url(r'^samples/delete/$', views.samples_delete, name='samples delete'),
-    # url(r'^samples/audit_trail/$', views.samples_audit_trail, name='samples audit trail'),
-    # url(r'^samples/label/$', views.samples_label, name='samples label'),
     # reagents
     url(r'^reagents/new/(?P<reagent>\w+)/$', views.reagents_new, name='reagents new'),
     url(r'^reagents/edit/(?P<reagent>\w+)/$', views.reagents_edit, name='reagents edit'),
@@ -83,12 +79,6 @@ urlpatterns = [
     url(r'^reagents/audit_trail/$', views.reagents_audit_trail, name='reagents audit trail'),
     url(r'^reagents/label/$', views.reagents_label, name='reagents label'),
     url(r'^reagents/(?P<reagent>\w+)/$', views.reagents, name='reagents'),
-    # accounts
-    # url(r'^freeze_thaw_accounts/$', views.freeze_thaw_accounts, name='freeze_thaw_accounts'),
-    # url(r'^freeze_thaw_accounts/new/$', views.freeze_thaw_accounts_new, name='freeze_thaw_accounts new'),
-    # url(r'^freeze_thaw_accounts/edit/$', views.freeze_thaw_accounts_edit, name='freeze_thaw_accounts edit'),
-    # url(r'^freeze_thaw_accounts/delete/$', views.freeze_thaw_accounts_delete, name='freeze_thaw_accounts delete'),
-    # url(r'^freeze_thaw_accounts/audit_trail/$', views.freeze_thaw_accounts_audit_trail, name='freeze_thaw_accounts audit trail'),
     # logs
     url(r'^movement_log/$', views.movement_log, name='movement log'),
     url(r'^login_log/$', views.login_log, name='login log'),
@@ -109,12 +99,6 @@ urlpatterns = [
     url(r'^users/active/$', views.users_active, name='users active'),
     url(r'^users/activate/$', views.users_activate, name='users activate'),
     url(r'^users/deactivate/$', views.users_deactivate, name='users deactivate'),
-    # rtd
-    # url(r'^home/$', views.home, name='home'),
-    # url(r'^home/movement/$', views.home_movement, name='home movement'),
-    # url(r'^home/move/$', views.home_move, name='home move'),
-    # url(r'^home/box/$', views.home_box, name='home box'),
-    # url(r'^home/boxing/$', views.home_boxing, name='home boxing'),
     # overview
     url(r'^overview/$', views.overview, name='overview'),
     url(r'^overview/boxing/$', views.overview_boxing, name='overview boxing'),
