@@ -365,6 +365,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% endblock %}
                 </tbody>
             </table>
+            <div id="id_search_error" class="container-fluid search-error" style="display: none">
+                <h1>no records have been found ...</h1>
+            </div>
             <!-- NEW -->
             {% if content != 'movement_log' and content != 'home' and content != 'login_log' %}
                 <div class="modal fade" id="id_modal_new" tabindex="-1" role="dialog" aria-labelledby="id_modal_new">
