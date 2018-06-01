@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 <script>
     $('#id_nav_btn_export').click(function() {
-        location.href = "/export/{{ content }}/";
+        if ('{{ content }}' === 'reagents') {
+            location.href = "/export/{{ content }}/{% if content_dynamic %}{{ content_dynamic }}{% endif %}/"
+        } else {
+            location.href = "/export/{{ content }}/";
+        }
     })
 </script>

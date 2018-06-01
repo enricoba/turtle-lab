@@ -1686,6 +1686,21 @@ def export(request, dialog):
     return response
 
 
+@require_GET
+@login_required
+@decorators.export_permission
+def export_reagents(request, reagent, dialog):
+    queryset = framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent)
+    data = queryset.export
+    # write pseudo buffer for streaming
+    pseudo_buffer = custom.Echo()
+    writer = csv.writer(pseudo_buffer, delimiter=';')
+    # response
+    response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(reagent)
+    return response
+
+
 """"@require_POST
 @login_required
 def import_data(request, dialog):

@@ -24,6 +24,7 @@ from . import views
 urlpatterns = [
     # export
     url(r'^export/(?P<dialog>\w+)/$', views.export, name='export'),
+    url(r'^export/(?P<dialog>\w+)/(?P<reagent>\w+)/$', views.export_reagents, name='export reagents'),
     # url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
     # others
     url(r'^offset/$', views.offset, name='offset'),

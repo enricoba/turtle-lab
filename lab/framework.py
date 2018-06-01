@@ -641,14 +641,6 @@ class GetView(GetStandard):
             _list.append(tmp)
         return _list
 
-    @property
-    def export(self):
-        value_list = self.table.objects.values_list(*self.header)
-        _return = [tuple(custom.capitalize(self.header))]
-        for row in value_list:
-            _return.append(row)
-        return _return
-
 
 class GetLog(GetStandard):
     pass
@@ -769,6 +761,32 @@ class GetDynamic(GetStandard):
             # append table row
             _list.append(tmp)
         return _list
+
+    @property
+    def export(self):
+        _query = self.query(order_by=self.order_by, type=self.type)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic(row['id'])
+            _tuple = tuple()
+            for field in self.header_start:
+                _tuple += (row[field], )
+
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
+                    _tuple += ('', )
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            _tuple += (row_dynamic['value'], )
+            _tuple += (row['version'], )
+            _list.append(_tuple)
+        _return = [tuple(custom.capitalize(self.header_start)) +
+                   tuple(custom.capitalize(self.type_attributes)) +
+                   ('Version', )]
+        for row in _list:
+            _return.append(row)
+        return _return
 
 
 class GetDynamicAuditTrail(GetStandard):
