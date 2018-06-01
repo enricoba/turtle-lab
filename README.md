@@ -6,7 +6,6 @@ Basic features are:
 
 - location management
 - monitoring of storage conditions
-- audit trails 
 - barcode labels 
 - logs
 - user and permission management 
