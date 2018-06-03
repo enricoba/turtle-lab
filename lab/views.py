@@ -1283,8 +1283,18 @@ def reagents_edit(request, reagent):
 def reagents_delete(request):
         manipulation = framework.TableManipulation(table=models.Reagents,
                                                    table_audit_trail=models.ReagentsAuditTrail)
-        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                user=request.user.username)
+        manipulation_boxing = framework.TableManipulation(table=models.Boxing)
+        # individual loop for deleting reagents to clear boxing list
+        _success_list = list()
+        for item in json.loads(request.POST.get('items')):
+            box = models.Overview.objects.box(unique=item)
+            position = models.Overview.objects.position(unique=item)
+            response = manipulation.delete_at(record=item, user=request.user.username)
+            if box and response:
+                response = manipulation_boxing.clear_boxing(box=box, object='', position=position)
+            _success_list.append(response)
+        response = custom.check_equal(_success_list)
+
         """if response:
             manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
                                                                table_audit_trail=models.DynamicReagentsAuditTrail)

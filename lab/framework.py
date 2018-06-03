@@ -1060,6 +1060,27 @@ class TableManipulation(Master):
     def new_boxing(self, **kwargs):
         return self.new_log(text='boxing', unique='box', **kwargs)
 
+    def clear_boxing(self, **kwargs):
+        """Dedicated function to clear boxing records. WARNING, does not suit framework!
+
+            :return: flag
+            :rtype: bool
+        """
+        try:
+            # parse record data
+            checksum = self.parsing(**kwargs)
+            self.table.objects.filter(box=kwargs['box'],
+                                      position=kwargs['position']).update(**self.dict, checksum=checksum)
+            # success message + log entry
+            message = 'Boxing record for "{}" has been cleared.'.format(kwargs['object'])
+            log.info(message)
+        except:
+            # raise error
+            message = 'Could not clear boxing record for "{}".'.format(kwargs['object'])
+            raise NameError(message)
+        else:
+            return True
+
     def edit_boxing(self, **kwargs):
         """Dedicated function to update boxing records. WARNING, does not suit framework!
 
@@ -1273,6 +1294,14 @@ class TableManipulation(Master):
             else:
                 pass
         return True
+
+    def delete_at(self, user, record):
+        # setting the user for identification
+        self.user = user
+        if self.delete(record):
+            return self.audit_trail(action='Delete')
+        else:
+            return False
 
     def delete(self, record):
         # check if record is existing in the db

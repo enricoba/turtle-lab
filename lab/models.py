@@ -857,7 +857,16 @@ class OverviewManager(GlobalManager):
         return self.filter(object=unique)[0].type
 
     def box(self, unique):
-        return self.filter(object=unique)[0].box
+        try:
+            return self.filter(object=unique)[0].box
+        except IndexError:
+            return None
+
+    def position(self, unique):
+        try:
+            return self.filter(object=unique)[0].position
+        except IndexError:
+            return None
 
     def type(self, unique):
         try:
