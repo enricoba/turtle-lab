@@ -454,10 +454,16 @@ class GetStandard(Master):
         to_verify += str(SECRET)
         checksum = row['checksum']
         try:
-            return argon2.verify(to_verify, checksum)
+            result = argon2.verify(to_verify, checksum)
+            if not result:
+                # return false + log entry
+                message = 'Checksum for "{}" of table "{}" was not correct. Data integrity is at risk!'. \
+                    format(row[self.unique], self.table_name)
+                log.warning(message)
+            return result
         except ValueError or TypeError:
             # return false + log entry
-            message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'.\
+            message = 'Checksum for "{}" of table "{}" was not correct. Data integrity is at risk!'.\
                 format(row[self.unique], self.table_name)
             log.warning(message)
             return False
@@ -700,12 +706,17 @@ class GetDynamic(GetStandard):
         return custom.capitalize(_header)
 
     def table_row_head_total(self, row, query_dynamic):
-        # TODO #59
         if self.verify_checksum(row=row):
+            _success_list = list()
             for row in query_dynamic:
                 if not self.verify_checksum_dynamic(row=row):
-                    return '<tr style="color: red">'
-            return '<tr>'
+                    _success_list.append(False)
+                else:
+                    _success_list.append(True)
+            if custom.check_equal(_success_list):
+                return '<tr>'
+            else:
+                return '<tr style="color: red">'
         else:
             return '<tr style="color: red">'
 
@@ -725,11 +736,21 @@ class GetDynamic(GetStandard):
         to_verify += str(SECRET)
         checksum = row['checksum']
         try:
-            return argon2.verify(to_verify, checksum)
+            result = argon2.verify(to_verify, checksum)
+            if not result:
+                # return false + log entry
+                unique_main = models.Reagents.objects.filter(id=row['id_main'])[0].reagent
+                message = 'Checksum for "{}" attribute "{}" with id "{}" of table "{}" was not correct. ' \
+                          'Data integrity is at risk!'. \
+                    format(unique_main, row['type_attribute'], row[self.dynamic_table_unique], self.dynamic_table_name)
+                log.warning(message)
+            return result
         except ValueError or TypeError:
             # return false + log entry
-            message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'. \
-                format(row[self.dynamic_table_unique], self.dynamic_table_name)
+            unique_main = models.Reagents.objects.filter(id=row['id_main'])[0].reagent
+            message = 'Checksum for "{}" attribute "{}" with id "{}" of table "{}" was not correct. ' \
+                      'Data integrity is at risk!'. \
+                format(unique_main, row['type_attribute'], row[self.dynamic_table_unique], self.dynamic_table_name)
             log.warning(message)
             return False
 
