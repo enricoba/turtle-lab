@@ -64,6 +64,7 @@ function search(id_search, call) {
         return $(this).css('display') !== 'none';
     }).length;
     if (count === 0) {
+        window.scrollTo(0, 0);
         $('#id_search_error').show();
     }
 }
