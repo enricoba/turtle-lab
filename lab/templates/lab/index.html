@@ -833,15 +833,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
             crossorigin="anonymous"></script>
 
+    <!-- JS imports -->
+    <script>
+        {% include "lab/js/csrf.js" %}
+        {% include "lab/js/search.js" %}
+    </script>
 
     {% include "lab/core.html" %}
     {% include "lab/sidebar.html" %}
     {% include "lab/logout.html" %}
     {% include "lab/export.html" %}
     {% include "lab/import.html" %}
-    <script>
-        {% include "lab/js/search.js" %}
-    </script>
 
     {% if tables %}
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}

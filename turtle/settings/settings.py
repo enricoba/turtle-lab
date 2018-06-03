@@ -246,7 +246,7 @@ CONN_MAX_AGE = None
 
 # security settings of type bool
 CSRF_COOKIE_SECURE = custom.value_to_bool(os.environ.get('CSRF_COOKIE_SECURE', 0))
-CSRF_USE_SESSIONS = custom.value_to_bool(os.environ.get('CSRF_USE_SESSIONS', 0))
+CSRF_USE_SESSIONS = custom.value_to_bool(os.environ.get('CSRF_USE_SESSIONS', 1))
 SESSION_COOKIE_SECURE = custom.value_to_bool(os.environ.get('SESSION_COOKIE_SECURE', 0))
 SECURE_CONTENT_TYPE_NOSNIFF = custom.value_to_bool(os.environ.get('SECURE_CONTENT_TYPE_NOSNIFF', 0))
 SECURE_BROWSER_XSS_FILTER = custom.value_to_bool(os.environ.get('SECURE_BROWSER_XSS_FILTER', 0))
