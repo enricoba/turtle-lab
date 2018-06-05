@@ -1,3 +1,11 @@
+DROP VIEW IF EXISTS overview;
+DROP VIEW IF EXISTS tmp_overview_loc_merged;
+DROP VIEW IF EXISTS tmp_overview_box_loc;
+DROP VIEW IF EXISTS tmp_overview_loc;
+DROP VIEW IF EXISTS tmp_overview_box;
+DROP VIEW IF EXISTS tmp_overview;
+
+
 CREATE OR REPLACE VIEW public.tmp_overview as
 	SELECT
 		b.box AS object,

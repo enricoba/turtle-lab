@@ -1183,7 +1183,9 @@ def reagents(request, reagent):
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent),
-        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail, dt=request.session['offset']),
+        get_audit_trail=framework.GetDynamicAuditTrail(table=models.ReagentsAuditTrail,
+                                                       dynamic_table=models.DynamicReagentsAuditTrail,
+                                                       type=reagent, dt=request.session['offset']),
         form_render_new=forms.ReagentsFormNew(),
         form_render_edit=forms.ReagentsFormEdit())
     return render(request, 'lab/index.html', context)
@@ -1193,9 +1195,10 @@ def reagents(request, reagent):
 @login_required
 @decorators.permission('re_r', 're_w', 're_d', 're_l')
 @decorators.require_ajax
-def reagents_audit_trail(request):
-    response, data = framework.GetAuditTrail(
-        table=models.ReagentsAuditTrail, dt=request.session['offset']).get(
+def reagents_audit_trail(request, reagent):
+    response, data = framework.GetDynamicAuditTrail(table=models.ReagentsAuditTrail,
+                                                    dynamic_table=models.DynamicReagentsAuditTrail,
+                                                    type=reagent, dt=request.session['offset']).get(
         id_ref=models.Reagents.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}
@@ -1283,8 +1286,18 @@ def reagents_edit(request, reagent):
 def reagents_delete(request):
         manipulation = framework.TableManipulation(table=models.Reagents,
                                                    table_audit_trail=models.ReagentsAuditTrail)
-        response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                                user=request.user.username)
+        manipulation_boxing = framework.TableManipulation(table=models.Boxing)
+        # individual loop for deleting reagents to clear boxing list
+        _success_list = list()
+        for item in json.loads(request.POST.get('items')):
+            box = models.Overview.objects.box(unique=item)
+            position = models.Overview.objects.position(unique=item)
+            response = manipulation.delete_at(record=item, user=request.user.username)
+            if box and response:
+                response = manipulation_boxing.clear_boxing(box=box, object='', position=position)
+            _success_list.append(response)
+        response = custom.check_equal(_success_list)
+
         """if response:
             manipulation_dynamic = framework.TableManipulation(table=models.DynamicReagents,
                                                                table_audit_trail=models.DynamicReagentsAuditTrail)
@@ -1603,35 +1616,75 @@ def overview_locate(request):
         return JsonResponse(data)
     _type = models.Overview.objects.type(unique=request.GET.get('unique'))
     box_count = models.Boxes.objects.count_box_by_type(type=_type)
-    if box_count == 0:
-        box = '---'
-        location = '---'
-        position = '---'
+    count_mixed = models.Boxes.objects.count_box_by_type(type='')
+    if box_count == 0 and count_mixed == 0:
         data = {'response': True,
-                'location': location,
-                'box': box,
-                'position': position}
+                'location': '---',
+                'box': '---',
+                'position': '---'}
         return JsonResponse(data)
-    for x in range(box_count):
-        box = models.Boxes.objects.box_by_type(type=_type, count=x)
-        position = models.Boxing.objects.next_position(box=box[:7])
-        location = models.Overview.objects.location(unique=box[:7])
-        if not location:
-            location = '---'
-        if position:
-            data = {'response': True,
-                    'location': location,
-                    'box': box,
-                    'position': position}
-            return JsonResponse(data)
-        else:
-            if x == box_count:
-                position = '---'
+    else:
+        # if dedicated boxes exist first check them
+        if box_count > 0:
+            # check dedicated boxes
+            for x in range(box_count):
+                box = models.Boxes.objects.box_by_type(type=_type, count=x)
+                position = models.Boxing.objects.next_position(box=box[:7])
+                location = models.Overview.objects.location(unique=box[:7])
+                if not location:
+                    location = '---'
+                if position:
+                    data = {'response': True,
+                            'location': location,
+                            'box': box,
+                            'position': position}
+                    return JsonResponse(data)
+            # if no return happened, check if mixes boxes exist
+            if count_mixed > 0:
+                for x in range(count_mixed):
+                    box = models.Boxes.objects.box_by_type(type='', count=x)
+                    position = models.Boxing.objects.next_position(box=box[:7])
+                    location = models.Overview.objects.location(unique=box[:7])
+                    if not location:
+                        location = '---'
+                    if position:
+                        data = {'response': True,
+                                'location': location,
+                                'box': box,
+                                'position': position}
+                        return JsonResponse(data)
+                # no position in mixed boxes return nothing
                 data = {'response': True,
-                        'location': location,
-                        'box': box,
-                        'position': position}
+                        'location': '---',
+                        'box': '---',
+                        'position': '---'}
                 return JsonResponse(data)
+            # return nothing if no mixed boxes available
+            else:
+                data = {'response': True,
+                        'location': '---',
+                        'box': '---',
+                        'position': '---'}
+                return JsonResponse(data)
+        if count_mixed > 0:
+            for x in range(count_mixed):
+                box = models.Boxes.objects.box_by_type(type='', count=x)
+                position = models.Boxing.objects.next_position(box=box[:7])
+                location = models.Overview.objects.location(unique=box[:7])
+                if not location:
+                    location = '---'
+                if position:
+                    data = {'response': True,
+                            'location': location,
+                            'box': box,
+                            'position': position}
+                    return JsonResponse(data)
+            # no position in mixed boxes return nothing
+            data = {'response': True,
+                    'location': '---',
+                    'box': '---',
+                    'position': '---'}
+            return JsonResponse(data)
 
 
 @require_POST
@@ -1683,6 +1736,21 @@ def export(request, dialog):
     # response
     response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dialog)
+    return response
+
+
+@require_GET
+@login_required
+@decorators.export_permission
+def export_reagents(request, reagent, dialog):
+    queryset = framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent)
+    data = queryset.export
+    # write pseudo buffer for streaming
+    pseudo_buffer = custom.Echo()
+    writer = csv.writer(pseudo_buffer, delimiter=';')
+    # response
+    response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(reagent)
     return response
 
 

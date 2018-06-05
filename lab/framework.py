@@ -454,10 +454,16 @@ class GetStandard(Master):
         to_verify += str(SECRET)
         checksum = row['checksum']
         try:
-            return argon2.verify(to_verify, checksum)
+            result = argon2.verify(to_verify, checksum)
+            if not result:
+                # return false + log entry
+                message = 'Checksum for "{}" of table "{}" was not correct. Data integrity is at risk!'. \
+                    format(row[self.unique], self.table_name)
+                log.warning(message)
+            return result
         except ValueError or TypeError:
             # return false + log entry
-            message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'.\
+            message = 'Checksum for "{}" of table "{}" was not correct. Data integrity is at risk!'.\
                 format(row[self.unique], self.table_name)
             log.warning(message)
             return False
@@ -641,14 +647,6 @@ class GetView(GetStandard):
             _list.append(tmp)
         return _list
 
-    @property
-    def export(self):
-        value_list = self.table.objects.values_list(*self.header)
-        _return = [tuple(custom.capitalize(self.header))]
-        for row in value_list:
-            _return.append(row)
-        return _return
-
 
 class GetLog(GetStandard):
     pass
@@ -678,8 +676,8 @@ class GetDynamic(GetStandard):
     def query_dynamic(self, id_main):
         """Query dynamic table for main record id.
 
-            :param id_ref: main record identifier id
-            :type id_ref: int
+            :param id_main: main record identifier id
+            :type id_main: int
 
             :return: records for id_ref
             :rtype: django.db.models.query.QuerySet
@@ -708,12 +706,17 @@ class GetDynamic(GetStandard):
         return custom.capitalize(_header)
 
     def table_row_head_total(self, row, query_dynamic):
-        # TODO #59
         if self.verify_checksum(row=row):
+            _success_list = list()
             for row in query_dynamic:
                 if not self.verify_checksum_dynamic(row=row):
-                    return '<tr style="color: red">'
-            return '<tr>'
+                    _success_list.append(False)
+                else:
+                    _success_list.append(True)
+            if custom.check_equal(_success_list):
+                return '<tr>'
+            else:
+                return '<tr style="color: red">'
         else:
             return '<tr style="color: red">'
 
@@ -733,11 +736,21 @@ class GetDynamic(GetStandard):
         to_verify += str(SECRET)
         checksum = row['checksum']
         try:
-            return argon2.verify(to_verify, checksum)
+            result = argon2.verify(to_verify, checksum)
+            if not result:
+                # return false + log entry
+                unique_main = models.Reagents.objects.filter(id=row['id_main'])[0].reagent
+                message = 'Checksum for "{}" attribute "{}" with id "{}" of table "{}" was not correct. ' \
+                          'Data integrity is at risk!'. \
+                    format(unique_main, row['type_attribute'], row[self.dynamic_table_unique], self.dynamic_table_name)
+                log.warning(message)
+            return result
         except ValueError or TypeError:
             # return false + log entry
-            message = 'Checksum for "{}" of table "{}" was not correct.\nData integrity is at risk!'. \
-                format(row[self.dynamic_table_unique], self.dynamic_table_name)
+            unique_main = models.Reagents.objects.filter(id=row['id_main'])[0].reagent
+            message = 'Checksum for "{}" attribute "{}" with id "{}" of table "{}" was not correct. ' \
+                      'Data integrity is at risk!'. \
+                format(unique_main, row['type_attribute'], row[self.dynamic_table_unique], self.dynamic_table_name)
             log.warning(message)
             return False
 
@@ -770,50 +783,137 @@ class GetDynamic(GetStandard):
             _list.append(tmp)
         return _list
 
-
-class GetDynamicAuditTrail(GetStandard):
-    def __init__(self, table, dynamic_table, type):
-        super().__init__(table)
-        self.type = type
-
-    def table_row_head_total(self, row, query_dynamic):
-        # TODO #59
-        if self.verify_checksum(row=row):
-            for row in query_dynamic:
-                if not self.verify_checksum_dynamic(row=row):
-                    return '<tr class="tmp_audit_trail" style="color: red">'
-            return '<tr class="tmp_audit_trail">'
-        else:
-            return '<tr class="tmp_audit_trail" style="color: red">'
-
-    def get(self, **dic):
+    @property
+    def export(self):
         _query = self.query(order_by=self.order_by, type=self.type)
         _list = list()
         for row in _query:
             _query_dynamic = self.query_dynamic(row['id'])
-            tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
-            # adding all tds for builder_header_start
+            _tuple = tuple()
             for field in self.header_start:
-                # tagging the unique field
-                if field == self.unique:
-                    tmp += '<td class="unique gui">{}</td>'.format(row[field])
-                else:
-                    tmp += '<td class="gui">{}</td>'.format(row[field])
-            # adding all tds for builder_header_dynamic
+                _tuple += (row[field], )
+
             for field in self.type_attributes:
                 if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
-                    tmp += '<td class="gui"></td>'
+                    _tuple += ('', )
                 else:
                     for row_dynamic in _query_dynamic:
                         if field == row_dynamic['type_attribute']:
-                            tmp += '<td class="gui">{}</td>'.format(row_dynamic['value'])
+                            _tuple += (row_dynamic['value'], )
+            _tuple += (row['version'], )
+            _list.append(_tuple)
+        _return = [tuple(custom.capitalize(self.header_start)) +
+                   tuple(custom.capitalize(self.type_attributes)) +
+                   ('Version', )]
+        for row in _list:
+            _return.append(row)
+        return _return
+
+
+class GetDynamicAuditTrail(GetDynamic):
+    def __init__(self, table, dynamic_table, type, dt=None):
+        super().__init__(table, dynamic_table, type)
+        if dt:
+            self.dt = datetime.timedelta(seconds=int(dt) * 60)
+            self.utc_offset = custom.fill_up_time_delta(dt)
+
+    def query_dynamic_at(self, id_main, version):
+        """Query dynamic table for main record id.
+
+            :param id_main: main record identifier id
+            :type id_main: int
+
+            :param version: version of the audit trail record stored in id_ref
+            :type version: int
+
+            :return: records for id_ref
+            :rtype: django.db.models.query.QuerySet
+        """
+        return self.dynamic_table.objects.filter(id_main=id_main, id_ref=version).values()
+
+    @property
+    def header(self):
+        _header = self._table_header
+        _header.remove('id')
+        _header.remove('checksum')
+        _header.remove('id_ref')
+        return _header
+
+    @property
+    def header_start(self):
+        _header_start = self.header
+        if self.affiliation == 'Reagents':
+            _header_start.remove('type')
+        _header_start.remove('version')
+        _header_start.remove('action')
+        _header_start.remove('user')
+        _header_start.remove('timestamp')
+        return _header_start
+
+    @property
+    def header_dynamic(self):
+        _header_dynamic = self._table_header_dynamic
+        _header_dynamic.remove('id')
+        _header_dynamic.remove('checksum')
+        _header_dynamic.remove('id_ref')
+        # _header_dynamic.remove('id_main')
+        return _header_dynamic
+
+    @property
+    def html_header(self):
+        _header = self.header_start + self.type_attributes
+        _header.append('Version')
+        _header.append('action')
+        _header.append('user')
+        _header.append('timestamp')
+        return custom.capitalize(_header)
+
+    def table_row_head_total(self, row, query_dynamic):
+        if self.verify_checksum(row=row):
+            _success_list = list()
+            for row in query_dynamic:
+                if not self.verify_checksum_dynamic(row=row):
+                    _success_list.append(False)
+                else:
+                    _success_list.append(True)
+            if custom.check_equal(_success_list):
+                return '<tr class="tmp_audit_trail">'
+            else:
+                return '<tr class="tmp_audit_trail" style="color: red">'
+        else:
+            return '<tr class="tmp_audit_trail" style="color: red">'
+
+    def get(self, **dic):
+        _query = self.query(order_by=self.order_by, type=self.type, **dic)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic_at(id_main=row['id_ref'], version=row['version'])
+            tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
+            # adding all tds for builder_header_start
+            for field in self.header_start:
+                # only payload
+                tmp += '<td>{}</td>'.format(row[field])
+            # adding all tds for builder_header_dynamic
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id_ref'],
+                                                                                   version=row['version']):
+                    tmp += '<td></td>'
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            tmp += '<td>{}</td>'.format(row_dynamic['value'])
             # adding all tds for builder_header_end
             tmp += '<td>{}</td>'.format(row['version'])
+            tmp += '<td>{}</td>'.format(row['action'])
+            tmp += '<td>{}</td>'.format(row['user'])
+            tmp += '<td>{}</td>'.format(custom.format_timestamp(timestamp=row['timestamp'],
+                                                                dt=self.dt,
+                                                                utc_offset=self.utc_offset))
             # close table
             tmp += '</tr>'
             # append table row
             _list.append(tmp)
-        return _list
+        return True, _list
 
 
 class TableManipulation(Master):
@@ -1020,6 +1120,27 @@ class TableManipulation(Master):
 
     def new_boxing(self, **kwargs):
         return self.new_log(text='boxing', unique='box', **kwargs)
+
+    def clear_boxing(self, **kwargs):
+        """Dedicated function to clear boxing records. WARNING, does not suit framework!
+
+            :return: flag
+            :rtype: bool
+        """
+        try:
+            # parse record data
+            checksum = self.parsing(**kwargs)
+            self.table.objects.filter(box=kwargs['box'],
+                                      position=kwargs['position']).update(**self.dict, checksum=checksum)
+            # success message + log entry
+            message = 'Boxing record for "{}" has been cleared.'.format(kwargs['object'])
+            log.info(message)
+        except:
+            # raise error
+            message = 'Could not clear boxing record for "{}".'.format(kwargs['object'])
+            raise NameError(message)
+        else:
+            return True
 
     def edit_boxing(self, **kwargs):
         """Dedicated function to update boxing records. WARNING, does not suit framework!
@@ -1234,6 +1355,14 @@ class TableManipulation(Master):
             else:
                 pass
         return True
+
+    def delete_at(self, user, record):
+        # setting the user for identification
+        self.user = user
+        if self.delete(record):
+            return self.audit_trail(action='Delete')
+        else:
+            return False
 
     def delete(self, record):
         # check if record is existing in the db

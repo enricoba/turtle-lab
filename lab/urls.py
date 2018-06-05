@@ -24,6 +24,7 @@ from . import views
 urlpatterns = [
     # export
     url(r'^export/(?P<dialog>\w+)/$', views.export, name='export'),
+    url(r'^export/(?P<dialog>\w+)/(?P<reagent>\w+)/$', views.export_reagents, name='export reagents'),
     # url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
     # others
     url(r'^offset/$', views.offset, name='offset'),
@@ -74,9 +75,8 @@ urlpatterns = [
     # reagents
     url(r'^reagents/new/(?P<reagent>\w+)/$', views.reagents_new, name='reagents new'),
     url(r'^reagents/edit/(?P<reagent>\w+)/$', views.reagents_edit, name='reagents edit'),
-    # url(r'^reagents/edit/$', views.reagents_edit, name='reagents edit'),
     url(r'^reagents/delete/$', views.reagents_delete, name='reagents delete'),
-    url(r'^reagents/audit_trail/$', views.reagents_audit_trail, name='reagents audit trail'),
+    url(r'^reagents/audit_trail/(?P<reagent>\w+)/$', views.reagents_audit_trail, name='reagents audit trail'),
     url(r'^reagents/label/$', views.reagents_label, name='reagents label'),
     url(r'^reagents/(?P<reagent>\w+)/$', views.reagents, name='reagents'),
     # logs

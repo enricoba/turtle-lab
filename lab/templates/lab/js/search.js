@@ -54,8 +54,17 @@ function search(id_search, call) {
         // hide if no hit
         if (finder > 0) {
             row[i].style.display = "";
+            $('#id_search_error').hide();
         } else {
             row[i].style.display = "none";
         }
+    }
+
+    var count = row.filter(function() {
+        return $(this).css('display') !== 'none';
+    }).length;
+    if (count === 0) {
+        window.scrollTo(0, 0);
+        $('#id_search_error').show();
     }
 }

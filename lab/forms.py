@@ -336,10 +336,11 @@ class TypeAttributesFormNew(forms.Form):
                                   widget=forms.Select(attrs={'class': 'form-control'}),
                                   help_text='Select a type.')
     list_values = forms.CharField(label='list values', max_length=DEFAULT, required=False,
-                                  help_text='Enter values via comma separated list.',
+                                  help_text='Enter values separated by commas to generate a selectable drop down '
+                                            'list. This field is optional.',
                                   widget=forms.TextInput(attrs={'class': 'form-control'}))
     default_value = forms.CharField(label='default value', max_length=DEFAULT, required=False,
-                                    help_text='Enter a default value.',
+                                    help_text='Enter a default value. This field is optional.',
                                     widget=forms.TextInput(attrs={'class': 'form-control'}))
     mandatory = forms.BooleanField(label='mandatory', required=False, help_text='Define if field is mandatory.',
                                    widget=forms.CheckboxInput(attrs={'class': 'form-control', 'style': 'align: left'}))

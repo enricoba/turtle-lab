@@ -207,3 +207,8 @@ html, body {
 .sidebar-active a svg {
     color: white;
 }
+
+.search-error {
+    text-align: center;
+    color: red;
+}

@@ -1,6 +1,6 @@
-<!--
+/*
 turtle-lab.org
-Copyright (C) 2017  Henrik Baran
+Copyright (C) 2018  Henrik Baran
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,14 +14,22 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
+*/
 
-<script>
-    $('#id_nav_btn_export').click(function() {
-        if ('{{ content }}' === 'reagents') {
-            location.href = "/export/{{ content }}/{% if content_dynamic %}{{ content_dynamic }}{% endif %}/"
-        } else {
-            location.href = "/export/{{ content }}/";
+
+// define csrf token according to https://docs.djangoproject.com/en/1.11/ref/csrf/
+var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
-    })
-</script>
+    }
+});

@@ -387,7 +387,12 @@ class DynamicReagents(models.Model):
 
 # audit trail manager
 class DynamicReagentsAuditTrailManager(GlobalAuditTrailManager):
-    pass
+    def list_of_type_attributes(self, id_main, version):
+        try:
+            return list(self.filter(id_main=id_main, id_ref=version).order_by('id').
+                        values_list('type_attribute', flat=True))
+        except IndexError:
+            return list()
 
 
 # audit trail table
@@ -857,7 +862,16 @@ class OverviewManager(GlobalManager):
         return self.filter(object=unique)[0].type
 
     def box(self, unique):
-        return self.filter(object=unique)[0].box
+        try:
+            return self.filter(object=unique)[0].box
+        except IndexError:
+            return None
+
+    def position(self, unique):
+        try:
+            return self.filter(object=unique)[0].position
+        except IndexError:
+            return None
 
     def type(self, unique):
         try:

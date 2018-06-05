@@ -122,7 +122,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </ul>
             </div>
             <div class="sidebar-bottom">
-                Version: 0.1.0-alpha.1
+                Version: 0.1.0-alpha.2
             </div>
         </div>
     {% endif %}
@@ -313,7 +313,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <!--<button id="id_nav_btn_filter" type="button" class="btn btn-default disabled">
                         <i class="fas fa-filter"></i></button>-->
             </div>
-            <form style="float: left; padding-left: 5px;">
+            <form style="float: left; padding-left: 5px;" onsubmit="return false">
                 <div class="input-group" style="height: 46px;">
                     <span class="input-group-addon" id="basic-addon1"><i class="fas fa-search"></i></span>
                     <input id="id_search" style="height: 46px;" type="text" class="form-control" placeholder="Search"
@@ -365,6 +365,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     {% endblock %}
                 </tbody>
             </table>
+            <div id="id_search_error" class="container-fluid search-error" style="display: none">
+                <h1>no records have been found ...</h1>
+            </div>
             <!-- NEW -->
             {% if content != 'movement_log' and content != 'home' and content != 'login_log' %}
                 <div class="modal fade" id="id_modal_new" tabindex="-1" role="dialog" aria-labelledby="id_modal_new">
@@ -830,17 +833,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
             crossorigin="anonymous"></script>
 
-
-    {% include "lab/core.html" %}
-    {% include "lab/sidebar.html" %}
-    {% include "lab/logout.html" %}
-    {% include "lab/export.html" %}
-    {% include "lab/import.html" %}
+    <!-- JS imports -->
     <script>
-        {% include "lab/js/search.js" %}
+        {% include "lab/js/csrf.js" %}
+        {% include "lab/js/core.js" %}
     </script>
 
+    {% include "lab/logout.html" %}
+
     {% if tables %}
+        {% include "lab/export.html" %}
+        {% include "lab/import.html" %}
+        {% include "lab/sidebar.html" %}
+        <script>
+            {% include "lab/js/search.js" %}
+        </script>
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
             {% include "lab/audittrail.html" %}
             {% include "lab/new.html" %}
@@ -853,12 +860,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'locations' or content == 'reagents' or content == 'boxes' %}
         {% include "lab/label.html" %}
-    {% endif %}
-
-    {% if content == 'home' %}
-        {% include "lab/movement.html" %}
-        {% include "lab/boxing.html" %}
-        {% include "lab/form.html" %}
     {% endif %}
 
     {% if content == 'overview' %}

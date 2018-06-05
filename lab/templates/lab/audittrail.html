@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             var item = $('#id_table').find('#id_unique').find("td:first").text();
             $.ajax({
                 method: "GET",
-                url: "/" + "{{ content }}" + "/audit_trail/",
+                url: "/" + "{{ content }}" + "/audit_trail/{% if content_dynamic %}{{ content_dynamic }}/{% endif %}",
                 data: {
                     'unique': item
                 },
