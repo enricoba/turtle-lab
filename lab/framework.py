@@ -676,8 +676,8 @@ class GetDynamic(GetStandard):
     def query_dynamic(self, id_main):
         """Query dynamic table for main record id.
 
-            :param id_ref: main record identifier id
-            :type id_ref: int
+            :param id_main: main record identifier id
+            :type id_main: int
 
             :return: records for id_ref
             :rtype: django.db.models.query.QuerySet
@@ -810,49 +810,110 @@ class GetDynamic(GetStandard):
         return _return
 
 
-class GetDynamicAuditTrail(GetStandard):
-    def __init__(self, table, dynamic_table, type):
-        super().__init__(table)
-        self.type = type
+class GetDynamicAuditTrail(GetDynamic):
+    def __init__(self, table, dynamic_table, type, dt=None):
+        super().__init__(table, dynamic_table, type)
+        if dt:
+            self.dt = datetime.timedelta(seconds=int(dt) * 60)
+            self.utc_offset = custom.fill_up_time_delta(dt)
+
+    def query_dynamic_at(self, id_main, version):
+        """Query dynamic table for main record id.
+
+            :param id_main: main record identifier id
+            :type id_main: int
+
+            :param version: version of the audit trail record stored in id_ref
+            :type version: int
+
+            :return: records for id_ref
+            :rtype: django.db.models.query.QuerySet
+        """
+        return self.dynamic_table.objects.filter(id_main=id_main, id_ref=version).values()
+
+    @property
+    def header(self):
+        _header = self._table_header
+        _header.remove('id')
+        _header.remove('checksum')
+        _header.remove('id_ref')
+        return _header
+
+    @property
+    def header_start(self):
+        _header_start = self.header
+        if self.affiliation == 'Reagents':
+            _header_start.remove('type')
+        _header_start.remove('version')
+        _header_start.remove('action')
+        _header_start.remove('user')
+        _header_start.remove('timestamp')
+        return _header_start
+
+    @property
+    def header_dynamic(self):
+        _header_dynamic = self._table_header_dynamic
+        _header_dynamic.remove('id')
+        _header_dynamic.remove('checksum')
+        _header_dynamic.remove('id_ref')
+        # _header_dynamic.remove('id_main')
+        return _header_dynamic
+
+    @property
+    def html_header(self):
+        _header = self.header_start + self.type_attributes
+        _header.append('Version')
+        _header.append('action')
+        _header.append('user')
+        _header.append('timestamp')
+        return custom.capitalize(_header)
 
     def table_row_head_total(self, row, query_dynamic):
-        # TODO #59
         if self.verify_checksum(row=row):
+            _success_list = list()
             for row in query_dynamic:
                 if not self.verify_checksum_dynamic(row=row):
-                    return '<tr class="tmp_audit_trail" style="color: red">'
-            return '<tr class="tmp_audit_trail">'
+                    _success_list.append(False)
+                else:
+                    _success_list.append(True)
+            if custom.check_equal(_success_list):
+                return '<tr class="tmp_audit_trail">'
+            else:
+                return '<tr class="tmp_audit_trail" style="color: red">'
         else:
             return '<tr class="tmp_audit_trail" style="color: red">'
 
     def get(self, **dic):
-        _query = self.query(order_by=self.order_by, type=self.type)
+        _query = self.query(order_by=self.order_by, type=self.type, **dic)
         _list = list()
         for row in _query:
-            _query_dynamic = self.query_dynamic(row['id'])
+            _query_dynamic = self.query_dynamic_at(id_main=row['id_ref'], version=row['version'])
             tmp = self.table_row_head_total(row=row, query_dynamic=_query_dynamic)
             # adding all tds for builder_header_start
             for field in self.header_start:
-                # tagging the unique field
-                if field == self.unique:
-                    tmp += '<td class="unique gui">{}</td>'.format(row[field])
-                else:
-                    tmp += '<td class="gui">{}</td>'.format(row[field])
+                # only payload
+                tmp += '<td>{}</td>'.format(row[field])
             # adding all tds for builder_header_dynamic
             for field in self.type_attributes:
-                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id']):
-                    tmp += '<td class="gui"></td>'
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id_ref'],
+                                                                                   version=row['version']):
+                    tmp += '<td></td>'
                 else:
                     for row_dynamic in _query_dynamic:
                         if field == row_dynamic['type_attribute']:
-                            tmp += '<td class="gui">{}</td>'.format(row_dynamic['value'])
+                            tmp += '<td>{}</td>'.format(row_dynamic['value'])
             # adding all tds for builder_header_end
             tmp += '<td>{}</td>'.format(row['version'])
+            tmp += '<td>{}</td>'.format(row['action'])
+            tmp += '<td>{}</td>'.format(row['user'])
+            tmp += '<td>{}</td>'.format(custom.format_timestamp(timestamp=row['timestamp'],
+                                                                dt=self.dt,
+                                                                utc_offset=self.utc_offset))
             # close table
             tmp += '</tr>'
             # append table row
             _list.append(tmp)
-        return _list
+        return True, _list
 
 
 class TableManipulation(Master):

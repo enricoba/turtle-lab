@@ -1183,7 +1183,9 @@ def reagents(request, reagent):
                  'user': request.user.username,
                  'perm': request.user.permissions},
         get_standard=framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent),
-        get_audit_trail=framework.GetAuditTrail(table=models.ReagentsAuditTrail, dt=request.session['offset']),
+        get_audit_trail=framework.GetDynamicAuditTrail(table=models.ReagentsAuditTrail,
+                                                       dynamic_table=models.DynamicReagentsAuditTrail,
+                                                       type=reagent, dt=request.session['offset']),
         form_render_new=forms.ReagentsFormNew(),
         form_render_edit=forms.ReagentsFormEdit())
     return render(request, 'lab/index.html', context)
@@ -1193,9 +1195,10 @@ def reagents(request, reagent):
 @login_required
 @decorators.permission('re_r', 're_w', 're_d', 're_l')
 @decorators.require_ajax
-def reagents_audit_trail(request):
-    response, data = framework.GetAuditTrail(
-        table=models.ReagentsAuditTrail, dt=request.session['offset']).get(
+def reagents_audit_trail(request, reagent):
+    response, data = framework.GetDynamicAuditTrail(table=models.ReagentsAuditTrail,
+                                                    dynamic_table=models.DynamicReagentsAuditTrail,
+                                                    type=reagent, dt=request.session['offset']).get(
         id_ref=models.Reagents.objects.id(request.GET.get('unique')))
     data = {'response': response,
             'data': data}

@@ -387,7 +387,12 @@ class DynamicReagents(models.Model):
 
 # audit trail manager
 class DynamicReagentsAuditTrailManager(GlobalAuditTrailManager):
-    pass
+    def list_of_type_attributes(self, id_main, version):
+        try:
+            return list(self.filter(id_main=id_main, id_ref=version).order_by('id').
+                        values_list('type_attribute', flat=True))
+        except IndexError:
+            return list()
 
 
 # audit trail table
