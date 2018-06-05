@@ -837,15 +837,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <script>
         {% include "lab/js/csrf.js" %}
         {% include "lab/js/core.js" %}
-        {% include "lab/js/search.js" %}
     </script>
 
-    {% include "lab/sidebar.html" %}
     {% include "lab/logout.html" %}
-    {% include "lab/export.html" %}
-    {% include "lab/import.html" %}
 
     {% if tables %}
+        {% include "lab/export.html" %}
+        {% include "lab/import.html" %}
+        {% include "lab/sidebar.html" %}
+        <script>
+            {% include "lab/js/search.js" %}
+        </script>
         {% if content != 'movement_log' and content != 'home' and content != 'login_log' and content != 'boxing_log' %}
             {% include "lab/audittrail.html" %}
             {% include "lab/new.html" %}
@@ -858,12 +860,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     {% if content == 'locations' or content == 'reagents' or content == 'boxes' %}
         {% include "lab/label.html" %}
-    {% endif %}
-
-    {% if content == 'home' %}
-        {% include "lab/movement.html" %}
-        {% include "lab/boxing.html" %}
-        {% include "lab/form.html" %}
     {% endif %}
 
     {% if content == 'overview' %}
