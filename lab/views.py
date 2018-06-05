@@ -1616,35 +1616,75 @@ def overview_locate(request):
         return JsonResponse(data)
     _type = models.Overview.objects.type(unique=request.GET.get('unique'))
     box_count = models.Boxes.objects.count_box_by_type(type=_type)
-    if box_count == 0:
-        box = '---'
-        location = '---'
-        position = '---'
+    count_mixed = models.Boxes.objects.count_box_by_type(type='')
+    if box_count == 0 and count_mixed == 0:
         data = {'response': True,
-                'location': location,
-                'box': box,
-                'position': position}
+                'location': '---',
+                'box': '---',
+                'position': '---'}
         return JsonResponse(data)
-    for x in range(box_count):
-        box = models.Boxes.objects.box_by_type(type=_type, count=x)
-        position = models.Boxing.objects.next_position(box=box[:7])
-        location = models.Overview.objects.location(unique=box[:7])
-        if not location:
-            location = '---'
-        if position:
-            data = {'response': True,
-                    'location': location,
-                    'box': box,
-                    'position': position}
-            return JsonResponse(data)
-        else:
-            if x == box_count:
-                position = '---'
+    else:
+        # if dedicated boxes exist first check them
+        if box_count > 0:
+            # check dedicated boxes
+            for x in range(box_count):
+                box = models.Boxes.objects.box_by_type(type=_type, count=x)
+                position = models.Boxing.objects.next_position(box=box[:7])
+                location = models.Overview.objects.location(unique=box[:7])
+                if not location:
+                    location = '---'
+                if position:
+                    data = {'response': True,
+                            'location': location,
+                            'box': box,
+                            'position': position}
+                    return JsonResponse(data)
+            # if no return happened, check if mixes boxes exist
+            if count_mixed > 0:
+                for x in range(count_mixed):
+                    box = models.Boxes.objects.box_by_type(type='', count=x)
+                    position = models.Boxing.objects.next_position(box=box[:7])
+                    location = models.Overview.objects.location(unique=box[:7])
+                    if not location:
+                        location = '---'
+                    if position:
+                        data = {'response': True,
+                                'location': location,
+                                'box': box,
+                                'position': position}
+                        return JsonResponse(data)
+                # no position in mixed boxes return nothing
                 data = {'response': True,
-                        'location': location,
-                        'box': box,
-                        'position': position}
+                        'location': '---',
+                        'box': '---',
+                        'position': '---'}
                 return JsonResponse(data)
+            # return nothing if no mixed boxes available
+            else:
+                data = {'response': True,
+                        'location': '---',
+                        'box': '---',
+                        'position': '---'}
+                return JsonResponse(data)
+        if count_mixed > 0:
+            for x in range(count_mixed):
+                box = models.Boxes.objects.box_by_type(type='', count=x)
+                position = models.Boxing.objects.next_position(box=box[:7])
+                location = models.Overview.objects.location(unique=box[:7])
+                if not location:
+                    location = '---'
+                if position:
+                    data = {'response': True,
+                            'location': location,
+                            'box': box,
+                            'position': position}
+                    return JsonResponse(data)
+            # no position in mixed boxes return nothing
+            data = {'response': True,
+                    'location': '---',
+                    'box': '---',
+                    'position': '---'}
+            return JsonResponse(data)
 
 
 @require_POST
