@@ -1431,8 +1431,21 @@ TABLES = {
     'label_log': LabelLog,
     'boxing_log': BoxingLog,
     'home': RTD,
-    'Overview': Overview,
+    'overview': Overview,
     'type_attributes': TypeAttributes
+}
+
+# tables for export audit trails
+TABLES_AT = {
+    'reagents': ReagentsAuditTrail,
+    'boxes': BoxesAuditTrail,
+    'box_types': BoxTypesAuditTrail,
+    'conditions': ConditionsAuditTrail,
+    'types': TypesAuditTrail,
+    'locations': LocationsAuditTrail,
+    'roles': RolesAuditTrail,
+    'users': UserAuditTrail,
+    'type_attributes': TypeAttributesAuditTrail
 }
 
 EXPORT_PERMISSIONS = {

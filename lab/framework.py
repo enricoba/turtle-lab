@@ -522,9 +522,12 @@ class GetStandard(Master):
             _list.append(tmp)
         return _list
 
-    @property
-    def export(self):
-        value_list = self.table.objects.values_list(*self.header)
+    def export(self, id_ref=None):
+        if id_ref:
+            value_list = self.table.objects.filter(id_ref=id_ref).values_list(*self.header)
+        else:
+            value_list = self.table.objects.values_list(*self.header)
+
         _return = [tuple(custom.capitalize(self.header))]
         for row in value_list:
             _return.append(row)

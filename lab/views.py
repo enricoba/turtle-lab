@@ -182,9 +182,11 @@ def roles(request):
 @decorators.permission('ro_r', 'ro_w', 'ro_d')
 @decorators.require_ajax
 def roles_audit_trail(request):
+    id_ref = models.Roles.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.RolesAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.Roles.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -273,9 +275,11 @@ def users(request):
 @decorators.permission('us_r', 'us_w', 'us_a', 'us_p')
 @decorators.require_ajax
 def users_audit_trail(request):
+    id_ref = models.Users.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.UserAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.Users.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -450,9 +454,11 @@ def conditions(request):
 @decorators.permission('co_r', 'co_w', 'co_d')
 @decorators.require_ajax
 def conditions_audit_trail(request):
+    id_ref = models.Conditions.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.ConditionsAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.Conditions.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -536,9 +542,11 @@ def locations(request):
 @decorators.permission('lo_r', 'lo_w', 'lo_d', 'lo_l')
 @decorators.require_ajax
 def locations_audit_trail(request):
+    id_ref = models.Locations.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.LocationsAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.Locations.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -650,9 +658,11 @@ def types(request):
 @decorators.permission('ty_r', 'ty_w', 'ty_d')
 @decorators.require_ajax
 def types_audit_trail(request):
+    id_ref = models.Types.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.TypesAuditTrail, dt=request.session['offset']).get(
         id_ref=models.Types.objects.id(request.GET.get('unique')))
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -747,9 +757,11 @@ def boxes(request):
 @decorators.permission('bo_r', 'bo_w', 'bo_d', 'bo_l')
 @decorators.require_ajax
 def boxes_audit_trail(request):
+    id_ref = models.Boxes.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.BoxesAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.Boxes.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -878,9 +890,11 @@ def type_attributes(request):
 @decorators.permission('ta_r', 'ta_w', 'ta_d')
 @decorators.require_ajax
 def type_attributes_audit_trail(request):
+    id_ref = models.TypeAttributes.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.TypeAttributesAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.TypeAttributes.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -976,9 +990,11 @@ def box_types(request):
 @decorators.permission('bt_r', 'bt_w', 'bt_d')
 @decorators.require_ajax
 def box_types_audit_trail(request):
+    id_ref = models.BoxTypes.objects.id(request.GET.get('unique'))
     response, data = framework.GetAuditTrail(
         table=models.BoxTypesAuditTrail, dt=request.session['offset']).get(
-        id_ref=models.BoxTypes.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -1720,22 +1736,37 @@ def overview_boxing(request):
 @login_required
 @decorators.export_permission
 def export(request, dialog):
-    if dialog == 'home':
-        queryset = framework.GetView(table=models.RTD)
-        data = queryset.export
-    elif dialog == 'overview':
+    if dialog == 'overview':
         queryset = framework.GetView(table=models.Overview)
-        data = queryset.export
     else:
         table = models.TABLES[dialog]
         queryset = framework.GetStandard(table=table)
-        data = queryset.export
+    data = queryset.export()
     # write pseudo buffer for streaming
     pseudo_buffer = custom.Echo()
     writer = csv.writer(pseudo_buffer, delimiter=';')
     # response
     response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(dialog)
+    return response
+
+
+@require_GET
+@login_required
+@decorators.export_permission
+def export_at(request, dialog):
+    table_at = models.TABLES_AT[dialog]
+    queryset = framework.GetAuditTrail(table=table_at)
+    id_ref = request.session.get('item_audit_trail', False)
+    if not id_ref:
+        return JsonResponse({'response': False})
+    data = queryset.export(id_ref=id_ref)
+    # write pseudo buffer for streaming
+    pseudo_buffer = custom.Echo()
+    writer = csv.writer(pseudo_buffer, delimiter=';')
+    # response
+    response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="{}_log_records.csv"'.format(dialog)
     return response
 
 

@@ -23,5 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         } else {
             location.href = "/export/{{ content }}/";
         }
-    })
+    });
+
+    // export audit trails
+    $('#id_nav_audit_trail_btn_export').click(function() {
+        if ('{{ content }}' === 'reagents') {
+            location.href = "/export_at/{{ content }}/{% if content_dynamic %}{{ content_dynamic }}{% endif %}/"
+        } else {
+            location.href = "/export_at/{{ content }}/";
+        }
+    });
 </script>

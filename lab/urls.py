@@ -24,6 +24,7 @@ from . import views
 urlpatterns = [
     # export
     url(r'^export/(?P<dialog>\w+)/$', views.export, name='export'),
+    url(r'^export_at/(?P<dialog>\w+)/$', views.export_at, name='export audit trail'),
     url(r'^export/(?P<dialog>\w+)/(?P<reagent>\w+)/$', views.export_reagents, name='export reagents'),
     # url(r'^import/(?P<dialog>\w+)/$', views.import_data, name='import'),
     # others
