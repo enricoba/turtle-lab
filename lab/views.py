@@ -1212,10 +1212,12 @@ def reagents(request, reagent):
 @decorators.permission('re_r', 're_w', 're_d', 're_l')
 @decorators.require_ajax
 def reagents_audit_trail(request, reagent):
+    id_ref = models.Reagents.objects.id(request.GET.get('unique'))
     response, data = framework.GetDynamicAuditTrail(table=models.ReagentsAuditTrail,
                                                     dynamic_table=models.DynamicReagentsAuditTrail,
                                                     type=reagent, dt=request.session['offset']).get(
-        id_ref=models.Reagents.objects.id(request.GET.get('unique')))
+        id_ref=id_ref)
+    request.session['item_audit_trail'] = id_ref
     data = {'response': response,
             'data': data}
     return JsonResponse(data)
@@ -1775,13 +1777,32 @@ def export_at(request, dialog):
 @decorators.export_permission
 def export_reagents(request, reagent, dialog):
     queryset = framework.GetDynamic(table=models.Reagents, dynamic_table=models.DynamicReagents, type=reagent)
-    data = queryset.export
+    data = queryset.export()
     # write pseudo buffer for streaming
     pseudo_buffer = custom.Echo()
     writer = csv.writer(pseudo_buffer, delimiter=';')
     # response
     response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(reagent)
+    return response
+
+
+@require_GET
+@login_required
+@decorators.export_permission
+def export_reagents_at(request, reagent, dialog):
+    queryset = framework.GetDynamicAuditTrail(table=models.ReagentsAuditTrail,
+                                              dynamic_table=models.DynamicReagentsAuditTrail, type=reagent)
+    id_ref = request.session.get('item_audit_trail', False)
+    if not id_ref:
+        return JsonResponse({'response': False})
+    data = queryset.export(id_ref=id_ref)
+    # write pseudo buffer for streaming
+    pseudo_buffer = custom.Echo()
+    writer = csv.writer(pseudo_buffer, delimiter=';')
+    # response
+    response = StreamingHttpResponse((writer.writerow(row) for row in data), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="{}_log_records.csv"'.format(reagent)
     return response
 
 

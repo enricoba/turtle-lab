@@ -786,8 +786,7 @@ class GetDynamic(GetStandard):
             _list.append(tmp)
         return _list
 
-    @property
-    def export(self):
+    def export(self, id_ref=None):
         _query = self.query(order_by=self.order_by, type=self.type)
         _list = list()
         for row in _query:
@@ -917,6 +916,34 @@ class GetDynamicAuditTrail(GetDynamic):
             # append table row
             _list.append(tmp)
         return True, _list
+
+    def export(self, id_ref=None):
+        _query = self.query(order_by=self.order_by, type=self.type, id_ref=id_ref)
+        _list = list()
+        for row in _query:
+            _query_dynamic = self.query_dynamic_at(id_main=row['id_ref'], version=row['version'])
+            _tuple = tuple()
+            for field in self.header_start:
+                _tuple += (row[field],)
+            for field in self.type_attributes:
+                if field not in self.dynamic_table.objects.list_of_type_attributes(id_main=row['id_ref'],
+                                                                                   version=row['version']):
+                    _tuple += ('',)
+                else:
+                    for row_dynamic in _query_dynamic:
+                        if field == row_dynamic['type_attribute']:
+                            _tuple += (row_dynamic['value'],)
+            _tuple += (row['version'],)
+            _tuple += (row['action'],)
+            _tuple += (row['user'],)
+            _tuple += (row['timestamp'],)
+            _list.append(_tuple)
+        _return = [tuple(custom.capitalize(self.header_start)) +
+                   tuple(custom.capitalize(self.type_attributes)) +
+                   ('Version', 'Action', 'User', 'Timestamp',)]
+        for row in _list:
+            _return.append(row)
+        return _return
 
 
 class TableManipulation(Master):
