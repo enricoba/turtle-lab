@@ -513,9 +513,11 @@ def conditions_edit(request):
 def conditions_delete(request):
     manipulation = framework.TableManipulation(table=models.Conditions,
                                                table_audit_trail=models.ConditionsAuditTrail)
-    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                            user=request.user.username)
-    data = {'response': response}
+    response, message = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                     user=request.user.username,
+                                                     ref_check=True)
+    data = {'response': response,
+            'message': message}
     return JsonResponse(data)
 
 
@@ -1057,9 +1059,11 @@ def box_types_edit(request):
 def box_types_delete(request):
     manipulation = framework.TableManipulation(table=models.BoxTypes,
                                                table_audit_trail=models.BoxTypesAuditTrail)
-    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                            user=request.user.username)
-    data = {'response': response}
+    response, message = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                     user=request.user.username,
+                                                     ref_check=True)
+    data = {'response': response,
+            'message': message}
     return JsonResponse(data)
 
 

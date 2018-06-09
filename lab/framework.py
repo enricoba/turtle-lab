@@ -1375,16 +1375,30 @@ class TableManipulation(Master):
             _dic[field] = query[0][field]
         return _dic
 
-    def delete_multiple(self, user, records):
+    def ref_check(self, unique):
+        return models.REF_TABLES[self.table_name].objects.ref_check(unique)
+
+    def ref_items(self, unique):
+        query = models.REF_TABLES[self.table_name].objects.ref_items(unique)
+        tmp = ''
+        for item in query:
+            tmp += '{}, '.format(item)
+        return tmp[:-2]
+
+    def delete_multiple(self, user, records, ref_check=None):
         # setting the user for identification
         self.user = user
         # step through every record to delete
         for record in records:
+            if ref_check:
+                if self.ref_check(record):
+                    refs = self.ref_items(record)
+                    return False, 'Can not be delete because referenced in "{}".'.format(refs)
             if self.delete(record):
                 self.audit_trail(action='Delete')
             else:
                 pass
-        return True
+        return True, None
 
     def delete_at(self, user, record):
         # setting the user for identification
@@ -1413,13 +1427,16 @@ class TableManipulation(Master):
                 # log entry
                 message = 'Record "{}" has been deleted.'.format(record)
                 log.info(message)
-            except:
+            except IndexError:
                 # raise error
                 message = 'Could not delete record "{}".'.format(record)
-                raise NameError(message)
+                log.warning(message)
+                return False
             else:
                 return True
         else:
+            message = 'Could not delete record "{}".'.format(record)
+            log.warning(message)
             return False
 
     def delete_dynamic(self, id_main, identifier, timestamp):

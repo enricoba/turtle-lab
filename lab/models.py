@@ -152,6 +152,18 @@ class LocationsManager(GlobalManager):
         else:
             return False
 
+    def ref_check(self, unique):
+        try:
+            return self.filter(condition=unique).exists()
+        except IndexError:
+            return False
+
+    def ref_items(self, unique):
+        try:
+            return self.filter(condition=unique).values_list(self.unique, flat=True)
+        except IndexError:
+            return None
+
 
 # table
 class Locations(models.Model):
@@ -508,6 +520,18 @@ class BoxesManager(GlobalManager):
             return self.filter(type=type).order_by('box')[count].__str__()
         except IndexError:
             return False
+
+    def ref_check(self, unique):
+        try:
+            return self.filter(box_type=unique).exists()
+        except IndexError:
+            return False
+
+    def ref_items(self, unique):
+        try:
+            return self.filter(box_type=unique).values_list(self.unique, flat=True)
+        except IndexError:
+            return None
 
 
 # table
@@ -1413,6 +1437,12 @@ class BoxingLog(models.Model):
     # manager
     objects = BoxingLogManager()
 
+
+# tables for reference checks used in delete validation
+REF_TABLES = {
+    'lab_conditions': Locations,
+    'lab_boxtypes': Boxes
+}
 
 # tables for export/import
 TABLES = {
