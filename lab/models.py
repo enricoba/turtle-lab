@@ -362,7 +362,9 @@ class TypeAttributesManager(GlobalManager):
                 tmp = str()
                 for row in query:
                     if row[3]:
-                        tmp += '{}, '.format(Reagents.objects.filter(id=row[1]).values_list('reagent', flat=True)[0])
+                        if Reagents.objects.filter(id=row[1]).exists():
+                            tmp += '{}, '.format(Reagents.objects.filter(id=row[1]).values_list('reagent',
+                                                                                                flat=True)[0])
                 if len(tmp) > 0:
                     return tmp[:-2]
                 else:
