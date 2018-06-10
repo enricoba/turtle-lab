@@ -24,6 +24,7 @@ import logging
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from django.db.models import Q
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
@@ -88,6 +89,24 @@ class ConditionsManager(GlobalManager):
     @property
     def unique(self):
         return 'condition'
+
+    def ref_check(self, unique):
+        results = list()
+        tmp = list()
+        try:
+            if Locations.objects.filter(condition=unique).exists():
+                tmp.append(True)
+                results.append(Locations.objects.filter(condition=unique).values_list('location', flat=True))
+            if Types.objects.filter(Q(storage_condition=unique) | Q(usage_condition=unique)).exists():
+                tmp.append(True)
+                results.append(Types.objects.filter(Q(storage_condition=unique) | Q(usage_condition=unique)).
+                               values_list('type', flat=True))
+            if not custom.check_equal(tmp):
+                return False
+            else:
+                return results
+        except IndexError:
+            return False
 
 
 # table
@@ -248,6 +267,23 @@ class TypesManager(GlobalManager):
         except IndexError:
             return False
 
+    def ref_check(self, unique):
+        results = list()
+        tmp = list()
+        try:
+            if TypeAttributes.objects.filter(type=unique).exists():
+                tmp.append(True)
+                results.append(TypeAttributes.objects.filter(type=unique).values_list('column', flat=True))
+            if Boxes.objects.filter(type=unique).exists():
+                tmp.append(True)
+                results.append(Boxes.objects.filter(type=unique).values_list('box', flat=True))
+            if not custom.check_equal(tmp):
+                return False
+            else:
+                return results
+        except IndexError:
+            return False
+
 
 # table
 class Types(models.Model):
@@ -318,6 +354,23 @@ class TypeAttributesManager(GlobalManager):
             return query
         except IndexError:
             return list()
+
+    def ref_check(self, unique):
+        try:
+            if DynamicReagents.objects.filter(type_attribute=unique).exists():
+                query = DynamicReagents.objects.filter(type_attribute=unique).values_list()
+                tmp = str()
+                for row in query:
+                    if row[3]:
+                        tmp += '{}, '.format(Reagents.objects.filter(id=row[1]).values_list('reagent', flat=True)[0])
+                if len(tmp) > 0:
+                    return tmp[:-2]
+                else:
+                    return False
+            else:
+                return False
+        except IndexError:
+            return False
 
 
 # table
@@ -451,6 +504,15 @@ class BoxTypesManager(GlobalManager):
         columns = custom.transform_box_type_figures(self.filter(**dic)[0].columns)
         return rows * columns
 
+    def ref_check(self, unique):
+        try:
+            if Boxes.objects.filter(box_type=unique).exists():
+                return Boxes.objects.filter(box_type=unique).values_list('box', flat=True)
+            else:
+                return False
+        except IndexError:
+            return False
+
 
 # table
 class BoxTypes(models.Model):
@@ -520,18 +582,6 @@ class BoxesManager(GlobalManager):
             return self.filter(type=type).order_by('box')[count].__str__()
         except IndexError:
             return False
-
-    def ref_check(self, unique):
-        try:
-            return self.filter(box_type=unique).exists()
-        except IndexError:
-            return False
-
-    def ref_items(self, unique):
-        try:
-            return self.filter(box_type=unique).values_list(self.unique, flat=True)
-        except IndexError:
-            return None
 
 
 # table
@@ -1083,6 +1133,15 @@ class RolesManager(GlobalManager):
     def permissions(self, role):
         return self.filter(role=role)[0].permissions.split(',')
 
+    def ref_check(self, unique):
+        try:
+            if Users.objects.filter(role=unique).exists():
+                return Users.objects.filter(role=unique).values_list('username', flat=True)
+            else:
+                return False
+        except IndexError:
+            return False
+
 
 # table
 class Roles(models.Model):
@@ -1437,12 +1496,6 @@ class BoxingLog(models.Model):
     # manager
     objects = BoxingLogManager()
 
-
-# tables for reference checks used in delete validation
-REF_TABLES = {
-    'lab_conditions': Locations,
-    'lab_boxtypes': Boxes
-}
 
 # tables for export/import
 TABLES = {

@@ -245,9 +245,11 @@ def roles_edit(request):
 def roles_delete(request):
     manipulation = framework.TableManipulation(table=models.Roles,
                                                table_audit_trail=models.RolesAuditTrail)
-    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                            user=request.user.username)
-    data = {'response': response}
+    response, message = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                     user=request.user.username,
+                                                     ref_check=True)
+    data = {'response': response,
+            'message': message}
     return JsonResponse(data)
 
 
@@ -725,9 +727,11 @@ def types_edit(request):
 def types_delete(request):
     manipulation = framework.TableManipulation(table=models.Types,
                                                table_audit_trail=models.TypesAuditTrail)
-    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                            user=request.user.username)
-    data = {'response': response}
+    response, message = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                     user=request.user.username,
+                                                     ref_check=True)
+    data = {'response': response,
+            'message': message}
     return JsonResponse(data)
 
 
@@ -959,9 +963,11 @@ def type_attributes_edit(request):
 def type_attributes_delete(request):
     manipulation = framework.TableManipulation(table=models.TypeAttributes,
                                                table_audit_trail=models.TypeAttributesAuditTrail)
-    response = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
-                                            user=request.user.username)
-    data = {'response': response}
+    response, message = manipulation.delete_multiple(records=json.loads(request.POST.get('items')),
+                                                     user=request.user.username,
+                                                     ref_check=True)
+    data = {'response': response,
+            'message': message}
     return JsonResponse(data)
 
 #############

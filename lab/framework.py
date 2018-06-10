@@ -1376,13 +1376,19 @@ class TableManipulation(Master):
         return _dic
 
     def ref_check(self, unique):
-        return models.REF_TABLES[self.table_name].objects.ref_check(unique)
-
-    def ref_items(self, unique):
-        query = models.REF_TABLES[self.table_name].objects.ref_items(unique)
+        queryset = self.table.objects.ref_check(unique)
+        if not queryset:
+            return queryset
         tmp = ''
-        for item in query:
-            tmp += '{}, '.format(item)
+        if isinstance(queryset, list):
+            for query in queryset:
+                for item in query:
+                    tmp += '{}, '.format(item)
+        elif isinstance(queryset, str):
+            return queryset
+        else:
+            for item in queryset:
+                tmp += '{}, '.format(item)
         return tmp[:-2]
 
     def delete_multiple(self, user, records, ref_check=None):
@@ -1391,8 +1397,8 @@ class TableManipulation(Master):
         # step through every record to delete
         for record in records:
             if ref_check:
-                if self.ref_check(record):
-                    refs = self.ref_items(record)
+                refs = self.ref_check(record)
+                if refs:
                     return False, 'Can not be delete because referenced in "{}".'.format(refs)
             if self.delete(record):
                 self.audit_trail(action='Delete')
