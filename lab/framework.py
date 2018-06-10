@@ -659,11 +659,20 @@ class GetDynamic(GetStandard):
     def __init__(self, table, dynamic_table, type):
         super().__init__(table)
         self.type = type
+        self._type_attributes = list()
         self.type_attributes = models.TypeAttributes.objects.columns_as_list(type=type)
         self.dynamic_table = dynamic_table
         self.dynamic_table_name = dynamic_table._meta.db_table
         self.dynamic_table_unique = self.dynamic_table.objects.unique
         self.affiliation = models.Types.objects.get_affiliation(type=type)
+
+    @property
+    def type_attributes(self):
+        return self._type_attributes
+
+    @type_attributes.setter
+    def type_attributes(self, value):
+        self._type_attributes = value
 
     @property
     def js_header(self):
@@ -815,6 +824,7 @@ class GetDynamic(GetStandard):
 class GetDynamicAuditTrail(GetDynamic):
     def __init__(self, table, dynamic_table, type, dt=None):
         super().__init__(table, dynamic_table, type)
+        self.type_attributes = list(dict.fromkeys(self.dynamic_table.objects.values_list('type_attribute', flat=True)))
         if dt:
             self.dt = datetime.timedelta(seconds=int(dt) * 60)
             self.utc_offset = custom.fill_up_time_delta(dt)
